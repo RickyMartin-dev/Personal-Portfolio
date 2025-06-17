@@ -9,8 +9,8 @@
 */
 
 html, body, div, span, applet, object,
-iframe, h1, h2, h3, h4, h5, h6, p, blockquote,
-pre, a, abbr, acronym, address, big, cite,
+iframe, h1, h2, h3, h4, h5, h6, p, ap, blockquote, 
+pre, a, aa, abbr, acronym, address, big, cite,
 code, del, dfn, em, img, ins, kbd, q, s, samp,
 small, strike, strong, sub, sup, tt, var, b,
 u, i, center, dl, dt, dd, ol, ul, li, fieldset,
@@ -101,7 +101,9 @@ input, select, textarea {
 
 	body {
 		background-color: #2e3141;
-		background-image: linear-gradient(to top, rgba(46, 49, 65, 0.8), rgba(46, 49, 65, 0.8)), url("../../images/bg.jpg");
+		/* Gradient of the background thing */
+		background-image: linear-gradient(to top, rgba(141, 142, 145, 0.8), rgba(46, 49, 65, 0.8)), url("../../images/bg.jpg");
+		/*background-image: linear-gradient(to top, rgba(46, 49, 65, 0.8), rgba(46, 49, 65, 0.8)), url("../../images/bg.jpg");*/
 		background-size: auto,
  cover;
 		background-attachment: fixed,
@@ -179,12 +181,13 @@ input, select, textarea {
 		border-bottom: dotted 1px rgba(255, 255, 255, 0.35);
 		color: #ffffff;
 		text-decoration: none;
-	}
-
+	}a
+		
 		a:hover {
 			border-bottom-color: transparent;
 			color: #ffffff !important;
 		}
+		
 
 		a.special:not(.button) {
 			text-decoration: none;
@@ -235,7 +238,62 @@ input, select, textarea {
 			}
 
 			a.special:not(.button):active:before {
-				background-color: rgba(255, 255, 255, 0.075);
+				background-color: rgba(255, 255, 255, 0.1);
+			}
+		
+		/**/
+		a.one:not(.button) {
+			text-decoration: none;
+			border-bottom: 0;
+			display: block;
+			font-family: Raleway, Helvetica, sans-serif;
+			font-size: 0.8em;
+			font-weight: 700;
+			letter-spacing: 0.1em;
+			margin: 0 0 2em 0;
+			color: #000000;
+			text-transform: uppercase;
+		}
+		
+
+			a.one:not(.button):before {
+				-moz-osx-font-smoothing: grayscale;
+				-webkit-font-smoothing: antialiased;
+				display: inline-block;
+				font-style: normal;
+				font-variant: normal;
+				text-rendering: auto;
+				line-height: 1;
+				text-transform: none !important;
+				font-family: 'Font Awesome 5 Free';
+				font-weight: 900;
+			}
+
+			a.one:not(.button):before {
+				-moz-transition: background-color 0.2s ease-in-out;
+				-webkit-transition: background-color 0.2s ease-in-out;
+				-ms-transition: background-color 0.2s ease-in-out;
+				transition: background-color 0.2s ease-in-out;
+				border-radius: 100%;
+				border: solid 2px rgba(0, 0, 0, 0.125);
+				content: '\f105';
+				display: inline-block;
+				font-size: 1.25em;
+				height: 2em;
+				line-height: 1.75em;
+				margin-right: 0.85em;
+				text-align: center;
+				text-indent: 0.15em;
+				vertical-align: middle;
+				width: 2em;
+			}
+
+			a.one:not(.button):hover:before {
+				background-color: rgba(0, 0, 0, 0.025);
+			}
+
+			a.one:not(.button):active:before {
+				background-color: rgba(0, 0, 0, 0.075);
 			}
 
 	strong, b {
@@ -249,6 +307,11 @@ input, select, textarea {
 
 	p {
 		margin: 0 0 2em 0;
+	}
+
+	ap {
+		margin: 0 0 2em 0;
+		color: #1D1D1F;
 	}
 
 	h1, h2, h3, h4, h5, h6 {
@@ -273,6 +336,11 @@ input, select, textarea {
 		h1.major, h2.major, h3.major, h4.major, h5.major, h6.major {
 			padding-bottom: 1em;
 			border-bottom: solid 2px rgba(255, 255, 255, 0.125);
+		}
+		h1.antimajor, h2.antimajor, h3.antimajor, h4.antimajor, h5.antimajor, h6.antimajor {
+			color: #1D1D1F;
+			padding-bottom: 1em;
+			border-bottom: solid 2px rgba(0, 0, 0, 0.125);
 		}
 
 	h2 {
@@ -357,6 +425,9 @@ input, select, textarea {
 	}
 
 		hr.major {
+			margin: 4em 0;
+		}
+		hr.antimajor {
 			margin: 4em 0;
 		}
 
@@ -2149,6 +2220,7 @@ input, select, textarea {
 				form > .fields > .field {
 					padding: 1.5em 0 0 1.5em;
 					width: calc(100% - 1.5em);
+					
 				}
 
 					form > .fields > .field.half {
@@ -2356,7 +2428,7 @@ input, select, textarea {
 
 	.box {
 		border-radius: 5px;
-		border: solid 2px rgba(255, 255, 255, 0.125);
+		border: solid 2px rgba(255, 255, 255, 0.125); 
 		margin-bottom: 2em;
 		padding: 1.5em;
 	}
@@ -2710,8 +2782,7 @@ input, select, textarea {
 			}
 
 		}
-
-/* Pagination */
+/* Pagination 
 
 	ul.pagination {
 		cursor: default;
@@ -2780,8 +2851,9 @@ input, select, textarea {
 			}
 
 		}
+*/
 
-/* Table */
+/* Table
 
 	.table-wrapper {
 		-webkit-overflow-scrolling: touch;
@@ -2848,7 +2920,7 @@ input, select, textarea {
 			table.alt tfoot {
 				border-top: 0;
 			}
-
+ */
 /* Button */
 
 	input[type="submit"],
@@ -2990,6 +3062,13 @@ input, select, textarea {
 
 		}
 
+
+
+
+
+
+
+		
 /* Features */
 
 	.features {
@@ -3006,8 +3085,8 @@ input, select, textarea {
 
 		.features article {
 			padding: 1.75em 1.75em 0.1em 1.75em ;
-			background-color: #353849;
-			border-radius: 5px;
+			background-color: #353849; /* #353849 */
+			border-radius: 25px;
 			margin: 1.5em 3em 1.5em 0;
 			width: calc(50% - 1.5em);
 		}
@@ -3027,7 +3106,7 @@ input, select, textarea {
 			}
 
 				.features article .image img {
-					border-radius: 5px 5px 0 0;
+					border-radius: 25px 25px 0 0;
 					width: 100%;
 				}
 
@@ -3070,6 +3149,22 @@ input, select, textarea {
 
 		}
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 /* Header */
 
 	#header {
@@ -3077,7 +3172,7 @@ input, select, textarea {
 		-webkit-transition: background-color 0.2s ease-in-out;
 		-ms-transition: background-color 0.2s ease-in-out;
 		transition: background-color 0.2s ease-in-out;
-		background-color: rgba(53, 56, 73, 0.95);
+		background-color: rgba(53, 56, 73, 0.95); /* COLOR FOR TOP BANNER THING */
 		height: 3.5em;
 		left: 0;
 		line-height: 3.5em;
@@ -3158,11 +3253,11 @@ input, select, textarea {
 					}
 
 					#header nav a[href="#menu"]:hover {
-						background-color: rgba(255, 255, 255, 0.025);
+						background-color: rgba(255, 255, 255, 0.025); /* MENU COLOR */
 					}
 
 					#header nav a[href="#menu"]:active {
-						background-color: rgba(255, 255, 255, 0.075);
+						background-color: rgba(255, 255, 255, 0.075); /* MENU COLOR HOVER AFFECT */
 					}
 
 		#header.alt {
@@ -3297,7 +3392,7 @@ input, select, textarea {
 			-ms-transition: opacity 0.35s ease, -ms-transform 0.35s ease;
 			transition: opacity 0.35s ease, transform 0.35s ease;
 			-webkit-overflow-scrolling: touch;
-			background: #4c5c96;
+			background: #4c5c96; /* COLOR OF MENU */
 			border-radius: 5px;
 			display: block;
 			max-width: 100%;
@@ -3353,7 +3448,7 @@ input, select, textarea {
 				}
 
 					#menu .links li a:hover {
-						background: #45558d;
+						background: #45558d; /* HOVER COLOR ONCE CLICKED */
 					}
 
 		@media screen and (max-width: 736px) {
@@ -3420,6 +3515,7 @@ input, select, textarea {
 
 	#banner {
 		padding: 10em 0 4.75em 0 ;
+		/*background-color: #412e3a;  BACKGROUND COLOR OF BANNER */
 	}
 
 		#banner .image {
@@ -3513,9 +3609,9 @@ input, select, textarea {
 
 			#banner {
 				padding: 7em 0 8.25em 0 ;
-				background-color: #412e3a;
-				/* CHANGE COLOR OF MAIN BACKGROUND */
+				background-color: #efe5ec; /*COLOR FOR BANNER BACKGROUND?  #412e3a */
 				background-image: linear-gradient(to top, rgba(49, 46, 65, 0.8), rgba(46, 49, 65, 0.8)), url("../../images/bg.jpg");
+				/*background-image: linear-gradient(to top, rgba(49, 46, 65, 0.8), rgba(46, 49, 65, 0.8)), url("../../images/bg.jpg");*/
 				background-size: auto, cover;
 				background-position: center, center;
 				margin-bottom: -6.5em;
@@ -3542,7 +3638,7 @@ input, select, textarea {
 				padding: 5em 2em 4.25em 2em ;
 				margin-bottom: -2.5em;
 			}
-
+				/*
 				#banner .logo {
 					margin: 0 0 1em 0;
 				}
@@ -3550,7 +3646,7 @@ input, select, textarea {
 					#banner .logo .icon {
 						font-size: 1.5em;
 					}
-				
+				*/
 				#banner h2 {
 					font-size: 1.5em;
 				}
@@ -3560,7 +3656,7 @@ input, select, textarea {
 				}
 
 		}
-		/*
+		
 		body.is-preload #banner .logo {
 			-moz-transform: translateY(0.5em);
 			-webkit-transform: translateY(0.5em);
@@ -3568,7 +3664,7 @@ input, select, textarea {
 			transform: translateY(0.5em);
 			opacity: 0;
 		}
-		*/
+		
 
 		body.is-preload #banner h2 {
 			opacity: 0;
@@ -3644,12 +3740,10 @@ input, select, textarea {
 
 		#wrapper > header {
 			padding: 9em 0 6.25em 0 ;
-			background-color: #412e3c;
+			background-color: #412e3c; 
 			background-image: linear-gradient(to top, rgba(46, 49, 65, 0.8), rgba(46, 49, 65, 0.8)), url("../../images/bg.jpg");
-			background-size: auto,
- cover;
-			background-position: center,
- 0% 30%;
+			background-size: auto, cover;
+			background-position: center, 0% 30%;
 			margin-bottom: -6.5em;
 		}
 
@@ -3659,10 +3753,8 @@ input, select, textarea {
 
 		#wrapper > header {
 			padding: 11em 3em 7.375em 3em ;
-			background-size: auto,
- cover;
-			background-position: center,
- 0% 0%;
+			background-size: auto, cover;
+			background-position: center, 0% 0%;
 			margin-bottom: -4.75em;
 		}
 
@@ -3676,8 +3768,7 @@ input, select, textarea {
 
 		#wrapper > header {
 			padding: 6.5em 2em 3em 2em ;
-			background-size: auto,
- 125%;
+			background-size: auto, 125%;
 			margin-bottom: -2.5em;
 		}
 
@@ -3692,7 +3783,7 @@ input, select, textarea {
 	}
 
 	.wrapper {
-		background-color: #2e3141;
+		background-color: #F5F5F7; /* CHANGE COLOR OF MAIN BACKGROUND of third section #2e3141 */
 		margin: 0;
 		position: relative;
 	}
@@ -3736,7 +3827,7 @@ input, select, textarea {
 		}
 
 		.wrapper.style2 {
-			background-color: #403549;
+			background-color: #403549; 
 		}
 
 			.wrapper.style2:before, .wrapper.style2:after {
@@ -3766,7 +3857,7 @@ input, select, textarea {
 			.wrapper.style3:after {
 				box-shadow: inset 0 -1px 0 0 #3d4051, 0 1px 0 0 #3d4051;
 			}
-
+		/*
 		.wrapper.style4 {
 			background-color: #454858;
 		}
@@ -3814,9 +3905,9 @@ input, select, textarea {
 			.wrapper.style6:after {
 				box-shadow: inset 0 -1px 0 0 #555867, 0 1px 0 0 #555867;
 			}
-
+		*/
 		.wrapper.spotlight {
-			background-color: #4c5c96; /* CHANGE COLOR */
+			background-color: #F5F5F7; /* CHANGE COLOR of Spotlight 1 Original: #4c5c96*/
 		}
 
 			.wrapper.spotlight:before, .wrapper.spotlight:after {
@@ -3824,11 +3915,11 @@ input, select, textarea {
 			}
 
 			.wrapper.spotlight:before {
-				box-shadow: inset 0 -1px 0 0 #4c5c96, 0 1px 0 0 #4c5c96;
+				box-shadow: inset 0 -1px 0 0 #F5F5F7, 0 1px 0 0 #F5F5F7;
 			}
 
 			.wrapper.spotlight:after {
-				box-shadow: inset 0 -1px 0 0 #4c5c96, 0 1px 0 0 #4c5c96;
+				box-shadow: inset 0 -1px 0 0 #F5F5F7, 0 1px 0 0 #F5F5F7;
 			}
 
 			.wrapper.spotlight .inner {
@@ -3877,7 +3968,7 @@ input, select, textarea {
 			}
 
 			.wrapper.spotlight.style2 {
-				background-color: #45558d; /* CHANGE COLOR */
+				background-color: #F5F5F7; /* CHANGE COLOR of Spotlight 2 #45558d */
 			}
 
 				.wrapper.spotlight.style2:before, .wrapper.spotlight.style2:after {
@@ -3885,15 +3976,15 @@ input, select, textarea {
 				}
 
 				.wrapper.spotlight.style2:before {
-					box-shadow: inset 0 -1px 0 0 #45558d, 0 1px 0 0 #45558d;
+					box-shadow: inset 0 -1px 0 0 #F5F5F7, 0 1px 0 0 #F5F5F7;
 				}
 
 				.wrapper.spotlight.style2:after {
-					box-shadow: inset 0 -1px 0 0 #45558d, 0 1px 0 0 #45558d;
+					box-shadow: inset 0 -1px 0 0 #F5F5F7, 0 1px 0 0 #F5F5F7;
 				}
-
+			/* 
 			.wrapper.spotlight.style3 {
-				background-color: #3f4e85;
+				background-color: #3f4e85; 
 			}
 
 				.wrapper.spotlight.style3:before, .wrapper.spotlight.style3:after {
@@ -3907,7 +3998,10 @@ input, select, textarea {
 				.wrapper.spotlight.style3:after {
 					box-shadow: inset 0 -1px 0 0 #3f4e85, 0 1px 0 0 #3f4e85;
 				}
+			*/
+			
 
+			/* CHANGE COLOR of Spotlight 1 
 			.wrapper.spotlight.style4 {
 				background-color: #39477c;
 			}
@@ -3955,6 +4049,7 @@ input, select, textarea {
 				.wrapper.spotlight.style6:after {
 					box-shadow: inset 0 -1px 0 0 #2d3a69, 0 1px 0 0 #2d3a69;
 				}
+			*/
 
 		@media screen and (max-width: 980px) {
 
