@@ -1,8 +1,8 @@
 // Vanilla JavaScript Chatbot Implementation
 document.addEventListener('DOMContentLoaded', function () {
     // Configuration
-    const API_ENDPOINT = 'http://localhost:8000/chat';
-    const API_KEY = '"for_now_this_is_for_testing"';
+    const API_ENDPOINT = 'https://wcjd9zbi85.execute-api.us-east-1.amazonaws.com/chat';
+    const API_KEY = "for_now_this_is_for_testing";
 
     // Chat state
     let isChatOpen = false;
