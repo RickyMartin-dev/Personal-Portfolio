@@ -70,6 +70,71 @@ test.beforeEach(async ({ page }) => {
   await page.goto('https://portfolio.test/pages/index.html');
 });
 
+test('keeps all pages mobile-friendly and avoids duplicated selected work', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+
+  for (const pageName of ['index', 'about', 'elements']) {
+    await page.goto(`https://portfolio.test/pages/${pageName}.html`);
+
+    await expect(page.locator('meta[name="viewport"]')).toHaveAttribute(
+      'content',
+      'width=device-width, initial-scale=1'
+    );
+    await expect(page.locator('link[rel="icon"]')).toHaveAttribute(
+      'href',
+      '../images/dolphin.png'
+    );
+
+    const menuButton = page.locator('#nav-hamburger');
+    await expect(menuButton).toBeVisible();
+    await expect(menuButton).toHaveAttribute('type', 'button');
+    await expect(menuButton).toHaveAttribute('aria-controls', 'nav-overlay');
+    await menuButton.focus();
+    await page.keyboard.press('Enter');
+    await expect(menuButton).toHaveAttribute('aria-expanded', 'true');
+    await expect(page.locator('#nav-overlay')).toHaveAttribute('aria-hidden', 'false');
+    await page.keyboard.press('Escape');
+    await expect(menuButton).toHaveAttribute('aria-expanded', 'false');
+
+    const themeButton = page.getByRole('button', { name: /Switch to/ });
+    const initialTheme = await page.locator('html').getAttribute('data-theme');
+    await themeButton.click();
+    await expect(page.locator('html')).toHaveAttribute(
+      'data-theme',
+      initialTheme === 'dark' ? 'light' : 'dark'
+    );
+    await themeButton.click();
+    await expect(page.locator('html')).toHaveAttribute('data-theme', initialTheme);
+
+    const hasHorizontalOverflow = await page.evaluate(
+      () => document.documentElement.scrollWidth > window.innerWidth
+    );
+    expect(hasHorizontalOverflow, pageName).toBe(false);
+
+    if (pageName === 'index') {
+      await expect(page.locator('.projects-grid > .project-card')).toHaveCount(3);
+      await expect(page.locator('.kpi-card__value').first()).toHaveText('8+');
+      await expect(page.locator('meta[name="description"]')).toHaveAttribute(
+        'content',
+        /8\+ years/
+      );
+    }
+
+    if (pageName === 'about') {
+      await expect(page.getByText(/with 8\+ years of experience/)).toBeVisible();
+    }
+
+    if (pageName === 'elements') {
+      await page.getByRole('button', { name: 'Play Tetris' }).click();
+      const gameDialog = page.getByRole('dialog', { name: 'Tetris' });
+      await expect(gameDialog).toBeVisible();
+      await expect(page.getByRole('button', { name: 'Rotate' })).toBeVisible();
+      await page.getByRole('button', { name: 'Close game' }).click();
+      await expect(gameDialog).toBeHidden();
+    }
+  }
+});
+
 test('opens by keyboard, sends a message, and keeps API credentials out of browser requests', async ({ page }) => {
   let requestBody;
   let requestHeaders;
