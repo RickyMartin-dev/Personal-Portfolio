@@ -4,7 +4,6 @@
 from __future__ import annotations
 
 import html
-import json
 import os
 import shutil
 from pathlib import Path
@@ -21,6 +20,8 @@ ASSET_BUILD_IGNORES = shutil.ignore_patterns(
     "sass",
     "main.js",
     "noscript.css",
+    "chatbot.js",
+    "chatbot.config.js",
     "chatbot.config.template.js",
 )
 BUILD_IGNORES = shutil.ignore_patterns(".DS_Store")
@@ -33,10 +34,6 @@ def build_site(
     environment: Mapping[str, str] | None = None,
 ) -> None:
     env = os.environ if environment is None else environment
-    endpoint = env.get("CHATBOT_API_ENDPOINT", "").strip()
-    if not endpoint.startswith("https://") and not endpoint.startswith("http://127.0.0.1:"):
-        raise SystemExit("CHATBOT_API_ENDPOINT must be an HTTPS production URL or local loopback URL")
-
     shutil.rmtree(output, ignore_errors=True)
     output.mkdir(parents=True)
     for source in ("index.html", "pages", "assets", "images"):
@@ -46,13 +43,6 @@ def build_site(
             shutil.copytree(path, output / source, ignore=ignore)
         else:
             shutil.copy2(path, output / source)
-
-    (output / "assets/js/chatbot.config.js").write_text(
-        "window.CHATBOT_CONFIG = "
-        + json.dumps({"apiEndpoint": endpoint}, separators=(",", ":"))
-        + ";\n",
-        encoding="utf-8",
-    )
 
     contact_key = env.get("WEB3FORMS_KEY", "").strip()
     if contact_key:

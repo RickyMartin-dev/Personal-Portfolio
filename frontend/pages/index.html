@@ -3,7 +3,7 @@
 	<head>
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1">
-		<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data:; connect-src 'self' https://*.execute-api.us-east-1.amazonaws.com https://api.web3forms.com; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action https://api.web3forms.com;">
+		<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data:; connect-src 'self' https://api.web3forms.com; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action https://api.web3forms.com;">
 		<meta name="referrer" content="strict-origin-when-cross-origin">
 		<meta name="description" content="Ricky Martin — AI/ML Engineer with 8+ years building production intelligent systems. Based in New York, NY.">
 		<link rel="icon" type="image/x-icon" href="../images/dolphin.png">
@@ -312,31 +312,19 @@
 			<script src="../assets/js/browser.min.js"></script>
 			<script src="../assets/js/breakpoints.min.js"></script>
 			<script src="../assets/js/util.js"></script>
-			<script src="../assets/js/chatbot.config.js"></script>
-			<script src="../assets/js/chatbot.js"></script>
+			<script src="../assets/js/chatbot-notice.js" defer></script>
 
 		<!-- Chatbot Widget -->
 		<div id="chatbot-widget">
-			<button id="chatbot-button" type="button" aria-label="Open chat with Ricky's assistant" aria-controls="chatbot-container" aria-expanded="false">
-				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="22" height="22" fill="currentColor" aria-hidden="true"><path d="M12 2C12 7.5 7.5 12 2 12C7.5 12 12 16.5 12 22C12 16.5 16.5 12 22 12C16.5 12 12 7.5 12 2Z"/></svg>
+			<button id="chatbot-button" type="button" aria-label="Chatbot under construction" aria-haspopup="dialog" aria-controls="chatbot-container" aria-expanded="false">
+				<span class="chatbot-button__warning" aria-hidden="true">⚠</span>
 			</button>
-			<section id="chatbot-container" aria-labelledby="chatbot-heading" hidden>
+			<section id="chatbot-container" role="dialog" aria-labelledby="chatbot-heading" aria-describedby="chatbot-notice" hidden>
 				<div id="chatbot-header">
-					<h3 id="chatbot-heading">Chat with me</h3>
-					<button id="chatbot-close" type="button" aria-label="Close chat">&times;</button>
+					<h3 id="chatbot-heading"><span aria-hidden="true">⚠</span> Under construction</h3>
+					<button id="chatbot-close" type="button" aria-label="Close notice">&times;</button>
 				</div>
-				<div id="chatbot-messages" role="log" aria-live="polite" aria-relevant="additions text" aria-label="Chat conversation">
-					<div class="chatbot-message bot-message">
-						<p>Hi! I'm Ricky's AI assistant. How can I help you today? (Please keep in mind chatbot may experience a cold start)</p>
-					</div>
-				</div>
-				<form id="chatbot-input-container">
-					<label class="chatbot-visually-hidden" for="chatbot-input">Your message</label>
-					<input type="text" id="chatbot-input" name="message" placeholder="Type your message..." maxlength="500" aria-describedby="chatbot-input-hint">
-					<span id="chatbot-input-hint" class="chatbot-visually-hidden">Maximum 500 characters.</span>
-					<button id="chatbot-send" type="submit" aria-label="Send message"><i class="fas fa-paper-plane" aria-hidden="true"></i></button>
-				</form>
-				<div id="chatbot-status" class="chatbot-visually-hidden" role="status" aria-live="polite" aria-atomic="true"></div>
+				<p id="chatbot-notice">Ricky's AI assistant is currently being updated. Please check back soon.</p>
 			</section>
 		</div>
 

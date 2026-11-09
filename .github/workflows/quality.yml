@@ -50,6 +50,10 @@ jobs:
         uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.0
         with:
           persist-credentials: false
+      - name: Set up Python for the static build
+        uses: actions/setup-python@4267e283df95c05d9f16ece6624106f44613b489 # v6.0.0
+        with:
+          python-version: '3.12'
       - name: Set up Node.js
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:

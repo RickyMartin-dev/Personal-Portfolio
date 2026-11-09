@@ -1,65 +1,63 @@
-# Deployment, setup, and cost notes
+# AWS backend deployment and cost reference (inactive)
 
-## Runtime map
+> Current work targets GitHub Pages only. The chatbot is marked under construction; this repository's Pages workflow does not use AWS, Terraform apply, Lambda, API Gateway, or live model inference. No AWS resource was changed. The cost figures below are retained planning estimates and historical observations, not charges created by the active Pages workflow.
+
+## Active GitHub Pages path
 
 ```text
-GitHub develop
-  └─ verify: Starter/security checks + Python tests + Playwright + Terraform validation
-     └─ AWS deploy job (GitHub OIDC)
-        ├─ ECR: build and publish immutable Lambda image
-        ├─ Terraform: Lambda + HTTP API + IAM + CloudWatch log groups
-        └─ real chat smoke request
-           └─ Pages job: publish only frontend/dist/ after backend succeeds
+Push to develop
+  └─ Project Starter, mocked backend, artifact, and browser verification
+       └─ build frontend/dist/
+            └─ publish static artifact through GitHub Pages Actions
 ```
 
-The site bundle includes the API URL, which is public routing information. It never contains an AI key. AWS credentials are short-lived OIDC credentials, and the AWS role trusts only this repository's `develop` branch. GitHub Pages uses a separate job/environment so the Pages environment subject does not broaden the AWS role trust.
+GitHub Pages must be configured to use **GitHub Actions**. The public repository's default branch was `main` and it had no remote `develop` branch at the last check. The remote `main` revision still contained a legacy Pages workflow; keep `main` unchanged until the `develop` Pages path is ready and the legacy workflow can be retired safely.
 
-## Deployment package boundaries
+`WEB3FORMS_KEY` is optional and only configures the contact form. If present, it is injected into client-side form markup and is therefore a public form identifier, not an AI credential. Without it, the Pages build succeeds and the contact form stays unconfigured.
 
-- `frontend/build.py` copies only the frontend redirect, `pages/`, `assets/`, and `images/` into `frontend/dist/`. It excludes unused Sass source, legacy `assets/js/main.js`, unused `assets/css/noscript.css`, and the chatbot config template. The deploy workflow uploads only `frontend/dist/` to Pages, so `backend/`, Project Starter tools/docs, tests, local resources, and agent skills are not published.
-- `backend/Dockerfile` installs production dependencies from `backend/requirements.txt` and copies only `backend/src/` into the Lambda image. `backend/.dockerignore` keeps frontend files, Terraform, tests/dev dependencies, docs, caches, and local environment files out of the Docker context.
-- GitHub Actions checks out the repository to run verification; the website and Lambda image have separate, bounded publish inputs. Project Starter files do not become runtime payload.
+## Retained backend design
 
-## Required owner setup
+The repository retains FastAPI/LangGraph source and Terraform under `backend/` for a later, separately reviewed chatbot launch. The planned path is API Gateway HTTP API → Lambda container → Bedrock. The browser should never receive an AI provider key. Backend monitoring, budgets, endpoint security, and a deliberate inference smoke check must be reviewed before this infrastructure is applied or the frontend notice is removed.
 
-1. Install Python 3.12, Node.js 22+, Docker, Terraform 1.10+, and a native Apple Silicon AWS CLI v2.
-2. Use a local AWS profile or Bedrock API key that can call the selected Bedrock model and `bedrock:InvokeGuardrailChecks`. Verify that the model is enabled in the chosen region.
-3. Run the first bootstrap from `backend/infra/bootstrap` using local AWS credentials. Review the plan, then apply it to create the encrypted/versioned state bucket and the branch-restricted GitHub OIDC role. If the account already has a GitHub OIDC provider, supply its ARN rather than creating a duplicate.
-4. Create `develop` from the current source, require the quality/security checks before merging, and protect `main` against direct pushes. Set GitHub Pages to **GitHub Actions**. This checkout removes the old `static.yml`, but the current remote `main` still contains that legacy workflow until the deletion reaches `main`; avoid direct pushes to `main` during cutover.
-5. Set repository variables `AWS_REGION`, `TF_STATE_BUCKET`, and `AWS_ROLE_ARN` from the bootstrap outputs. Add `WEB3FORMS_KEY` as a repository secret for the existing contact form.
-6. Check `allowed_origins` if a custom portfolio domain is added. The default includes the GitHub Pages origin and local port 8000.
-7. Review the read-only AWS inventory and existing monthly charges before the first application apply. Keep the old chatbot active until the replacement has passed the real inference smoke check and the owner has reviewed a resource-by-resource retirement list.
+### Artifact boundaries
 
-The first application deploy creates the ECR repository, pushes the Lambda image, then applies the full Terraform root. Later `develop` pushes repeat image build, infrastructure update, static build, Pages publication, and one real inference check. Pull requests run mocked tests and Terraform validation without AWS permissions.
+- `frontend/build.py` copies the root redirect, `pages/`, required site assets, and `images/` into `frontend/dist/`. It excludes the legacy chat API client/config, unused Sass, template JavaScript/CSS, and repository tooling.
+- The Pages workflow publishes only `frontend/dist/`; it does not access or publish `backend/`, Terraform, tests, documentation, local references, or Project Starter files.
+- `backend/Dockerfile` and `.dockerignore` retain a separate bounded Lambda image build for future use; that image is not built in the current workflow.
 
-## Local setup and inference
+### Future backend setup (not needed for Pages)
 
-```bash
-./scripts/project start --task "Local portfolio/chatbot work"
-./scripts/setup-local.sh
-```
+The following is a reference for a later backend deployment. Do not run it as part of static site development: it requires AWS credentials and can create billable resources.
 
-The setup script installs backend and frontend dependencies, downloads the Playwright Chromium browser, and creates `backend/.env` from a safe template without replacing an existing file. Add either `AWS_BEARER_TOKEN_BEDROCK` or configure `AWS_PROFILE` in `backend/.env`. Then run:
+1. Install Python 3.12, Node.js 22+, Docker, Terraform 1.10+, and AWS CLI v2.
+2. Confirm Bedrock model and Guardrails access in the chosen region and add cost alerting before enabling public inference.
+3. Review the Terraform plan and use the bootstrap root only when deliberately creating remote state and a GitHub OIDC deployment role.
+4. Restrict the OIDC trust to this repository and intended deploy branch. Keep provider credentials in Lambda/backend configuration, not in browser files.
+5. Review the existing AWS inventory, monthly bill, resource ownership, and cleanup targets before creating or deleting any resource.
+6. Re-enable the chat client only after the API, monitoring, budgets, throttling, and mocked tests have been reviewed.
+
+### Local static development and tests
 
 ```bash
 ./scripts/dev.sh
+# Visit http://127.0.0.1:8000
 ```
 
-Open `http://127.0.0.1:8000`; the chat posts to the local FastAPI server at `http://127.0.0.1:8001/chat`. Local live inference and the post-deploy smoke request call the same model profile, `us.anthropic.claude-haiku-5-5`, using the same backend code and prompt. Keep `BEDROCK_MODEL_ID` in `backend/.env` equal to the Terraform `bedrock_model_id` used by Lambda. Production credentials come from the Lambda execution role; a local AWS profile or Bedrock bearer token is only for local calls and is never put in website JavaScript. Unit and browser tests mock inference and do not need AWS credentials or make paid model calls. The profile and settings match by default, but generated text is not guaranteed to be identical from run to run because model inference is nondeterministic and the US profile can route across its supported US Regions.
+This serves the static site only and needs Python 3, with no AWS or backend setup. For the full mocked test suite, run `./scripts/setup-local.sh` and `./scripts/test.sh`. Tests do not call Bedrock or make paid inference requests. Terraform validation is local/CI configuration validation only; it does not apply infrastructure.
 
-## What gets monitored
+## Monitoring planned for a future backend
 
-- Lambda and API Gateway metrics are available in CloudWatch Metrics (invocations, errors, duration, throttles, HTTP 4xx/5xx).
-- CloudWatch log groups keep structured application/access metadata for 14 days. Logs do not contain prompts, responses, or conversation history.
+- If the backend is deployed, Lambda and API Gateway metrics will be available in CloudWatch Metrics (invocations, errors, duration, throttles, HTTP 4xx/5xx).
+- The Terraform design configures CloudWatch log groups with 14-day retention. Intended application/access metadata omits prompts, responses, and conversation history.
 - Application events include request ID, outcome, model setting marker, HTTP status, latency, input/output token counts, and Guardrails text-unit counts.
 - `backend/infra/terraform/README.md` includes Logs Insights queries for request outcome, latency, token usage, API failures, and throttling.
-- No paid custom metrics, dashboard, alarm, database, transcript bucket, or tracing service is provisioned by this stack.
+- The current Pages deployment provisions no CloudWatch resources. The retained Terraform design creates no paid custom metrics, dashboard, alarm, database, transcript bucket, or tracing service.
 
-## Cost model
+## Estimated cost model if backend is reactivated
 
-The backend uses on-demand services; none of API Gateway, Lambda, ECR, S3 state, IAM, or CloudWatch has provisioned compute in this design. Normal idle cost is expected to come from the retained Lambda image, a very small versioned Terraform state bucket, and any retained log bytes. Inference and Guardrails are the variable costs and can exceed infrastructure charges.
+These are planning estimates for the retained backend design, not current costs from this repository's Pages workflow. The design uses on-demand services with no provisioned compute. If deployed, idle cost would be expected from the retained Lambda image, a small versioned Terraform state bucket, and retained log bytes. Inference and Guardrails are the variable charges and can exceed infrastructure charges.
 
-### Current account baseline (read-only historical bill)
+### Historical account baseline (read-only bill sample)
 
 Cost Explorer for August–October 2026 showed an average account total of about `$1.075/month` including tax, before the new stack:
 
@@ -99,16 +97,16 @@ This table assumes 600 input and 60 output model tokens per chat, a 512 MB Lambd
 | 10,000 | `$0.99` | `$11.90` | `$0.01` | `$0.25` | `$0.007` | **`$13.16`** |
 | 100,000 | `$9.90` | `$119.00` | `$0.10` | `$2.52` | `$0.068` | **`$131.59`** |
 
-*CloudWatch ingestion assumes roughly 1.35 KB of metadata per chat at `$0.50/GB`; actual record sizes and the shared free allowance change the bill. The 100,000-request Lambda example uses 150,000 GB-seconds and 100,000 requests; if the account's Lambda free allowances remain available and are not consumed by other functions, that line could be `$0`. Model usage assumes 600 input and 60 output tokens; adaptive thinking and actual conversation history can change the measured counts. The 300-token output ceiling still bounds the generated output budget. Replace token and text-unit assumptions with values logged after live requests. `guardrail_text_units` records usage totals without chat text. Each successful deployment also makes one real smoke inference request.
+*CloudWatch ingestion assumes roughly 1.35 KB of metadata per chat at `$0.50/GB`; actual record sizes and the shared free allowance change the bill. The 100,000-request Lambda example uses 150,000 GB-seconds and 100,000 requests; if the account's Lambda free allowances remain available and are not consumed by other functions, that line could be `$0`. Model usage assumes 600 input and 60 output tokens; adaptive thinking and actual conversation history can change the measured counts. The 300-token output ceiling still bounds the generated output budget. Replace token and text-unit assumptions with values logged after any approved live requests. `guardrail_text_units` records usage totals without chat text. A live smoke inference is not part of the current Pages deployment.
 
-The API Gateway throttle of 0.25 requests/second with burst 1 is a best-effort traffic limit, not a monthly spend cap. At a continuous 15 requests/minute (about 648,000 per 30-day month), the conservative Guardrails estimate alone is about `$771/month`, plus model-token and service charges. A public unauthenticated endpoint can still be called outside browser CORS. Configure AWS Budget email alerts before public cutover; a budget alert is not a hard spend limit.
+The Terraform design's API Gateway throttle of 0.25 requests/second with burst 1 would be a best-effort traffic limit, not a monthly spend cap. At a continuous 15 requests/minute (about 648,000 per 30-day month), the conservative Guardrails estimate alone is about `$771/month`, plus model-token and service charges. A public unauthenticated endpoint can still be called outside browser CORS. Configure AWS Budget email alerts before any future public cutover; a budget alert is not a hard spend limit.
 
 ### Billing outside the new chatbot stack
 
 - Old chatbot ECR, Lambda, API Gateway, and any Anthropic Marketplace charges continue until retired. The shared historical service totals above do not isolate those costs.
 - Existing SageMaker Studio storage and EFS charges are separate from this app and continue while those resources are retained. The two Titanic async endpoints are separate and can scale from zero to two instances; do not delete them as part of chatbot retirement without confirming ownership.
 - The existing Web3Forms contact form is a separate provider and requires `WEB3FORMS_KEY`; its plan/usage is outside AWS chatbot costs.
-- Local unit and browser tests mock the model and incur no Bedrock charge. Running the local app with live Bedrock credentials incurs the same model and Guardrails charges as production.
+- Local unit and browser tests mock the model and incur no Bedrock charge. The current `scripts/dev.sh` serves only the static site. A future locally enabled backend using live Bedrock credentials would incur model and Guardrails charges.
 
 ## References
 

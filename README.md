@@ -1,50 +1,49 @@
 # Personal Portfolio
 
-Portfolio website for Ricky Martin, with a public AI chatbot backed by AWS Bedrock.
+Static portfolio for Ricky Martin, published with GitHub Pages. The AI chatbot is temporarily disabled and displays an **Under construction** notice. The FastAPI/LangGraph backend and Terraform are retained in the repository for later work, but they are not deployed or called by the site right now.
 
 ## Stack
 
-- Static HTML, CSS, JavaScript, Playwright tests, and GitHub Pages builder in `frontend/`.
-- FastAPI and LangGraph chatbot, Python tests, Docker image, Terraform, and AWS smoke check in `backend/`.
-- Project Starter tools, agent guidance, and durable project docs are adopted at the repository root.
-- Production deploys from `develop` to GitHub Pages and AWS. The new workflow has no `main` trigger; the current remote `main` still contains its legacy Pages workflow until its deletion is merged there.
+- Static HTML, CSS, JavaScript, and browser tests in `frontend/`.
+- A small Python builder creates the Pages artifact at `frontend/dist/` and excludes backend source, local secrets, and Project Starter tooling.
+- FastAPI/LangGraph backend and Terraform remain under `backend/`; the Pages workflow does not configure AWS, run Terraform, or invoke a model.
+- Project Starter tools and project documentation are kept at the repository root and are not published to Pages.
 
 ## Repository map
 
 | Area | Location | Purpose |
 | --- | --- | --- |
-| Website | `frontend/` | Static portfolio, browser chatbot widget, Playwright suite, and Pages build. |
-| Chatbot | `backend/` | FastAPI/LangGraph API, Bedrock client, Python suite, and Lambda image. |
-| AWS | `backend/infra/` | One-time CI/state bootstrap and application infrastructure. |
-| Checks | `frontend/tests/`, `backend/tests/` | UI, API, and container-boundary verification. |
-| Project workflow | `scripts/`, `prompts/`, `agents/`, `docs/` | Local setup, checks, agent guidance, and project knowledge. |
-| Tool configuration | `.github/`, `.githooks/`, `.agentic/`, `.agents/`, `.claude/`, `.codex/`, `.cursor/`, `.impeccable/`, `.lavish/` | CI, coding-agent adapters, design tools, and review pages; these are not runtime packages. |
+| Website | `frontend/` | Portfolio pages, styles, browser behavior, static build, and Playwright tests. |
+| Future chatbot | `backend/` | FastAPI/LangGraph source, backend tests, Lambda packaging, and Terraform. |
+| Checks | `frontend/tests/`, `backend/tests/` | UI, API, and Pages artifact verification. |
+| Project workflow | `scripts/`, `prompts/`, `agents/`, `docs/` | Local commands, checks, agent guidance, and project knowledge. |
 | Local references | `resources/` | Ignored checkouts for migration/reference only; never deployed. |
 
-## Local setup
+## Run locally
 
-```bash
-./scripts/project start --task "Local setup"
-./scripts/setup-local.sh
-```
-
-The setup script requires Python 3.12 and Node.js 22 or newer. Set `BEDROCK_REGION`, `BEDROCK_MODEL_ID`, and either `AWS_PROFILE` or a local `AWS_BEARER_TOKEN_BEDROCK` value in the ignored `backend/.env`. Do not put AI credentials in website JavaScript. Local backend and frontend instructions are in [`docs/project-commands.md`](docs/project-commands.md).
-
-## Run and verify
+No dependencies or AWS credentials are needed to view the static site:
 
 ```bash
 ./scripts/dev.sh
+# Visit http://127.0.0.1:8000
 ```
 
-Visit `http://127.0.0.1:8000`; the API runs at `http://127.0.0.1:8001`. Local chat calls the same Bedrock model as Lambda. Real local inference incurs Bedrock and Guardrails usage charges. Run `./scripts/test.sh` for the local suite. Browser and backend tests mock AWS; the deploy workflow runs one real inference smoke request after updating the backend.
+For the full mocked test suite, install Python 3.12, Node.js 22+, npm, and Playwright's Chromium browser, then run:
 
-## Deploy
+```bash
+./scripts/setup-local.sh
+./scripts/test.sh
+```
 
-Pull requests targeting `develop` run starter/security checks, frontend and backend tests, secret scanning, and Terraform validation without AWS permissions. A push to `develop` repeats verification, deploys the backend with GitHub OIDC, checks a real model response, then publishes only the built frontend directory to GitHub Pages. Protect `main` from direct pushes during cutover; its current remote revision still contains the old Pages workflow until the deletion is merged there.
+Tests mock provider calls; they do not need AWS credentials or make paid inference requests. The optional Web3Forms contact integration needs the `WEB3FORMS_KEY` GitHub secret at build time. This key is designed to be public in the contact form and is not an AI credential.
 
-Before the first deploy, complete the steps in [`docs/project-commands.md`](docs/project-commands.md#first-time-aws-and-github-setup), including a compatible AWS CLI, state bucket, OIDC role, Bedrock model access, and repository variables. Review the AWS inventory before retiring the old chatbot resources.
+## GitHub Pages deployment
 
-See [`docs/deployment-and-costs.md`](docs/deployment-and-costs.md) for the architecture, required setup, AWS costs, monitoring, and cutover steps. The old backend source is documented in [`docs/legacy-chatbot-cutover.md`](docs/legacy-chatbot-cutover.md); old AWS resources remain untouched until the new endpoint is live and cleanup is reviewed.
+Pull requests to `develop` run the Project Starter/security checks, backend mocks, frontend artifact tests, browser tests, and Terraform validation. A push to `develop` verifies the site, builds only the static frontend artifact, and publishes it through the GitHub Pages Actions environment. That workflow does not access AWS, apply Terraform, deploy the backend, or make model requests.
+
+For the first Pages publish, GitHub Pages must use **GitHub Actions** as its build and deployment source, and the repository must have a `develop` branch. `WEB3FORMS_KEY` is optional; without it the Pages build succeeds, but the contact form remains unconfigured. The current remote default is `main`, and the old `main` revision still contains its legacy Pages workflow; keep `main` unchanged during the cutover until the new source has been published and the old workflow is retired through the chosen branch process.
+
+The backend and AWS setup are intentionally dormant. No AWS CLI login, AWS variables, Terraform state bucket, OIDC role, or AWS deployment is required for current Pages development or deployment. Existing AWS resources have not been changed. See [`docs/architecture.md`](docs/architecture.md) and [`docs/deployment-and-costs.md`](docs/deployment-and-costs.md) for the current boundary and retained backend plan.
 
 ## Project Starter
 

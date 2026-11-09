@@ -44,6 +44,10 @@ for file in "${workflow_files[@]}"; do
       printf '%s must grant only the Pages and OIDC write permissions required for deployment.\n' "$file" >&2
       failures=$((failures + 1))
     fi
+    if grep -nE 'aws-actions/configure-aws-credentials|AWS_REGION|AWS_ROLE_ARN|TF_STATE_BUCKET|smoke-chat\.py|deploy-backend|(^|[[:space:]])terraform([[:space:]]|$)' "$file" >/dev/null; then
+      printf '%s must publish the static Pages artifact without AWS or Terraform deployment steps.\n' "$file" >&2
+      failures=$((failures + 1))
+    fi
   elif grep -nE '(^|[[:space:]])(actions|attestations|checks|contents|deployments|discussions|id-token|issues|models|packages|pages|pull-requests|repository-projects|security-events|statuses):[[:space:]]*(write|write-all)|(^|[[:space:]])permissions:[[:space:]]*(write-all|read-all)' "$file" >/dev/null; then
     printf '%s contains a write-capable or overly broad workflow permission.\n' "$file" >&2
     failures=$((failures + 1))

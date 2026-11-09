@@ -2,7 +2,7 @@
 
 ## Mission
 
-Maintain Ricky Martin's portfolio and its Bedrock-backed chatbot as one small, reviewable repository. Treat the repository as the source of truth for product behavior, infrastructure, agent workflow, and verification.
+Maintain Ricky Martin's portfolio and its future chatbot as one small, reviewable repository. The current release is a static GitHub Pages site; the chatbot is under construction, and its backend/AWS infrastructure is dormant. Treat the repository as the source of truth for product behavior, infrastructure, agent workflow, and verification.
 
 ## Start here
 
@@ -15,11 +15,12 @@ Maintain Ricky Martin's portfolio and its Bedrock-backed chatbot as one small, r
 
 - The public UI, browser tests, Playwright tooling, and Pages builder live in `frontend/`.
 - The chatbot API, LangGraph code, runtime dependencies, Lambda image, AWS infrastructure, bootstrap, and inference smoke check live in `backend/`.
-- `develop` is the live deployment branch. Pull requests targeting `develop` run quality checks; updates to `develop` deploy the frontend and backend. `main` does not deploy.
-- Local chat inference calls the same Bedrock model as production. Use an ignored local `.env` or an AWS profile; production uses the Lambda execution role.
+- Pull requests targeting `develop` run quality checks; updates to `develop` publish only the static frontend to GitHub Pages.
+- The chatbot launcher displays an accessible under-construction notice. It sends no requests and loads no API configuration. Do not re-enable the chat client until a separate backend and endpoint review is complete.
+- `backend/` and its Terraform describe a future FastAPI/LangGraph deployment. Current local development and Pages deployment do not require AWS credentials, `.env`, Terraform apply, or a live model call.
 - Never expose AI credentials in browser code. Do not persist prompts or replies in logs, S3, or a database. Log token counts, model, latency, request ID, and status only.
-- The API is public. CORS is not authentication. Keep schema validation, message/context limits, Bedrock safety checks, and the aggregate API Gateway throttle enabled.
-- Do not pause or delete existing AWS resources until the replacement endpoint is live, its behavior is verified, and the user has reviewed the specific resources and costs.
+- If reactivating the public API, remember CORS is not authentication; retain schema validation, message/context limits, Bedrock safety checks, and API Gateway throttling.
+- Existing AWS resources were not changed by the Pages work. Do not modify or retire them during a Pages-only task.
 
 ## Working contract
 

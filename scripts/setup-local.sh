@@ -22,12 +22,8 @@ if [[ ! -d backend/.venv ]]; then
 fi
 backend/.venv/bin/python -m pip install -r backend/requirements-dev.txt
 
-if [[ ! -f backend/.env ]]; then
-  cp backend/.env.example backend/.env
-  printf 'Created backend/.env from the safe example. Add a local Bedrock API key or AWS profile before live inference.\n'
-fi
-
 npm ci --prefix "$ROOT_DIR/frontend"
 npx --prefix "$ROOT_DIR/frontend" playwright install chromium
 
-printf '\nLocal setup is ready. Run ./scripts/dev.sh, then visit http://127.0.0.1:8000.\n'
+printf '\nLocal test tooling is ready. No AWS credentials or backend .env are needed for the mocked suite.\n'
+printf 'Run ./scripts/dev.sh to serve the static site at http://127.0.0.1:8000.\n'

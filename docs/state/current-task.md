@@ -1,33 +1,32 @@
-# Current task: whole-site UI and Pages readiness
+# Current task: GitHub Pages-only readiness
 
 ## Status
 
-The UI and local Pages artifact are ready for review on local `develop`. Changes are committed locally; nothing has been pushed or deployed. The GitHub repository is public and Pages-enabled, but its default branch is still `main` and it has no remote `develop` branch.
+The local `develop` worktree now builds and deploys the static Pages site without AWS. The chatbot launcher on Home and About shows a warning icon and an accessible under-construction notice; it sends no API request. Nothing has been pushed, deployed, or changed in AWS.
 
 ## Completed
 
-- Removed the repeated second set of Home project cards and cleaned up three Home headings.
-- Updated the experience claim to 8+ years in Home, About, and the Home description, per the owner's correction.
-- Restored mobile pinch zoom; added explicit button type and `aria-controls` to the mobile navigation; made page favicons relative so they work under GitHub Pages' repository path.
-- Fixed indentation that made `.github/workflows/deploy.yml` invalid YAML.
-- Expanded Playwright coverage for all-page mobile overflow, navigation, theme toggling, the 8+ claim, unique project cards, and the mobile game dialog.
+- Replaced the combined AWS + Pages deploy workflow with verification, a static frontend artifact build, and GitHub Pages publication on pushes to `develop`.
+- Added a workflow guard that rejects AWS credential setup, Terraform commands, and live inference from the Pages deploy workflow.
+- Removed the active browser API/config scripts from Home and About, removed the API Gateway host from their CSP, and excluded the legacy chat client/config from `frontend/dist/`.
+- Added a warning launcher and keyboard-accessible under-construction dialog, with Escape/close behavior returning focus to the launcher.
+- Simplified local site serving to `./scripts/dev.sh`; it needs only Python 3 and does not start FastAPI or need AWS credentials. Full mocked tests remain available with `./scripts/setup-local.sh` and `./scripts/test.sh`.
+- Updated README, agent guidance, architecture, chatbot, local command, and backend/cost docs to distinguish active Pages behavior from dormant backend plans.
 
 ## Verification
 
-- `./scripts/test.sh`: PASS — Project Starter release checks, 19 Python tests, and 7 Playwright tests. Terraform validation was skipped because Terraform is not installed locally; CI validates both stacks.
-- Built `frontend/dist` with a local loopback API URL: 44 files, about 3.8 MB. The expected warning confirms the local build has no `WEB3FORMS_KEY` and its contact form will not submit.
-- Local browser smoke check under `/Personal-Portfolio/`: PASS — root redirect, favicon, images, responsive widths, and no browser errors or missing artifact requests.
-- Workflow YAML parses locally. Impeccable's detected button-contrast warning was checked in Chromium: the rendered button text is dark (`rgb(21, 24, 38)`), so that detector warning is a false positive for this style.
-- The sanitized task snapshot was saved to `raw/project-snapshots/personal-portfolio-ec826320/2026-11-09T191904Z-codex-task.md`.
-- No live chat inference, AWS mutation, workflow run, push, or deployment occurred.
+- `./scripts/test.sh`: PASS — Project Starter/security release checks, 19 Python tests, and 2 Playwright tests against the built Pages artifact. Backend provider calls are mocked. Terraform formatting/validation was skipped locally because Terraform is not installed; CI still validates Terraform on pull requests.
+- Built `frontend/dist/`: 43 files, 3,864,886 bytes. Backend, Terraform, legacy chat client/config, API endpoint strings, and starter tooling are absent. Every local HTML `href`/`src` target exists.
+- Local `./scripts/dev.sh` smoke check returned the Home HTML over loopback (HTTP 200).
+- No AWS call, model inference, GitHub workflow run, push, or deployment occurred.
 
-## Deployment facts and owner setup
+## Remaining owner actions
 
-- The local deploy workflow publishes Pages only after Terraform deploys the backend and sends one live inference smoke request. A UI-only push to `develop` therefore still applies AWS infrastructure and incurs the smoke inference cost.
-- Before a first deploy, confirm Pages uses GitHub Actions and configure repository variables `AWS_REGION`, `TF_STATE_BUCKET`, and `AWS_ROLE_ARN`, plus the `WEB3FORMS_KEY` secret if the contact form should work.
-- Create the remote `develop` branch only when ready for the push to trigger the workflow. Protect `main` and merge the new workflow/removal of `static.yml` there through the chosen branch process.
-- The AWS bootstrap/OIDC role, model access, repository variable/secret values, and current Pages source setting have not been verified from their provider consoles in this UI pass.
+- The repository's default branch was `main` and no remote `develop` existed at the last provider check. Configure GitHub Pages to use **GitHub Actions**, then intentionally create/push `develop` when ready; that push will start the Pages workflow.
+- `WEB3FORMS_KEY` is optional; without it the site publishes but the contact form will not submit. No AWS variables, AWS CLI session, OIDC role, or Terraform state are needed for current Pages deployment.
+- The remote `main` revision still has a legacy Pages workflow. Keep `main` unchanged until the new `develop` Pages path is ready and retire the legacy workflow through the chosen branch process.
+- Existing AWS resources were left untouched. Revisit them separately if/when the backend is reactivated or account cleanup is requested.
 
 ## Next action
 
-Owner reviews this local commit and prepares GitHub/AWS deploy settings. No push or workflow run is part of this task.
+Prepare GitHub Pages settings and the first intentional `develop` push. No workflow run or deployment was initiated here.
