@@ -1,0 +1,40 @@
+# One-time Terraform bootstrap
+
+This root creates the private, versioned S3 state bucket and a GitHub Actions OIDC role restricted to `RickyMartin-dev/Personal-Portfolio` on `develop`. It uses local Terraform state only for this small bootstrap root. The state file is ignored by Git and must stay on the trusted setup machine.
+
+## First run
+
+Use a local AWS CLI profile with permission to create the bucket, IAM OIDC provider (if needed), deploy role, and role policy. No static AWS access keys are stored in GitHub.
+
+```bash
+cd backend/infra/bootstrap
+AWS_PROFILE=your-profile terraform init
+AWS_PROFILE=your-profile terraform plan
+AWS_PROFILE=your-profile terraform apply
+```
+
+If the account already has `https://token.actions.githubusercontent.com` registered as an IAM OIDC provider, pass its ARN so Terraform reuses it instead of attempting to create a duplicate:
+
+```bash
+AWS_PROFILE=your-profile terraform apply \
+  -var='github_oidc_provider_arn=arn:aws:iam::123456789012:oidc-provider/token.actions.githubusercontent.com'
+```
+
+Copy the `deploy_role_arn` output into the GitHub repository variable `AWS_ROLE_ARN`. Copy `tf_state_bucket` into the repository variable `TF_STATE_BUCKET`. These are identifiers, not credentials. Keep `develop` as the trust-policy branch.
+
+The S3 bucket has public access blocked, SSE-S3 encryption, versioning, and a 90-day lifecycle for old state versions. It uses Terraform's S3 native lock file; there is no DynamoDB lock table.
+
+## App root remote state
+
+Initialize `infra/terraform` using the bucket output from bootstrap:
+
+```bash
+cd ../terraform
+terraform init \
+  -backend-config="bucket=$(terraform -chdir=../bootstrap output -raw tf_state_bucket)" \
+  -backend-config="region=us-east-1" \
+  -backend-config="encrypt=true" \
+  -backend-config="use_lockfile=true"
+```
+
+The GitHub workflow should pass the same backend settings from `TF_STATE_BUCKET` and `AWS_REGION` on every run. Do not upload or commit either root's local state, `.terraform/`, or variable files.

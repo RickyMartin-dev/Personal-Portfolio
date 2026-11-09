@@ -1,0 +1,1 @@
+Read `AGENTS.md` and `prompts/learn.md`. Record only durable lessons from completed work in the smallest appropriate file under `docs/decisions/`, `docs/lessons.md`, or `docs/retrospectives/`. Never record secrets or transient chat details.

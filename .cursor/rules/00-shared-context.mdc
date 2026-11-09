@@ -1,0 +1,8 @@
+---
+description: Shared project contract for every Cursor Agent session
+alwaysApply: true
+---
+
+`AGENTS.md` is the shared source of truth for this repository. Read it first, then read only the relevant files in `docs/` and `prompts/`.
+
+Keep changes small and reviewable. Do not commit secrets or local state. Before reporting completion, run the commands in `docs/project-commands.md`, run `./scripts/project check` when the starter contract is touched, and inspect the diff.

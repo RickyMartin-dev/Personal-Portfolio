@@ -1,0 +1,1 @@
+Read `AGENTS.md` and `prompts/learn.md`. Extract only durable lessons from the completed work, update the smallest appropriate file under `docs/decisions/`, `docs/lessons.md`, or `docs/retrospectives/`, and avoid recording transient chat details or secrets.

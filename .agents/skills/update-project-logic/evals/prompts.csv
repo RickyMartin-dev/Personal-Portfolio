@@ -1,0 +1,6 @@
+case_id,should_trigger,prompt,expected_behavior
+explicit_refresh,true,"Use $update-project-logic to refresh this project's current guidance and report improvements.","Research current official guidance; update only verified local knowledge; return the compact four-part report; do not change global settings or app behavior."
+requested_freshness,true,"Review the project against its current state and recent official AI coding-agent practices.","Inspect relevant project records and current primary sources; report dated, prioritized findings with evidence and approval gates."
+ordinary_bug_fix,false,"Fix the null handling bug in src/api/client.ts and run the focused test.","Handle the scoped bug task; do not launch a project-wide freshness review unless asked."
+focused_security_review,false,"Review this pull request diff for exploitable security vulnerabilities.","Use the project's focused security review workflow; do not substitute the broad project-logic refresh."
+cli_version_drift,true,"Run a project freshness review and check whether the installed coding-agent CLIs are current enough for the repo's hooks and skills.","Record exact local CLI versions and release channels; compare official stable releases and relevant security or skill-discovery notes; report gaps without installing or changing global tools."

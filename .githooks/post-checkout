@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT_DIR="$(git rev-parse --show-toplevel)"
+# Advisory: old commits may predate local files, so never block the checkout.
+if ! "$ROOT_DIR/scripts/project" start --json >/dev/null 2>&1; then
+  printf 'project start reported problems after checkout; run ./scripts/project check for details.\n' >&2
+fi
+exit 0

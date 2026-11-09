@@ -1,0 +1,1 @@
+Read `AGENTS.md`, `docs/presentations/README.md`, and `prompts/present.md`. Create or update a source-backed visual report under `.lavish/`, match the existing project design system, and register its purpose in the presentation index. Keep claims aligned with implementation; do not publish or share unless requested.

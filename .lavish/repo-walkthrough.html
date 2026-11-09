@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>Personal Portfolio — Monorepo Delivery Map</title>
+  <link rel="stylesheet" href="theme.css">
+</head>
+<body class="lv-page">
+  <header class="lv-nav">
+    <div class="lv-wrap lv-nav-inner">
+      <span class="lv-brand">Portfolio monorepo · delivery map</span>
+      <nav class="lv-links" aria-label="Sections">
+        <a href="#flow" data-lavish-action>Deploy flow</a>
+        <a href="#runtime" data-lavish-action>What lives here</a>
+        <a href="#local" data-lavish-action>Local inference</a>
+        <a href="#setup" data-lavish-action>First deploy</a>
+        <a href="#operations" data-lavish-action>Costs &amp; signals</a>
+      </nav>
+      <div class="lv-theme" role="group" aria-label="Appearance">
+        <button type="button" data-lavish-action data-theme-choice="auto">Auto</button>
+        <button type="button" data-lavish-action data-theme-choice="light">Light</button>
+        <button type="button" data-lavish-action data-theme-choice="dark">Dark</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="lv-wrap">
+    <section class="lv-hero lv-hero-solo" aria-labelledby="hero-title">
+      <div>
+        <h1 class="lv-title" id="hero-title">One repository owns the whole chat path.</h1>
+        <p class="lv-lede">The portfolio UI, chatbot API, AWS infrastructure, deploy workflow, and Project Starter tools now sit together. A push to <code>develop</code> is designed to verify the app, deploy the Lambda API, smoke-test real inference, and publish the static site.</p>
+        <ul class="lv-chips" aria-label="Architecture highlights">
+          <li>develop is the deploy branch</li>
+          <li>GitHub OIDC to AWS</li>
+          <li>Pages receives frontend/dist/ only</li>
+          <li>No AI key in the browser</li>
+        </ul>
+        <p class="lv-meta">Source sync: Project Starter <code>5bed5a1</code> · local branch <code>develop</code> · review snapshot dated 2026-11-08</p>
+      </div>
+    </section>
+
+    <section class="lv-section" aria-labelledby="status-title">
+      <h2 class="lv-h2" id="status-title">The monorepo is assembled; the first production cutover still needs owner setup.</h2>
+      <p class="lv-intro">This is the current repository state, not a claim that a new AWS endpoint is already live. Existing chatbot resources have not been paused or deleted.</p>
+      <div class="lv-cols">
+        <div>
+          <h3>In the repository</h3>
+          <p>Static portfolio, FastAPI/LangGraph backend, Terraform, local inference setup, workflow checks, monitoring guidance, and the latest integrated Project Starter helpers.</p>
+        </div>
+        <div>
+          <h3>Not yet live</h3>
+          <p>The new Terraform stack has not been applied from this checkout. GitHub repository settings and AWS bootstrap values must be configured before the first deployment.</p>
+        </div>
+        <div>
+          <h3>Protected during cutover</h3>
+          <p>The previous chatbot stays untouched until the new website returns a real model response and its exact retirement list is reviewed.</p>
+        </div>
+      </div>
+      <p class="lv-note"><strong>Working tree:</strong> these changes are local and uncommitted. The remote <code>main</code> still has its legacy Pages workflow; keep it protected while the new deploy stream is established on <code>develop</code>.</p>
+    </section>
+
+    <section class="lv-section" id="flow" aria-labelledby="flow-title">
+      <h2 class="lv-h2" id="flow-title">A develop push builds both halves and checks the deployed model.</h2>
+      <p class="lv-intro">Pull requests run quality checks without AWS credentials. A push or merge to <code>develop</code> uses short-lived GitHub OIDC credentials for the AWS deploy, then publishes only the static artifact.</p>
+      <figure class="lv-panel lv-figure">
+        <svg class="lv-diagram" viewBox="0 0 1080 450" role="img" aria-labelledby="flow-svg-title flow-svg-desc">
+          <title id="flow-svg-title">Portfolio monorepo deployment and shared inference flow</title>
+          <desc id="flow-svg-desc">A push to develop passes verification, builds and deploys the Lambda API with Terraform, runs a real Bedrock inference smoke test, and publishes the static site. The local FastAPI server and deployed Lambda use the same configured model profile.</desc>
+          <defs>
+            <marker id="flow-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="9" markerHeight="9" markerUnits="userSpaceOnUse" orient="auto"><path class="d-head" d="M2 1.5 L8 5 L2 8.5"/></marker>
+            <linearGradient id="deploy-core" x1="0" y1="0" x2="1" y2="1"><stop offset="0" class="d-core-a"/><stop offset="1" class="d-core-b"/></linearGradient>
+          </defs>
+          <g marker-end="url(#flow-arrow)">
+            <path class="d-edge" d="M200 102 H226"/>
+            <path class="d-edge" d="M412 102 H438"/>
+            <path class="d-edge" d="M624 102 H650"/>
+            <path class="d-edge" d="M836 102 H862"/>
+            <path class="d-edge" d="M344 326 H430"/>
+            <path class="d-edge" d="M654 326 H770"/>
+          </g>
+          <path class="d-dash" d="M534 154 V232 H866 V278" marker-end="url(#flow-arrow)"/>
+          <g class="d-node">
+            <rect x="20" y="52" width="180" height="100" rx="14"/>
+            <rect x="232" y="52" width="180" height="100" rx="14"/>
+            <rect x="444" y="52" width="180" height="100" rx="14"/>
+            <rect x="656" y="52" width="180" height="100" rx="14"/>
+            <rect x="868" y="52" width="180" height="100" rx="14"/>
+            <rect x="124" y="278" width="220" height="96" rx="14"/>
+            <rect x="434" y="278" width="220" height="96" rx="14"/>
+            <rect x="774" y="278" width="220" height="96" rx="14"/>
+          </g>
+          <rect x="444" y="52" width="180" height="100" rx="14" fill="url(#deploy-core)"/>
+          <g text-anchor="middle">
+            <text class="d-label" x="110" y="88">Push to develop</text><text class="d-sub" x="110" y="113">merge starts deploy</text>
+            <text class="d-label" x="322" y="88">Verify</text><text class="d-sub" x="322" y="113">starter · Python · browser · TF</text>
+            <text class="d-label d-core-text" x="534" y="88">Build &amp; apply</text><text class="d-sub d-core-text" x="534" y="113">ECR · Lambda · HTTP API</text>
+            <text class="d-label" x="746" y="88">Smoke inference</text><text class="d-sub" x="746" y="113">one real Bedrock request</text>
+            <text class="d-label" x="958" y="88">Publish Pages</text><text class="d-sub" x="958" y="113">only frontend/dist/ is uploaded</text>
+            <text class="d-label" x="234" y="316">Local website</text><text class="d-sub" x="234" y="341">127.0.0.1:8000</text>
+            <text class="d-label" x="544" y="316">Local FastAPI</text><text class="d-sub" x="544" y="341">127.0.0.1:8001</text>
+            <text class="d-label" x="884" y="316">Amazon Bedrock</text><text class="d-sub" x="884" y="341">same configured model profile</text>
+            <text class="d-note" x="699" y="218">Lambda uses its execution role</text>
+          </g>
+          <text class="d-note" x="20" y="424">Local live inference uses your ignored .env or AWS profile. Tests use mocks; the post-deploy smoke check is real and billable.</text>
+        </svg>
+      </figure>
+      <ol class="lv-steps">
+        <li><div><h3>Pull requests target <code>develop</code></h3><p>Project Starter release checks, mocked backend tests, browser tests, secret scanning, and Terraform format/validation run without AWS access.</p></div></li>
+        <li><div><h3>Deploy the backend first</h3><p>The workflow builds a commit-tagged Lambda container, applies Terraform through branch-scoped OIDC, and makes one real chat request against the deployed endpoint.</p></div></li>
+        <li><div><h3>Publish the UI last</h3><p>The frontend build injects the public API URL and optional Web3Forms contact key. GitHub Pages receives <code>frontend/dist/</code>, not the backend, infrastructure source, docs, tests, or agent tooling.</p></div></li>
+      </ol>
+    </section>
+
+    <section class="lv-section" id="runtime" aria-labelledby="runtime-title">
+      <h2 class="lv-h2" id="runtime-title">Each part has one clear home and a bounded deploy package.</h2>
+      <p class="lv-intro">Project Starter adds the development workflow, but its prompts, skills, and docs stay out of both runtime artifacts.</p>
+      <div class="lv-table-wrap">
+        <table class="lv-table">
+          <thead><tr><th>Part</th><th>Repository home</th><th>What gets deployed</th><th>Primary job</th></tr></thead>
+          <tbody>
+            <tr><td>Portfolio UI</td><td><code>frontend/pages/</code>, <code>frontend/assets/</code>, <code>frontend/images/</code></td><td>Selected static files in <code>frontend/dist/</code></td><td>Portfolio pages, chatbot widget, browser tests, and Pages build.</td></tr>
+            <tr><td>Chat API</td><td><code>backend/src/</code>, <code>backend/Dockerfile</code>, <code>backend/tests/</code></td><td>Production dependencies plus backend source in Lambda image</td><td>Validate bounded chat context, run safety checks, call the model, return <code>{ message }</code>.</td></tr>
+            <tr><td>AWS infrastructure</td><td><code>backend/infra/bootstrap/</code>, <code>backend/infra/terraform/</code></td><td>Terraform manages AWS resources; it is never copied into either runtime package</td><td>State bucket and deploy role bootstrap; ECR, API Gateway, Lambda, IAM, and log groups.</td></tr>
+            <tr><td>CI/CD</td><td><code>.github/workflows/</code></td><td>Workflow artifacts are narrowly scoped</td><td>Check pull requests, deploy on <code>develop</code>, smoke-test inference, publish Pages.</td></tr>
+            <tr><td>Project Starter</td><td><code>scripts/project</code>, <code>scripts/</code>, <code>prompts/</code>, <code>docs/</code>, agent adapters</td><td>Nothing is shipped to the site or Lambda</td><td>Task setup, checks, memory, friction → lessons → retrospectives, and agent guidance.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="lv-note"><strong>Latest upstream sync:</strong> commit <code>5bed5a1876011de20350446b3bbe89529cd4ccd1</code> adds the learning loop, monthly retrospective generator, allowlist-backed secret scanner, and advisory checkout/merge hooks. Historical Project Starter friction and lesson entries were not copied into this portfolio.</p>
+    </section>
+
+    <section class="lv-section" id="local" aria-labelledby="local-title">
+      <h2 class="lv-h2" id="local-title">Local and deployed inference share one model profile.</h2>
+      <p class="lv-intro">The same backend code and model setting make integration behavior comparable. Generated wording can still differ between calls because model inference is nondeterministic.</p>
+      <div class="lv-cols" style="--cols: 2">
+        <div>
+          <h3>Local</h3>
+          <p><code>./scripts/setup-local.sh</code> creates the ignored <code>backend/.env</code> template and installs dependencies. <code>./scripts/dev.sh</code> serves the website at port 8000 and FastAPI at port 8001. Use an AWS profile or local Bedrock bearer token; set <code>BEDROCK_MODEL_ID</code> to the Terraform model value.</p>
+        </div>
+        <div>
+          <h3>Deployed</h3>
+          <p>The Lambda execution role authorizes Bedrock. The API endpoint is public routing information in the website bundle; no AI token or browser API key is published. The smoke test calls the same configured model after each successful deployment.</p>
+        </div>
+      </div>
+      <p class="lv-note"><strong>Consistency boundary:</strong> local and deployed use <code>us.anthropic.claude-haiku-5-5</code> by default, but matching model/profile settings do not guarantee byte-for-byte identical answers. Mocked tests make no paid inference calls; each successful deploy smoke test and each local live request does.</p>
+    </section>
+
+    <section class="lv-section" id="setup" aria-labelledby="setup-title">
+      <h2 class="lv-h2" id="setup-title">Four owner actions unlock the first deploy.</h2>
+      <p class="lv-intro">The repository contains the workflow and infrastructure code. These settings require access to the GitHub repository and AWS account.</p>
+      <ol class="lv-steps">
+        <li><div><h3>Prepare GitHub</h3><p>Create and protect <code>develop</code>, require checks for pull requests into it, and set Pages to publish with GitHub Actions. Keep direct pushes to <code>main</code> blocked while its legacy Pages workflow remains in remote history.</p></div></li>
+        <li><div><h3>Bootstrap AWS once</h3><p>Use the intended AWS CLI profile to review and apply <code>backend/infra/bootstrap/</code>. It provisions the encrypted Terraform state bucket and GitHub OIDC role restricted to this repository's <code>develop</code> branch.</p></div></li>
+        <li><div><h3>Set repository configuration</h3><p>Add variables <code>AWS_REGION</code>, <code>TF_STATE_BUCKET</code>, and <code>AWS_ROLE_ARN</code>. Add <code>WEB3FORMS_KEY</code> as a GitHub secret if the existing contact form should submit.</p></div></li>
+        <li><div><h3>Deploy and verify</h3><p>Merge the reviewed change into <code>develop</code>. Confirm the API health route, a real chat response through the published site, and metadata-only CloudWatch logs before planning old endpoint retirement.</p></div></li>
+      </ol>
+      <p class="lv-note"><strong>Current cutoff:</strong> no push, live inference, bootstrap/apply, or AWS resource change has occurred. A push to <code>develop</code> starts the configured deployment; the old website chatbot endpoint remains in service until the new one passes its live check.</p>
+    </section>
+
+    <section class="lv-section" id="operations" aria-labelledby="operations-title">
+      <h2 class="lv-h2" id="operations-title">Idle infrastructure is small; inference and safety checks scale with use.</h2>
+      <div class="lv-cols">
+        <div>
+          <h3>Cost shape</h3>
+          <p>No VPC/NAT, provisioned Lambda, database, trace service, or always-on app server. Retained ECR images, the small Terraform state bucket, and log bytes can incur idle storage charges. Model and Guardrails calls are the main usage costs.</p>
+        </div>
+        <div>
+          <h3>Signals included</h3>
+          <p>CloudWatch receives API/Lambda metrics and structured request metadata: request ID, status, latency, token counts, and outcome. Prompts, replies, and conversation history are not logged.</p>
+        </div>
+        <div>
+          <h3>Limits to understand</h3>
+          <p>API throttling is best-effort rate control, not a monthly spend cap. The historical account baseline was about <code>$1.08/month</code> before this stack; the cost doc gives usage estimates and exclusions.</p>
+        </div>
+      </div>
+      <p class="lv-note">For exact pricing assumptions, resource cleanup candidates, and CloudWatch queries, use <code>docs/deployment-and-costs.md</code>, <code>docs/legacy-chatbot-cutover.md</code>, and <code>backend/infra/terraform/README.md</code>. The AWS inventory is a point-in-time record and must be refreshed before any deletion.</p>
+    </section>
+
+    <footer class="lv-footer">
+      <p>This review page is a navigation aid, not a second source of truth. Product and deploy behavior live in <code>AGENTS.md</code>, <code>docs/</code>, <code>frontend/</code>, <code>backend/</code>, and <code>.github/workflows/</code>. Visual direction uses the repository's shared <code>.lavish/theme.css</code>; it does not change the portfolio site's own design system.</p>
+    </footer>
+  </main>
+  <script src="theme.js"></script>
+</body>
+</html>

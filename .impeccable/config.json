@@ -1,0 +1,44 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "cramped-padding",
+        "value": "*",
+        "files": [
+          ".lavish/theme-preview.html"
+        ],
+        "createdAt": "2026-11-08T23:47:20.605Z",
+        "reason": "Claude (agent) triage: .lv-section has 56-96px clamp() padding under its hairline and .lv-table-wrap insets via 22px cell padding; detector misreads both"
+      },
+      {
+        "rule": "cramped-padding",
+        "value": "*",
+        "files": [
+          ".lavish/project-starter-operating-system.html"
+        ],
+        "createdAt": "2026-11-08T23:53:17.762Z",
+        "reason": "Claude (agent) triage: same theme.css false positive as theme-preview (56-96px section padding, 22px table cell inset)"
+      },
+      {
+        "rule": "cramped-padding",
+        "value": "*",
+        "files": [
+          ".lavish/repo-walkthrough.html"
+        ],
+        "createdAt": "2026-11-09T00:12:21.429Z",
+        "reason": "Claude (agent) triage: same theme.css false positive as other .lavish pages (56-96px section padding, 22px table cell inset)"
+      },
+      {
+        "rule": "cramped-padding",
+        "value": "*",
+        "files": [
+          ".lavish/retro-2026-11.html"
+        ],
+        "createdAt": "2026-11-09T00:17:23.998Z",
+        "reason": "Claude (agent) triage: same theme.css false positive as other .lavish pages"
+      }
+    ]
+  }
+}

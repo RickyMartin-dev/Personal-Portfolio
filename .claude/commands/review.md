@@ -1,0 +1,1 @@
+Read `AGENTS.md`, `docs/security.md`, and `prompts/review.md`. Review the current diff for correctness, regressions, security, maintainability, and unnecessary complexity. Return findings ordered by severity with file references; do not change files unless asked.

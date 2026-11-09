@@ -1,0 +1,1 @@
+Read `AGENTS.md`, `docs/project-commands.md`, `docs/quality.md`, and `prompts/verify.md`. Run the documented checks, inspect failures rather than hiding them, and report exact evidence. If a check is missing, document the gap instead of inventing a passing result.

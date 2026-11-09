@@ -1,21 +1,62 @@
-# This .gitignore is appropriate for repositories deployed to GitHub Pages and using
-# a Gemfile as specified at https://github.com/github/pages-gem#conventional
+# Local credentials and environment files
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+backend/.venv/
+backend/.pytest_cache/
+backend/.coverage*
 
-# Basic Jekyll gitignores (synchronize to Jekyll.gitignore)
+# Terraform local state and provider data
+**/.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+*.tfstate.backup
+backend/infra/bootstrap/*.tfvars
+backend/infra/terraform/*.tfvars
+
+# Agent-local state and editor noise
+.agent-state/
+.pytest_cache/
+__pycache__/
+*.py[cod]
+.codex/*
+!.codex/hooks.json
+.claude/settings.local.json
+.cursor/*.local.json
+.cursor/mcp.json
+.DS_Store
+.idea/
+.vscode/*.local.json
+
+# JS tests and generated builds
+/node_modules/
+/frontend/node_modules/
+/frontend/dist/
+build/
+coverage/
+playwright-report/
+test-results/
+*.log
+
+# Impeccable downloads its platform engine on first use; keep binaries local.
+.agents/skills/impeccable/scripts/bin/
+.claude/skills/impeccable/scripts/bin/
+.cursor/skills/impeccable/scripts/bin/
+.impeccable/*.local.json
+.impeccable/hook.cache.json
+
+# Existing static-site/template exclusions
 _site/
 .sass-cache/
 .jekyll-cache/
 .jekyll-metadata
-
-# Additional Ruby/bundler ignore for when you run: bundle install
 /vendor
-
-# Specific ignore for GitHub Pages
-# GitHub Pages will always use its own deployed version of pages-gem 
-# This means GitHub Pages will NOT use your Gemfile.lock and therefore it is
-# counterproductive to check this file into the repository.
-# Details at https://github.com/github/pages-gem/issues/768
 Gemfile.lock
-.DS_Store
-assets/js/chatbot.config.js
+frontend/assets/js/chatbot.config.js
 chatbot.md
+
+# Local project resources; tracked app code lives outside this directory.
+/resources/

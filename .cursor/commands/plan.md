@@ -1,0 +1,1 @@
+Read `AGENTS.md`, `docs/project-brief.md`, `docs/architecture.md`, and `prompts/plan.md`. Ask only for decisions that materially affect scope. Then create or update a focused plan under `docs/plans/active/` with explicit acceptance criteria and verification commands. Do not implement yet unless the user asks for implementation.

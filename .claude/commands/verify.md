@@ -1,0 +1,1 @@
+Read `AGENTS.md`, `docs/project-commands.md`, `docs/quality.md`, and `prompts/verify.md`. Run the documented checks, inspect failures, and report exact evidence. Never claim a check passed without running it.

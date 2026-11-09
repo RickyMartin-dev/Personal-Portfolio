@@ -1,0 +1,1 @@
+Use `prompts/autopilot.md` as the canonical low-friction session contract. Run `./scripts/project start --task "<the user request>"` before substantive work and `./scripts/project finish --summary "<sanitized outcome>"` after verification. Keep the shared contract in `AGENTS.md`.

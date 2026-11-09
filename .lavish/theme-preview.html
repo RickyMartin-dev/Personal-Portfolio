@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lavish Theme Preview</title>
+  <link rel="stylesheet" href="theme.css">
+  <style>
+    .pv-head { padding-block: clamp(48px, 7cqi, 88px) 40px; }
+    .pv-compare { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px; width: min(1600px, 100% - 48px); margin: 0 auto; }
+    @container lv (max-width: 1240px) { .pv-compare { grid-template-columns: minmax(0, 1fr); } }
+    .pv-label { margin: 0 0 12px 4px; color: var(--text-2); font-size: 13px; font-weight: 600; }
+    .pv-frame { overflow: hidden; border: 1px solid var(--line-strong); border-radius: var(--radius); box-shadow: 0 40px 80px -48px var(--shadow); }
+    .pv-frame .lv-page { min-height: 0; }
+    .pv-frame .lv-nav { position: relative; }
+    .pv-decisions { margin-top: 96px; }
+  </style>
+</head>
+<body class="lv-page">
+  <header class="lv-nav">
+    <div class="lv-wrap lv-nav-inner">
+      <span class="lv-brand">Lavish theme preview</span>
+      <div class="lv-theme" role="group" aria-label="Appearance">
+        <button type="button" data-lavish-action data-theme-choice="auto">Auto</button>
+        <button type="button" data-lavish-action data-theme-choice="light">Light</button>
+        <button type="button" data-lavish-action data-theme-choice="dark">Dark</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="lv-wrap pv-head">
+      <h1 class="lv-title">A calmer, cleaner Lavish.</h1>
+      <p class="lv-lede">The same content from the two repository reports, set in the proposed theme. Light on the left, dark on the right. Every component both pages will use appears once.</p>
+    </div>
+
+    <div class="pv-compare">
+      <div><p class="pv-label">Light</p><div class="pv-frame"><div class="lv-page" data-theme="light" data-frame="light"></div></div></div>
+      <div><p class="pv-label">Dark</p><div class="pv-frame"><div class="lv-page" data-theme="dark" data-frame="dark"></div></div></div>
+    </div>
+
+    <section class="lv-wrap lv-section pv-decisions" aria-labelledby="decide-title">
+      <h2 class="lv-h2" id="decide-title">What you are signing off on</h2>
+      <div class="lv-cols">
+        <div><h3>Type and color</h3><p>San Francisco through the system stack. White or black grounds, one blue accent, and a faint blue-to-pink wash at the top of each page and inside notes. No gold, no all-caps labels.</p></div>
+        <div><h3>Structure</h3><p>Hairline-divided columns replace boxed cards. Tables and steps follow a spec-sheet rhythm. A translucent local nav carries section links and an Auto, Light, Dark switch.</p></div>
+        <div><h3>After sign-off</h3><p>Both reports move onto <code>theme.css</code> and <code>theme.js</code>, drop the Tailwind and DaisyUI CDN, and keep every fact. <code>prompts/present.md</code> points future reports at the theme.</p></div>
+      </div>
+    </section>
+  </main>
+
+  <template id="sample">
+    <header class="lv-nav">
+      <div class="lv-wrap lv-nav-inner">
+        <span class="lv-brand">Project Starter</span>
+      </div>
+    </header>
+    <div class="lv-wrap">
+      <section class="lv-hero">
+        <div>
+          <h2 class="lv-title">A workflow system for coding agents.</h2>
+          <p class="lv-lede">A language-agnostic starter kit for Codex, Claude Code, Cursor, and human contributors: shared instructions, durable project memory, repeatable task commands, and portable quality checks.</p>
+          <ul class="lv-chips"><li>Markdown + Git memory</li><li>Bash CLI</li><li>No app stack</li></ul>
+        </div>
+        <figure class="lv-panel lv-figure">
+          <svg class="lv-diagram" viewBox="0 0 520 360" role="img" aria-label="Project learning loop: work, verify, research, upgrade, and memory around bounded specialist roles">
+            <defs>
+              <marker id="h__" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="10" markerHeight="10" markerUnits="userSpaceOnUse" orient="auto"><path class="d-head" d="M2 1.5 L8 5 L2 8.5"/></marker>
+              <linearGradient id="core__" x1="0" y1="0" x2="1" y2="1"><stop offset="0" class="d-core-a"/><stop offset="1" class="d-core-b"/></linearGradient>
+            </defs>
+            <g marker-end="url(#h__)">
+              <path class="d-edge" d="M93 106 C93 84 128 73 165 73"/><path class="d-edge" d="M323 73 C380 73 420 88 420 118"/>
+              <path class="d-edge" d="M412 194 C412 222 384 232 366 238"/><path class="d-edge" d="M280 275 H235"/>
+              <path class="d-edge" d="M112 232 C106 212 95 198 94 182"/>
+            </g>
+            <g class="d-node"><rect x="30" y="112" width="126" height="62" rx="14"/><rect x="173" y="42" width="144" height="62" rx="14"/><rect x="350" y="126" width="140" height="62" rx="14"/><rect x="286" y="244" width="142" height="62" rx="14"/><rect x="79" y="238" width="148" height="62" rx="14"/></g>
+            <g text-anchor="middle">
+              <text class="d-label" x="93" y="140">Work</text><text class="d-sub" x="93" y="159">plan · build</text>
+              <text class="d-label" x="245" y="70">Verify</text><text class="d-sub" x="245" y="89">evidence</text>
+              <text class="d-label" x="420" y="154">Research</text><text class="d-sub" x="420" y="173">compare</text>
+              <text class="d-label" x="357" y="272">Upgrade</text><text class="d-sub" x="357" y="291">promote</text>
+              <text class="d-label" x="153" y="266">Memory</text><text class="d-sub" x="153" y="285">compact</text>
+            </g>
+            <circle cx="258" cy="183" r="48" fill="url(#core__)"/>
+            <text class="d-label d-core-text" x="258" y="181" text-anchor="middle">Specialists</text>
+            <text class="d-sub d-core-text" x="258" y="199" text-anchor="middle">bounded roles</text>
+          </svg>
+        </figure>
+      </section>
+
+      <section class="lv-section">
+        <h2 class="lv-h2">How a task moves through the repository</h2>
+        <p class="lv-intro">The agent adapters share one contract. The CLI creates local context and durable records; checks run locally, from Git hooks, and in GitHub Actions.</p>
+        <figure class="lv-panel lv-figure">
+          <svg class="lv-diagram" viewBox="0 0 900 350" role="img" aria-label="Task flow: contract, start, work, verify, then finish with a snapshot and handoff and an optional archive">
+            <defs>
+              <marker id="f__" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="10" markerHeight="10" markerUnits="userSpaceOnUse" orient="auto"><path class="d-head" d="M2 1.5 L8 5 L2 8.5"/></marker>
+              <marker id="q__" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="10" markerHeight="10" markerUnits="userSpaceOnUse" orient="auto"><path class="d-head d-head-quiet" d="M2 1.5 L8 5 L2 8.5"/></marker>
+            </defs>
+            <g marker-end="url(#f__)">
+              <path class="d-edge" d="M168 93 H201"/><path class="d-edge" d="M366 93 H399"/><path class="d-edge" d="M564 93 H597"/>
+              <path class="d-edge" d="M680 131 C680 200 640 226 563 243"/><path class="d-edge" d="M604 280 H639"/>
+            </g>
+            <path class="d-dash" d="M296 131 V231" marker-end="url(#q__)"/>
+            <g class="d-node">
+              <rect x="18" y="60" width="146" height="66" rx="14"/><rect x="206" y="60" width="156" height="66" rx="14"/><rect x="404" y="60" width="156" height="66" rx="14"/><rect x="602" y="60" width="156" height="66" rx="14"/>
+              <rect x="218" y="237" width="156" height="66" rx="14"/><rect x="444" y="247" width="156" height="66" rx="14"/><rect x="644" y="247" width="220" height="66" rx="14"/>
+            </g>
+            <g text-anchor="middle">
+              <text class="d-label" x="91" y="88">Contract</text><text class="d-sub" x="91" y="107">AGENTS + adapters</text>
+              <text class="d-label" x="284" y="88">Start</text><text class="d-sub" x="284" y="107">context + checkpoint</text>
+              <text class="d-label" x="482" y="88">Work</text><text class="d-sub" x="482" y="107">plan · change · review</text>
+              <text class="d-label" x="680" y="88">Verify</text><text class="d-sub" x="680" y="107">check · release-check</text>
+              <text class="d-label" x="296" y="265">Project records</text><text class="d-sub" x="296" y="284">docs · prompts · plans</text>
+              <text class="d-label" x="522" y="275">Finish</text><text class="d-sub" x="522" y="294">snapshot + handoff</text>
+              <text class="d-label" x="754" y="275">Optional archive</text><text class="d-sub" x="754" y="294">sanitized snapshot · user vault</text>
+            </g>
+            <text class="d-note" x="776" y="97">Git hooks + CI</text>
+            <text class="d-note" x="18" y="340">The repository is the durable source of truth; the archive is opt-in.</text>
+          </svg>
+        </figure>
+        <div class="lv-cols">
+          <div><h3>Orient</h3><p><code>scripts/project start</code> refreshes local context and the checkpoint, installs Git hooks, then checks the starter.</p></div>
+          <div><h3>Work and verify</h3><p>Prompts guide plan, implement, verify, review, learn, research, and compact. The contract stays in <code>AGENTS.md</code>.</p></div>
+          <div><h3>Finish and recover</h3><p><code>finish</code> runs the checks, writes a snapshot and handoff, then archives when a vault is set.</p></div>
+        </div>
+      </section>
+
+      <section class="lv-section">
+        <h2 class="lv-h2">The main parts and what each owns</h2>
+        <div class="lv-table-wrap">
+          <table class="lv-table">
+            <thead><tr><th>Layer</th><th>Files</th><th>Purpose</th></tr></thead>
+            <tbody>
+              <tr><td>Shared contract</td><td><code>AGENTS.md</code>, <code>CLAUDE.md</code>, <code>.cursor/</code></td><td>One source of instructions with provider adapters.</td></tr>
+              <tr><td>CLI and automation</td><td><code>scripts/project</code>, <code>.githooks/</code></td><td>Session setup, artifacts, checks, and push gates.</td></tr>
+              <tr><td>Durable memory</td><td><code>docs/state/</code>, <code>docs/plans/</code></td><td>Current task state and reviewable history in Git.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="lv-section">
+        <h2 class="lv-h2">Specialists are role cards before runtimes.</h2>
+        <ol class="lv-steps">
+          <li><div><h3>Define</h3><p>Mission, inputs, outputs, authority, credentials, evidence, and rollback.</p></div></li>
+          <li><div><h3>Review</h3><p>An owner or designated reviewer approves the bounded role brief.</p></div></li>
+          <li><div><h3>Delegate</h3><p>Any harness may execute the role inside the project's declared boundaries.</p></div></li>
+        </ol>
+        <p class="lv-note"><strong>Trust model:</strong> repository and external content stay untrusted unless the shared contract includes them. Generated memory and specialist cards never gain authority silently.</p>
+      </section>
+
+      <footer class="lv-footer"><p>Source of truth remains <code>AGENTS.md</code>, <code>docs/</code>, and <code>.agentic/manifest.json</code>. This page is a communication layer.</p></footer>
+    </div>
+  </template>
+
+  <script>
+    const sample = document.getElementById('sample').innerHTML;
+    document.querySelectorAll('[data-frame]').forEach((frame) => {
+      const mode = frame.dataset.frame;
+      frame.innerHTML = sample.replaceAll('__', '-' + mode);
+      frame.querySelectorAll('[data-on]').forEach((chip) => chip.classList.toggle('is-on', chip.dataset.on === mode));
+    });
+  </script>
+  <script src="theme.js"></script>
+</body>
+</html>

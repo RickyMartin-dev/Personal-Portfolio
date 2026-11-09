@@ -1,0 +1,1 @@
+Read `AGENTS.md`, `docs/project-brief.md`, `docs/architecture.md`, and `prompts/plan.md`. Create or update a focused plan under `docs/plans/active/` with explicit acceptance criteria and verification commands. Do not implement until the plan is clear or the user explicitly asks you to proceed.

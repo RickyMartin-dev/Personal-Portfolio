@@ -1,0 +1,18 @@
+# Keep source text portable and make line-ending checks consistent.
+* text=auto
+*.html text eol=lf
+*.css text eol=lf
+*.js text eol=lf
+*.scss text eol=lf
+*.svg text eol=lf
+*.py text eol=lf
+*.sh text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.json text eol=lf
+*.md text eol=lf
+
+# Vendored Impeccable skill copies keep upstream formatting (npx impeccable update overwrites them).
+.agents/skills/impeccable/** -whitespace
+.claude/skills/impeccable/** -whitespace
+.cursor/skills/impeccable/** -whitespace
