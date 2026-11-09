@@ -18,6 +18,7 @@ The UI and local Pages artifact are ready for review on local `develop`. Changes
 - Built `frontend/dist` with a local loopback API URL: 44 files, about 3.8 MB. The expected warning confirms the local build has no `WEB3FORMS_KEY` and its contact form will not submit.
 - Local browser smoke check under `/Personal-Portfolio/`: PASS — root redirect, favicon, images, responsive widths, and no browser errors or missing artifact requests.
 - Workflow YAML parses locally. Impeccable's detected button-contrast warning was checked in Chromium: the rendered button text is dark (`rgb(21, 24, 38)`), so that detector warning is a false positive for this style.
+- The sanitized task snapshot was saved to `raw/project-snapshots/personal-portfolio-ec826320/2026-11-09T191904Z-codex-task.md`.
 - No live chat inference, AWS mutation, workflow run, push, or deployment occurred.
 
 ## Deployment facts and owner setup
