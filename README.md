@@ -49,3 +49,8 @@ See [`docs/deployment-and-costs.md`](docs/deployment-and-costs.md) for the archi
 ## Project Starter
 
 This repository includes Project Starter's portable agent workflow, scripts, checks, prompts, provider adapters, and the Impeccable design skill for Codex, Claude Code, and Cursor. Product-specific design context lives in [`PRODUCT.md`](PRODUCT.md) and [`DESIGN.md`](DESIGN.md). See [`AGENTS.md`](AGENTS.md) and the [`docs/`](docs/) knowledge map.
+
+## Project guides
+
+- [Contribution guidelines](docs/CONTRIBUTING.md)
+- [Changelog](docs/CHANGELOG.md)

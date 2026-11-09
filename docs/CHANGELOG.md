@@ -2,6 +2,10 @@
 
 All notable changes to the portfolio monorepo and its Project Starter integration are recorded here.
 
+## 2026-11-09
+
+- Synced Project Starter `712bd2e`: moved contribution and changelog guides under `docs/`, added README links, enforced the root layout, and adapted contribution guidance to this portfolio.
+
 ## 2026-11-08
 
 - Expanded the mocked backend suite to cover API validation, CORS, malformed guardrail responses, and isolated frontend artifact boundaries; added escaping and bundle-exclusion checks for the static site builder.

@@ -9,6 +9,8 @@ required_files=(
   "SECURITY.md"
   "AGENTS.md"
   "CLAUDE.md"
+  "docs/CHANGELOG.md"
+  "docs/CONTRIBUTING.md"
   "docs/project-brief.md"
   "docs/project-commands.md"
   "docs/architecture.md"
@@ -157,6 +159,20 @@ failures=0
 for file in "${required_files[@]}"; do
   if [[ ! -f "$file" ]]; then
     printf 'missing: %s\n' "$file" >&2
+    failures=$((failures + 1))
+  fi
+done
+
+for path in CHANGELOG.md CONTRIBUTING.md; do
+  if [[ -e "$path" ]]; then
+    printf '%s belongs under docs/ so root keeps only integration entrypoints.\n' "$path" >&2
+    failures=$((failures + 1))
+  fi
+done
+
+for link in 'docs/CHANGELOG.md' 'docs/CONTRIBUTING.md'; do
+  if ! grep -qF "]($link)" README.md; then
+    printf 'README.md must link to %s.\n' "$link" >&2
     failures=$((failures + 1))
   fi
 done

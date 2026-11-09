@@ -72,7 +72,7 @@ Use `docs/state/proposals/` for project-specific improvement proposals. The desi
 
 ## 11. Complete
 
-Confirm acceptance criteria, move the plan to `docs/plans/completed/`, update the changelog when appropriate, and report verification evidence plus known limitations.
+Confirm acceptance criteria, move the plan to `docs/plans/completed/`, update [`docs/CHANGELOG.md`](CHANGELOG.md) when appropriate, and report verification evidence plus known limitations.
 
 ## Parallel work
 

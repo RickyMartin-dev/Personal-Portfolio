@@ -1,12 +1,12 @@
 # Automatic handoff
 
-- Updated: 2026-11-08 23:57 EST
-- Snapshot: `docs/compactions/2026-11-08-235718-automatic-session.md`
+- Updated: 2026-11-09 00:05 EST
+- Snapshot: `docs/compactions/2026-11-09-000559-automatic-session.md`
 - Mode: machine-generated, repository-local
 
 ## Latest outcome
 
-Committed the Project Starter sync, frontend/backend monorepo split, FastAPI/LangGraph backend, Terraform deployment setup, and verified local test suite on develop without pushing or deploying.
+Synced Project Starter 712bd2e into the portfolio repo: moved changelog and contribution guides under docs, updated references and starter guardrails, preserved portfolio-specific content, and kept the changes local without deployment.
 
 ## Resume path
 
