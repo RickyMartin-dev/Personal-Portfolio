@@ -2,7 +2,7 @@
 
 ## Status
 
-Integrated reusable Project Starter changes through upstream `712bd2ed7d4a987070f9561a7d5b73b85a9afb5e`. The upstream documentation relocation overlapped with portfolio-specific root docs; both were preserved and moved to `docs/`, with the contribution guidance adapted to this repository. No push, deployment, or AWS change has occurred.
+Integrated reusable Project Starter changes through upstream `712bd2ed7d4a987070f9561a7d5b73b85a9afb5e` and committed them locally as `d7f551d` on `develop`. The upstream documentation relocation overlapped with portfolio-specific root docs; both were preserved and moved to `docs/`, with the contribution guidance adapted to this repository. No push, deployment, or AWS change has occurred.
 
 - Owner: Codex
 - Previous integrated Project Starter revision: `d824d3a53c00b1b65cafbdcca0bf7c3c8e1945e7`
@@ -23,4 +23,4 @@ Integrated reusable Project Starter changes through upstream `712bd2ed7d4a987070
 
 ## Next safe action
 
-Commit the integration locally on `develop`. Do not push or deploy.
+No follow-up is pending for this sync. A push is not part of this task.
