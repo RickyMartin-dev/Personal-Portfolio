@@ -1,12 +1,12 @@
 # Automatic handoff
 
-- Updated: 2026-11-09 14:52 EST
-- Snapshot: `docs/compactions/2026-11-09-145254-automatic-session.md`
+- Updated: 2026-11-09 15:29 EST
+- Snapshot: `docs/compactions/2026-11-09-152954-automatic-session.md`
 - Mode: machine-generated, repository-local
 
 ## Latest outcome
 
-Made GitHub Pages deployment AWS-independent, marked the chatbot under construction, and verified the static artifact and local suites
+Published the Pages-only portfolio from develop; workflow and live site verified; default branch and Pages allowlist use develop; chatbot remains under construction and contact form safely falls back to email; no AWS changes.
 
 ## Resume path
 
