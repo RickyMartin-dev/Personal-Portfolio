@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import html
 import os
+import re
 import shutil
 from pathlib import Path
 from typing import Mapping
@@ -23,6 +24,11 @@ ASSET_BUILD_IGNORES = shutil.ignore_patterns(
     "chatbot.js",
     "chatbot.config.js",
     "chatbot.config.template.js",
+)
+CONTACT_FORM = re.compile(
+    r'<form class="contact-form" '
+    r'action="https://api\.web3forms\.com/submit" method="POST">.*?</form>',
+    re.DOTALL,
 )
 BUILD_IGNORES = shutil.ignore_patterns(".DS_Store")
 
@@ -55,12 +61,20 @@ def build_site(
                     ),
                     encoding="utf-8",
                 )
-    elif "__WEB3FORMS_KEY__" in "".join(
-        (output / "pages" / name).read_text(encoding="utf-8")
-        for name in ("index.html", "about.html", "elements.html")
-        if (output / "pages" / name).exists()
-    ):
-        print("warning: WEB3FORMS_KEY is unset; the published contact form will not submit")
+    else:
+        fallback = (
+            '<p class="contact-form-fallback">Reach out by email at '
+            '<a href="mailto:rickylenmartin@gmail.com">'
+            "rickylenmartin@gmail.com</a>.</p>"
+        )
+        for page_name in ("index.html", "about.html", "elements.html"):
+            page = output / "pages" / page_name
+            if page.exists():
+                page.write_text(
+                    CONTACT_FORM.sub(fallback, page.read_text(encoding="utf-8")),
+                    encoding="utf-8",
+                )
+        print("info: WEB3FORMS_KEY is unset; using the direct email contact link")
 
     print(f"Built static site in {output}")
 

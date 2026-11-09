@@ -30,16 +30,16 @@ Run a suite individually:
 python3 frontend/build.py
 ```
 
-The static builder copies `frontend/index.html`, pages, styles, scripts, and site images into `frontend/dist/`. It excludes the backend chatbot client/config, Terraform, docs, tests, starter tools, local references, Sass source, and legacy template assets. `WEB3FORMS_KEY` is optional; when missing, the build prints a warning and leaves the contact form unconfigured.
+The static builder copies `frontend/index.html`, pages, styles, scripts, and site images into `frontend/dist/`. It excludes the backend chatbot client/config, Terraform, docs, tests, starter tools, local references, Sass source, and legacy template assets. `WEB3FORMS_KEY` is optional; when missing, the build replaces the Web3Forms form with a direct email link.
 
 ## GitHub Pages deployment
 
 - Pull requests targeting `develop` run Project Starter/security checks, mocked backend and artifact tests, Playwright, and Terraform formatting/validation. These checks do not use AWS credentials or a remote Terraform state.
 - A push to `develop` runs the checks needed for the site, builds the static artifact, and publishes it to GitHub Pages with the `github-pages` environment.
 - The deploy workflow requires only GitHub Pages permissions. It does not use AWS OIDC, Terraform apply, a Lambda image, or live inference.
-- Configure GitHub Pages to use **GitHub Actions**. The `WEB3FORMS_KEY` secret is optional for publishing; without it, only the contact form is disabled.
+- Configure GitHub Pages to use **GitHub Actions**. The `WEB3FORMS_KEY` secret is optional for publishing; without it, the site uses the direct email link.
 
-The GitHub repository currently has `main` as its default and did not have a remote `develop` branch at the last check. Creating/pushing `develop` will start the deployment workflow, so wait until the local changes and GitHub Pages source are ready. The legacy Pages workflow on the remote `main` revision remains a cutover concern; protect `main` from direct pushes until the new path is published and the legacy workflow is removed safely.
+The GitHub repository default remains `main`, but `develop` now exists and is allowed by the `github-pages` environment. Push changes for this site to `develop`; its workflow runs verification and publishes the built frontend. The legacy Pages workflow still exists on `main`, so continue avoiding `main` pushes until that workflow is retired.
 
 ## Dormant backend and AWS infrastructure
 

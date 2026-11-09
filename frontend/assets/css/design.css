@@ -746,6 +746,10 @@ html[data-theme="light"] .theme-toggle {
   margin-top: var(--sp-8);
 }
 
+.contact-form-fallback {
+  margin-top: var(--sp-8);
+}
+
 .form-field {
   display: flex;
   flex-direction: column;

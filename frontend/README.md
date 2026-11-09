@@ -12,4 +12,4 @@ Run the browser suite from this folder after installing dependencies. The comman
 npm run test:e2e
 ```
 
-The site builder copies the static redirect, pages, runtime assets, and images into `frontend/dist/`. It omits the legacy chat API client and config, backend, Terraform, docs, tests, Project Starter tools, Sass source, and legacy template assets. `WEB3FORMS_KEY` is optional and only configures the contact form.
+The site builder copies the static redirect, pages, runtime assets, and images into `frontend/dist/`. It omits the legacy chat API client and config, backend, Terraform, docs, tests, Project Starter tools, Sass source, and legacy template assets. `WEB3FORMS_KEY` is optional: with the key, the build configures Web3Forms; without it, the form is replaced by a direct email link.

@@ -18,7 +18,12 @@ def create_source_tree(root: Path) -> None:
     for page in ("index", "about", "elements"):
         path = root / "pages" / f"{page}.html"
         path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text("contact=__WEB3FORMS_KEY__", encoding="utf-8")
+        path.write_text(
+            '<form class="contact-form" '
+            'action="https://api.web3forms.com/submit" method="POST">'
+            "contact=__WEB3FORMS_KEY__</form>",
+            encoding="utf-8",
+        )
 
     files = {
         "assets/css/main.css": "site styles",
@@ -55,7 +60,9 @@ def test_build_site_contains_only_static_frontend_and_escapes_contact_key(
     )
 
     assert (output / "pages/about.html").read_text(encoding="utf-8") == (
-        "contact=key&amp;&lt;&gt;&quot;"
+        '<form class="contact-form" '
+        'action="https://api.web3forms.com/submit" method="POST">'
+        "contact=key&amp;&lt;&gt;&quot;</form>"
     )
     assert (output / "assets/js/site.js").is_file()
     assert (output / "assets/js/chatbot-notice.js").is_file()
@@ -89,7 +96,7 @@ def test_build_site_needs_no_chatbot_or_aws_configuration(tmp_path: Path) -> Non
     assert not (output / "assets/js/chatbot.config.js").exists()
 
 
-def test_build_site_keeps_contact_form_unconfigured_without_a_key(
+def test_build_site_uses_direct_email_contact_without_a_key(
     tmp_path: Path, capsys
 ) -> None:
     source = tmp_path / "repo"
@@ -98,6 +105,9 @@ def test_build_site_keeps_contact_form_unconfigured_without_a_key(
 
     build_site_module.build_site(source, output, environment={})
 
-    page = (output / "pages/index.html").read_text(encoding="utf-8")
-    assert "__WEB3FORMS_KEY__" in page
-    assert "WEB3FORMS_KEY is unset" in capsys.readouterr().out
+    for page_name in ("index", "about", "elements"):
+        page = (output / f"pages/{page_name}.html").read_text(encoding="utf-8")
+        assert "__WEB3FORMS_KEY__" not in page
+        assert '<form class="contact-form"' not in page
+        assert 'href="mailto:rickylenmartin@gmail.com"' in page
+    assert "using the direct email contact link" in capsys.readouterr().out
