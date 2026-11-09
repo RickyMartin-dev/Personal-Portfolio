@@ -41,7 +41,7 @@ Tests mock provider calls; they do not need AWS credentials or make paid inferen
 
 Pull requests to `develop` run the Project Starter/security checks, backend mocks, frontend artifact tests, browser tests, and Terraform validation. A push to `develop` verifies the site, builds only the static frontend artifact, and publishes it through the GitHub Pages Actions environment. That workflow does not access AWS, apply Terraform, deploy the backend, or make model requests.
 
-GitHub Pages uses **GitHub Actions** as its build and deployment source. Pushes to `develop` run the verification, artifact build, and publish workflow. `WEB3FORMS_KEY` is optional; without it the build publishes a direct email link instead of a broken contact form. The current remote default remains `main`; Pages deployment is explicitly allowed from both `main` and `develop`.
+GitHub Pages uses **GitHub Actions** as its build and deployment source. `develop` is the repository default, and pushes to it run the verification, artifact build, and publish workflow. Only `develop` is allowed by the Pages environment. `WEB3FORMS_KEY` is optional; without it the build publishes a direct email link instead of a broken contact form. The historical `static.yml` file remains on `main`, but that workflow is inactive in GitHub Actions.
 
 The backend and AWS setup are intentionally dormant. No AWS CLI login, AWS variables, Terraform state bucket, OIDC role, or AWS deployment is required for current Pages development or deployment. Existing AWS resources have not been changed. See [`docs/architecture.md`](docs/architecture.md) and [`docs/deployment-and-costs.md`](docs/deployment-and-costs.md) for the current boundary and retained backend plan.
 

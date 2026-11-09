@@ -39,7 +39,7 @@ The static builder copies `frontend/index.html`, pages, styles, scripts, and sit
 - The deploy workflow requires only GitHub Pages permissions. It does not use AWS OIDC, Terraform apply, a Lambda image, or live inference.
 - Configure GitHub Pages to use **GitHub Actions**. The `WEB3FORMS_KEY` secret is optional for publishing; without it, the site uses the direct email link.
 
-The GitHub repository default remains `main`, but `develop` now exists and is allowed by the `github-pages` environment. Push changes for this site to `develop`; its workflow runs verification and publishes the built frontend. The legacy Pages workflow still exists on `main`, so continue avoiding `main` pushes until that workflow is retired.
+The GitHub repository default is `develop`, and the `github-pages` environment permits only that branch. Push changes for this site to `develop`; its workflow runs verification and publishes the built frontend. A historical Pages workflow file remains on `main`, but GitHub Actions marks it inactive and the environment blocks main-branch deployment.
 
 ## Dormant backend and AWS infrastructure
 

@@ -11,7 +11,7 @@ Push to develop
             └─ publish static artifact through GitHub Pages Actions
 ```
 
-GitHub Pages uses **GitHub Actions**. The repository default remains `main`, and the `github-pages` environment now allows both `main` and `develop`; the new workflow deploys pushes to `develop`. The latest `develop` deployment completed successfully. The `main` branch still contains its legacy workflow, so continue using `develop` for changes to this site until that old workflow is retired.
+GitHub Pages uses **GitHub Actions**. The repository default is `develop`, and the `github-pages` environment allows only `develop`; the new workflow deploys pushes to that branch. Commit `135963b` completed deployment successfully. A historical `static.yml` remains on `main`, but GitHub Actions marks it inactive and the Pages environment will not accept a deployment from `main`.
 
 `WEB3FORMS_KEY` is optional and only configures the contact form. If present, it is injected into client-side form markup and is therefore a public form identifier, not an AI credential. Without it, the Pages build replaces the form with a direct email link.
 
