@@ -2,7 +2,7 @@
 
 ## Status
 
-The frontend and backend are separated by deployment target, latest shared Project Starter changes are integrated, and the local suite passes. Changes are being committed locally on `develop`. No push, live inference, Terraform apply, AWS deployment, or AWS resource change has occurred.
+The frontend and backend are separated by deployment target, latest shared Project Starter changes are integrated, and the local suite passes. Implementation is committed locally on `develop` as `30a8b11`. No push, live inference, Terraform apply, AWS deployment, or AWS resource change has occurred.
 
 - Owner: Codex
 - Upstream Project Starter revision: `d824d3a53c00b1b65cafbdcca0bf7c3c8e1945e7`
@@ -27,4 +27,4 @@ The frontend and backend are separated by deployment target, latest shared Proje
 
 ## Next safe action
 
-Finish the local `develop` commit and save the project snapshot. Do not push: a push to `develop` triggers the AWS deployment workflow.
+Before the first deployment, finish AWS/GitHub owner setup documented in `docs/deployment-and-costs.md`, review existing AWS chatbot resources and the legacy cutover checklist, then intentionally push `develop` when ready. A push triggers AWS deployment and Pages publication.
