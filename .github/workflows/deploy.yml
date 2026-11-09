@@ -50,7 +50,7 @@ jobs:
       - name: Upload Pages build artifact
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: github-pages
+          name: pages-build
           path: frontend/dist
           if-no-files-found: error
           retention-days: 1
@@ -69,7 +69,7 @@ jobs:
       - name: Download Pages build artifact
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
-          name: github-pages
+          name: pages-build
           path: frontend/dist
       - name: Configure GitHub Pages
         uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5.0.0
