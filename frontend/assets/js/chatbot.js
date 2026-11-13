@@ -1,175 +1,100 @@
 document.addEventListener('DOMContentLoaded', function () {
-    const config = window.CHATBOT_CONFIG || {};
-    const API_ENDPOINT = typeof config.apiEndpoint === 'string' && config.apiEndpoint.trim()
-        ? config.apiEndpoint.trim()
-        : '/chat';
-    const MAX_MESSAGE_LENGTH = 500;
-    const MAX_HISTORY_MESSAGES = 4;
-    const MAX_HISTORY_CHARS = 2000;
+  var config = window.CHATBOT_CONFIG || {};
+  var endpoint = typeof config.apiEndpoint === 'string' ? config.apiEndpoint.trim() : '';
+  var panel = document.getElementById('assist-panel');
+  var messages = document.getElementById('chatbot-messages');
+  var input = document.getElementById('chatbot-input');
+  var form = document.getElementById('chatbot-input-container');
+  var send = document.getElementById('chatbot-send');
+  var status = document.getElementById('chatbot-status');
+  if (!endpoint || !panel || !messages || !input || !form || !send || !status) return;
 
-    const chatbotButton = document.getElementById('chatbot-button');
-    const chatbotContainer = document.getElementById('chatbot-container');
-    const chatbotClose = document.getElementById('chatbot-close');
-    const chatbotMessages = document.getElementById('chatbot-messages');
-    const chatbotInput = document.getElementById('chatbot-input');
-    const chatbotForm = document.getElementById('chatbot-input-container');
-    const chatbotSend = document.getElementById('chatbot-send');
-    const chatbotStatus = document.getElementById('chatbot-status');
+  var history = [];
+  var waiting = false;
+  var maxHistoryMessages = 4;
+  var maxHistoryChars = 2000;
 
-    if (!chatbotButton || !chatbotContainer || !chatbotClose || !chatbotMessages ||
-        !chatbotInput || !chatbotForm || !chatbotSend || !chatbotStatus) {
+  function appendMessage(text, kind) {
+    var item = document.createElement('div');
+    item.className = 'chatbot-message ' + kind;
+    var paragraph = document.createElement('p');
+    paragraph.textContent = text;
+    item.appendChild(paragraph);
+    messages.appendChild(item);
+    messages.scrollTop = messages.scrollHeight;
+  }
+
+  function setWaiting(value) {
+    waiting = value;
+    input.disabled = value;
+    send.disabled = value;
+    status.textContent = value ? 'Assistant is responding.' : '';
+  }
+
+  function boundedHistory() {
+    var result = [];
+    var chars = 0;
+    for (var index = history.length - 1; index >= 0; index -= 1) {
+      var item = history[index];
+      if (result.length >= maxHistoryMessages || chars + item.content.length > maxHistoryChars) break;
+      result.unshift(item);
+      chars += item.content.length;
+    }
+    return result;
+  }
+
+  async function submit(message) {
+    appendMessage(message, 'user-message');
+    setWaiting(true);
+    var typing = document.createElement('div');
+    typing.className = 'chatbot-message bot-message typing-message';
+    typing.setAttribute('aria-hidden', 'true');
+    typing.textContent = 'Thinking…';
+    messages.appendChild(typing);
+    messages.scrollTop = messages.scrollHeight;
+    try {
+      var response = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({ input: message, history: boundedHistory() })
+      });
+      if (response.status === 429) {
+        appendMessage('The assistant has reached its request limit for now. Please try again next month.', 'bot-message chatbot-error');
         return;
+      }
+      if (!response.ok) {
+        appendMessage('The assistant is temporarily unavailable. Your question is still here; please try again.', 'bot-message chatbot-error');
+        return;
+      }
+      var data = await response.json();
+      if (!data || typeof data.message !== 'string' || !data.message.trim()) {
+        appendMessage('The assistant returned an invalid response. Your question is still here; please try again.', 'bot-message chatbot-error');
+        return;
+      }
+      var answer = data.message.trim();
+      appendMessage(answer, 'bot-message');
+      history.push({ role: 'user', content: message }, { role: 'assistant', content: answer });
+      if (history.length > maxHistoryMessages) history.splice(0, history.length - maxHistoryMessages);
+      input.value = '';
+    } catch (_) {
+      appendMessage('Could not connect to the assistant. Your question is still here; please try again.', 'bot-message chatbot-error');
+    } finally {
+      typing.remove();
+      setWaiting(false);
+      if (panel.classList.contains('open')) input.focus();
     }
+  }
 
-    let isChatOpen = false;
-    let isWaiting = false;
-    const conversationHistory = [];
-
-    function setChatOpen(open) {
-        isChatOpen = open;
-        chatbotContainer.hidden = !open;
-        chatbotButton.hidden = open;
-        chatbotButton.setAttribute('aria-expanded', String(open));
-
-        if (open) {
-            chatbotInput.focus();
-        } else {
-            chatbotButton.focus();
-        }
+  input.addEventListener('keydown', function (event) {
+    if (event.key === 'Enter' && !event.shiftKey && !event.isComposing) {
+      event.preventDefault();
+      form.requestSubmit();
     }
+  });
 
-    function addMessage(message, options = {}) {
-        const messageDiv = document.createElement('div');
-        const isUser = options.isUser === true;
-        messageDiv.className = `chatbot-message ${isUser ? 'user-message' : 'bot-message'}`;
-        if (options.isError) messageDiv.classList.add('chatbot-error');
-
-        const messageP = document.createElement('p');
-        messageP.textContent = message;
-        messageDiv.appendChild(messageP);
-        chatbotMessages.appendChild(messageDiv);
-        chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
-    }
-
-    function showTypingIndicator() {
-        const typingDiv = document.createElement('div');
-        typingDiv.className = 'chatbot-message bot-message typing-message';
-        typingDiv.setAttribute('aria-hidden', 'true');
-
-        const indicator = document.createElement('div');
-        indicator.className = 'typing-indicator';
-        for (let index = 0; index < 3; index += 1) {
-            indicator.appendChild(document.createElement('span'));
-        }
-        typingDiv.appendChild(indicator);
-        chatbotMessages.appendChild(typingDiv);
-        chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
-    }
-
-    function removeTypingIndicator() {
-        const typing = chatbotMessages.querySelector('.typing-message');
-        if (typing) typing.remove();
-    }
-
-    function setWaiting(waiting) {
-        isWaiting = waiting;
-        chatbotInput.disabled = waiting;
-        chatbotSend.disabled = waiting;
-        chatbotStatus.textContent = waiting ? 'Assistant is responding.' : '';
-    }
-
-    function recentHistory() {
-        const bounded = [];
-        let remainingChars = MAX_HISTORY_CHARS;
-        const firstIndex = Math.max(0, conversationHistory.length - MAX_HISTORY_MESSAGES);
-
-        for (let index = conversationHistory.length - 2; index >= firstIndex; index -= 2) {
-            const turn = conversationHistory.slice(index, index + 2);
-            const turnChars = turn.reduce((total, message) => total + message.content.length, 0);
-            if (turn.length !== 2 || turnChars > remainingChars) break;
-            bounded.unshift(...turn);
-            remainingChars -= turnChars;
-        }
-
-        return bounded;
-    }
-
-    async function sendMessage(message) {
-        if (message.length > MAX_MESSAGE_LENGTH) {
-            addMessage(`Please keep your message under ${MAX_MESSAGE_LENGTH} characters.`, { isError: true });
-            return;
-        }
-
-        addMessage(message, { isUser: true });
-        setWaiting(true);
-        showTypingIndicator();
-
-        try {
-            const response = await fetch(API_ENDPOINT, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify({
-                    input: message,
-                    history: recentHistory()
-                })
-            });
-
-            if (response.status === 429) {
-                addMessage('Too many requests right now. Please wait a moment and try again.', { isError: true });
-                return;
-            }
-
-            if (!response.ok) {
-                addMessage('Unable to reach the assistant. Please try again.', { isError: true });
-                return;
-            }
-
-            const data = await response.json();
-            if (!data || typeof data.message !== 'string' || !data.message.trim()) {
-                addMessage('The assistant returned an invalid response. Please try again.', { isError: true });
-                return;
-            }
-
-            const reply = data.message.trim();
-            addMessage(reply);
-            chatbotInput.value = '';
-            conversationHistory.push(
-                { role: 'user', content: message },
-                { role: 'assistant', content: reply }
-            );
-            if (conversationHistory.length > MAX_HISTORY_MESSAGES) {
-                conversationHistory.splice(0, conversationHistory.length - MAX_HISTORY_MESSAGES);
-            }
-        } catch (error) {
-            console.error('Chatbot error:', error);
-            addMessage('Connection error. Please try again later.', { isError: true });
-        } finally {
-            removeTypingIndicator();
-            setWaiting(false);
-            if (isChatOpen) chatbotInput.focus();
-        }
-    }
-
-    chatbotButton.addEventListener('click', function () {
-        setChatOpen(true);
-    });
-
-    chatbotClose.addEventListener('click', function () {
-        setChatOpen(false);
-    });
-
-    chatbotForm.addEventListener('submit', function (event) {
-        event.preventDefault();
-        const message = chatbotInput.value.trim();
-        if (message && !isWaiting) sendMessage(message);
-    });
-
-    document.addEventListener('keydown', function (event) {
-        if (event.key === 'Escape' && isChatOpen) {
-            setChatOpen(false);
-        }
-    });
+  form.addEventListener('submit', function (event) {
+    event.preventDefault();
+    var message = input.value.trim();
+    if (!waiting && message && message.length <= 500) submit(message);
+  });
 });

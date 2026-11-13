@@ -69,15 +69,18 @@
     var closeBtn = $('.icon-btn', ap);
     var setOpen = function (o) {
       ap.classList.toggle('open', o);
+      ap.setAttribute('aria-hidden', String(!o));
       ab.setAttribute('aria-expanded', String(o));
-      if (o) { closeBtn.focus(); } else if (ap.contains(document.activeElement)) { ab.focus(); }
+      if (o) {
+        var input = $('#chatbot-input', ap);
+        (input && !input.closest('[hidden]') ? input : closeBtn).focus();
+      } else if (ap.contains(document.activeElement)) { ab.focus(); }
     };
     ab.addEventListener('click', function () { setOpen(!ap.classList.contains('open')); });
     closeBtn.addEventListener('click', function () { setOpen(false); });
     document.addEventListener('keydown', function (e) {
       if (!ap.classList.contains('open')) return;
       if (e.key === 'Escape') { setOpen(false); ab.focus(); }
-      else if (e.key === 'Tab') { e.preventDefault(); closeBtn.focus(); }
     });
   }
 

@@ -44,8 +44,21 @@ for file in "${workflow_files[@]}"; do
       printf '%s must grant only the Pages and OIDC write permissions required for deployment.\n' "$file" >&2
       failures=$((failures + 1))
     fi
-    if grep -nE 'aws-actions/configure-aws-credentials|AWS_REGION|AWS_ROLE_ARN|TF_STATE_BUCKET|smoke-chat\.py|deploy-backend|(^|[[:space:]])terraform([[:space:]]|$)' "$file" >/dev/null; then
-      printf '%s must publish the static Pages artifact without AWS or Terraform deployment steps.\n' "$file" >&2
+    if ! grep -Eq '^  deploy-backend:[[:space:]]*$' "$file" || \
+      ! grep -q 'aws-actions/configure-aws-credentials@' "$file" || \
+      ! grep -q 'terraform apply' "$file" || \
+      ! grep -q 'vars.AWS_ROLE_ARN' "$file" || \
+      ! grep -q 'vars.TF_STATE_BUCKET' "$file"; then
+      printf '%s must configure the OIDC-backed chatbot deployment job and remote state settings.\n' "$file" >&2
+      failures=$((failures + 1))
+    fi
+    if ! awk '
+      /^  publish-site:[[:space:]]*$/ { job = "publish-site"; next }
+      /^  [A-Za-z0-9_.-]+:[[:space:]]*$/ { job = "" }
+      job == "publish-site" && /aws-actions\/configure-aws-credentials|AWS_ROLE_ARN|TF_STATE_BUCKET|terraform (init|apply)/ { invalid = 1 }
+      END { exit(invalid ? 1 : 0) }
+    ' "$file"; then
+      printf '%s must keep AWS credentials and Terraform commands out of the Pages publication job.\n' "$file" >&2
       failures=$((failures + 1))
     fi
   elif grep -nE '(^|[[:space:]])(actions|attestations|checks|contents|deployments|discussions|id-token|issues|models|packages|pages|pull-requests|repository-projects|security-events|statuses):[[:space:]]*(write|write-all)|(^|[[:space:]])permissions:[[:space:]]*(write-all|read-all)' "$file" >/dev/null; then

@@ -2,7 +2,8 @@
   "name": "personal-portfolio",
   "private": true,
   "scripts": {
-    "test:e2e": "WEB3FORMS_KEY=playwright-test-key python3 build.py && playwright test",
+    "test:e2e": "WEB3FORMS_KEY=playwright-test-key python3 build.py && playwright test tests/ui/chatbot.spec.js",
+    "test:e2e:chatbot": "WEB3FORMS_KEY=playwright-test-key CHATBOT_API_ENDPOINT=https://api.example.test/chat python3 build.py && playwright test tests/ui/chatbot-live.spec.js",
     "test:ui": "playwright test",
     "test:ui:headed": "playwright test --headed"
   },

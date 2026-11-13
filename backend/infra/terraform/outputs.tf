@@ -27,3 +27,8 @@ output "api_access_log_group_name" {
   description = "CloudWatch HTTP API access log group; request/response bodies are not recorded."
   value       = aws_cloudwatch_log_group.api.name
 }
+
+output "monthly_usage_table_name" {
+  description = "Aggregate monthly request counter; contains no prompts or visitor data."
+  value       = aws_dynamodb_table.monthly_usage.name
+}

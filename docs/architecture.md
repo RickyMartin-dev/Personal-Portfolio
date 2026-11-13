@@ -1,36 +1,40 @@
 # Architecture
 
-## Active runtime
+## Active product path
 
 ```text
 Visitor browser
   └── Static portfolio pages, styles, and scripts
         └── GitHub Pages
 
-Chatbot launcher
-  └── Accessible “Under construction” notice
-        └── No API request is made
+  └── Public HTTPS /chat endpoint
+        └── API Gateway HTTP API
+              └── Lambda container
+                    ├── FastAPI + stateless LangGraph turn
+                    ├── DynamoDB aggregate monthly request cap
+                    └── Bedrock model + inline safety checks
 ```
 
-The site source, browser tests, and static build live in `frontend/`. The site is the v0 "Aurora Lines" design (home, About, Games; plain HTML/CSS/JS, fonts from Google Fonts, theme follows the OS); `design-showcase/aurora-final/` and `studio/` are its design source. `frontend/build.py` publishes only the static site files into `frontend/dist/`; backend source, Terraform, test tooling, and Project Starter files are excluded. The site needs no backend process or AWS account access to run locally.
+The site source, browser tests, and static build live in `frontend/`. The site is the v0 "Aurora Lines" design (home, About, Games; plain HTML/CSS/JS, fonts from Google Fonts, theme follows the OS); `design-showcase/aurora-final/` and `studio/` are its design source. Without `CHATBOT_API_ENDPOINT`, `frontend/build.py` publishes the accessible under-construction notice and omits the chatbot client/config. With a validated HTTPS `/chat` endpoint, the build enables the compact desktop panel/mobile sheet and injects that public endpoint into the CSP and config. Backend source, Terraform, tests, and Project Starter files are excluded from Pages.
 
-## Temporarily inactive chatbot backend
+## Chat request and privacy boundaries
 
-`backend/` retains the FastAPI/LangGraph API, tests, Lambda packaging, and Terraform for future work. The portfolio does not load the chat client or configuration and does not expose an API endpoint. The Pages deployment workflow does not build or deploy this backend, configure AWS credentials, run Terraform, or call a model.
+`backend/` owns the FastAPI API, stateless LangGraph flow, Lambda image, and Terraform. Each request includes up to two recent exchanges stored only in browser page memory. The server validates message and history sizes and stores only the UTC month and aggregate request count in DynamoDB. A conditional update enforces the 1,000-request monthly cap across Lambda instances. If the counter cannot be reached, the API fails closed with 503. Lambda logs keep request IDs, outcome, model, latency, token counts, and safety-check units; request/response text is not logged.
 
-When the backend is reactivated in a separate reviewed task, the intended request path is API Gateway HTTP API → Lambda container → Bedrock. The browser should continue to send no provider credential; inference credentials belong in the backend environment. Monitoring, usage limits, and cost controls must be confirmed before publishing a callable endpoint.
+Bedrock receives the bounded turn and calls inline safety checks before and after generation. Output is limited to 300 model tokens. The API is public and unauthenticated; CORS only limits browser origins, so API Gateway throttling, Lambda concurrency 1, and the shared monthly cap provide the request controls. The $5 account budget sends alerts at 80% and 100% actual spend and 100% forecast; it is not an automatic service shutoff.
 
 ## GitHub Actions and branch flow
 
 - Feature branches open pull requests to `develop`.
 - Pull requests run Project Starter/security checks, mocked backend and artifact tests, Playwright browser tests, and Terraform format/validation. These checks use no AWS credentials or remote Terraform state.
-- Pushes to `develop` run verification, build `frontend/dist/`, and publish that artifact through the `github-pages` environment.
-- `.github/workflows/deploy.yml` grants Pages deployment permissions only. AWS OIDC, Terraform apply, Lambda image publishing, and live inference are not part of the active flow.
-- At the last repository check, GitHub's default branch was `main` and no remote `develop` branch existed. The remote `main` revision still had the legacy Pages workflow. Keep `main` unchanged during cutover until the Pages source and new `develop` deployment path are ready, then retire that old workflow through the chosen branch process.
+- Pull requests to `develop` run mocked API/UI tests and Terraform validation without AWS credentials.
+- Pushes to `develop` run verification, assume the branch-restricted deployment role through GitHub OIDC, build and push the Lambda image, apply the app Terraform root, smoke-check `/health`, then build Pages with the resulting public endpoint.
+- The bootstrap root creates the private versioned state bucket, `develop`-only OIDC role, and account-wide $5 budget. GitHub repository variables `AWS_ROLE_ARN` and `TF_STATE_BUCKET` contain non-secret resource identifiers.
 
 ## Trust and cost boundaries
 
 - Published JavaScript and HTML are public. Never put AI provider credentials in them.
-- The active chatbot notice sends no message text, analytics, or API request.
+- Chat requests are sent directly from the browser to the configured public endpoint. The site does not store them beyond the page lifetime.
 - The contact form uses Web3Forms. Its access key is a public client-side form identifier built into `frontend/build.py` (overridable with `WEB3FORMS_KEY`), not an AI secret.
-- Existing AWS resources remain untouched. The future infrastructure design and prior cost notes are documented in [`deployment-and-costs.md`](deployment-and-costs.md); those estimates do not describe a newly deployed backend in this branch.
+- The prior POC resources remain outside new Terraform state until cutover and dependency checks complete. The replacement deployment never imports or deletes them. After live smoke verification, follow [`legacy-chatbot-cutover.md`](legacy-chatbot-cutover.md) and the owner-authorized cleanup scope.
+- S3 document ingestion and RAG are future work; the planned event-driven full reindex is in [`future-rag-plan.md`](future-rag-plan.md).

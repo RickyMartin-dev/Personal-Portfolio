@@ -22,3 +22,8 @@ output "aws_account_id" {
   description = "AWS account ID used to construct the state bucket name."
   value       = data.aws_caller_identity.current.account_id
 }
+
+output "monthly_budget_name" {
+  description = "Account-wide AWS cost budget with 80%, 100%, and forecast alerts."
+  value       = aws_budgets_budget.monthly_account.name
+}

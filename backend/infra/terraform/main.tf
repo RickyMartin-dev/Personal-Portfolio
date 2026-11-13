@@ -6,6 +6,7 @@ locals {
   inference_profile_arn = "arn:${data.aws_partition.current.partition}:bedrock:${var.aws_region}:${data.aws_caller_identity.current.account_id}:inference-profile/${var.bedrock_model_id}"
   foundation_model_arns = [for region in distinct(concat(var.model_destination_regions, [var.aws_region])) : "arn:${data.aws_partition.current.partition}:bedrock:${region}::foundation-model/${local.model_name}"]
   lambda_role_name      = "${var.project_name}-lambda"
+  usage_table_name      = "${var.project_name}-monthly-usage"
   lambda_log_group_name = "/aws/lambda/${var.project_name}"
   api_log_group_name    = "/aws/apigateway/${var.project_name}"
   image_uri             = "${aws_ecr_repository.chatbot.repository_url}:${var.image_tag}"
@@ -37,12 +38,12 @@ resource "aws_ecr_lifecycle_policy" "chatbot" {
     rules = [
       {
         rulePriority = 1
-        description  = "Keep the newest five tagged deploy images"
+        description  = "Keep only the newest tagged deploy image"
         selection = {
           tagStatus      = "tagged"
           tagPatternList = ["*"]
           countType      = "imageCountMoreThan"
-          countNumber    = 5
+          countNumber    = 1
         }
         action = { type = "expire" }
       },
@@ -124,12 +125,31 @@ data "aws_iam_policy_document" "lambda_permissions" {
     ]
     resources = ["${aws_cloudwatch_log_group.lambda.arn}:*"]
   }
+
+  statement {
+    sid       = "ReserveMonthlyChatUsage"
+    effect    = "Allow"
+    actions   = ["dynamodb:UpdateItem"]
+    resources = [aws_dynamodb_table.monthly_usage.arn]
+  }
 }
 
 resource "aws_iam_role_policy" "lambda" {
   name   = "${var.project_name}-runtime"
   role   = aws_iam_role.lambda.id
   policy = data.aws_iam_policy_document.lambda_permissions.json
+}
+
+resource "aws_dynamodb_table" "monthly_usage" {
+  name                        = local.usage_table_name
+  billing_mode                = "PAY_PER_REQUEST"
+  hash_key                    = "month"
+  deletion_protection_enabled = true
+
+  attribute {
+    name = "month"
+    type = "S"
+  }
 }
 
 resource "aws_lambda_function" "chatbot" {
@@ -150,6 +170,9 @@ resource "aws_lambda_function" "chatbot" {
       MAX_OUTPUT_TOKENS         = tostring(var.max_output_tokens)
       GUARDRAIL_BLOCK_THRESHOLD = tostring(var.guardrail_block_threshold)
       ALLOWED_ORIGINS           = local.allowed_origin_string
+      MONTHLY_CHAT_LIMIT        = tostring(var.monthly_chat_limit)
+      USAGE_TABLE_NAME          = aws_dynamodb_table.monthly_usage.name
+      USAGE_BUDGET_REQUIRED     = "true"
     }
   }
 
