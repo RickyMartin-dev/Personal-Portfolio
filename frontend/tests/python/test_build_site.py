@@ -14,27 +14,23 @@ SPEC.loader.exec_module(build_site_module)
 
 def create_source_tree(root: Path) -> None:
     root.mkdir(parents=True)
-    (root / "index.html").write_text("redirect", encoding="utf-8")
-    for page in ("index", "about", "elements"):
+    form = (
+        '<form class="contact-form" id="contact-form" '
+        'action="https://api.web3forms.com/submit" method="POST" novalidate>'
+        "contact=__WEB3FORMS_KEY__</form>"
+    )
+    (root / "index.html").write_text(form, encoding="utf-8")
+    for page in ("about", "games"):
         path = root / "pages" / f"{page}.html"
         path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(
-            '<form class="contact-form" '
-            'action="https://api.web3forms.com/submit" method="POST">'
-            "contact=__WEB3FORMS_KEY__</form>",
-            encoding="utf-8",
-        )
+        path.write_text(form, encoding="utf-8")
 
     files = {
         "assets/css/main.css": "site styles",
-        "assets/js/site.js": "site behavior",
-        "assets/js/chatbot-notice.js": "under construction notice",
+        "assets/js/app.js": "site behavior",
         "assets/js/chatbot.js": "legacy chat client",
         "assets/js/chatbot.config.js": "private local config",
         "assets/js/chatbot.config.template.js": "config template",
-        "assets/js/main.js": "legacy template code",
-        "assets/css/noscript.css": "unused stylesheet",
-        "assets/sass/main.scss": "unused sass",
         "images/profile.svg": "profile image",
         "README.md": "repo documentation",
         "backend/src/main.py": "backend source",
@@ -59,13 +55,13 @@ def test_build_site_contains_only_static_frontend_and_escapes_contact_key(
         environment={"WEB3FORMS_KEY": 'key&<>"'},
     )
 
-    assert (output / "pages/about.html").read_text(encoding="utf-8") == (
-        '<form class="contact-form" '
-        'action="https://api.web3forms.com/submit" method="POST">'
-        "contact=key&amp;&lt;&gt;&quot;</form>"
-    )
-    assert (output / "assets/js/site.js").is_file()
-    assert (output / "assets/js/chatbot-notice.js").is_file()
+    for built in ("index.html", "pages/about.html", "pages/games.html"):
+        assert (output / built).read_text(encoding="utf-8") == (
+            '<form class="contact-form" id="contact-form" '
+            'action="https://api.web3forms.com/submit" method="POST" novalidate>'
+            "contact=key&amp;&lt;&gt;&quot;</form>"
+        )
+    assert (output / "assets/js/app.js").is_file()
     assert (output / "images/profile.svg").is_file()
 
     for excluded in (
@@ -75,9 +71,6 @@ def test_build_site_contains_only_static_frontend_and_escapes_contact_key(
         "assets/js/chatbot.js",
         "assets/js/chatbot.config.js",
         "assets/js/chatbot.config.template.js",
-        "assets/js/main.js",
-        "assets/css/noscript.css",
-        "assets/sass",
     ):
         assert not (output / excluded).exists(), excluded
 
@@ -91,7 +84,7 @@ def test_build_site_needs_no_chatbot_or_aws_configuration(tmp_path: Path) -> Non
 
     build_site_module.build_site(source, output, environment={})
 
-    assert (output / "index.html").read_text(encoding="utf-8") == "redirect"
+    assert (output / "index.html").is_file()
     assert not (output / "old-artifact").exists()
     assert not (output / "assets/js/chatbot.config.js").exists()
 
@@ -105,8 +98,8 @@ def test_build_site_uses_direct_email_contact_without_a_key(
 
     build_site_module.build_site(source, output, environment={})
 
-    for page_name in ("index", "about", "elements"):
-        page = (output / f"pages/{page_name}.html").read_text(encoding="utf-8")
+    for page_path in ("index.html", "pages/about.html", "pages/games.html"):
+        page = (output / page_path).read_text(encoding="utf-8")
         assert "__WEB3FORMS_KEY__" not in page
         assert '<form class="contact-form"' not in page
         assert 'href="mailto:rickylenmartin@gmail.com"' in page

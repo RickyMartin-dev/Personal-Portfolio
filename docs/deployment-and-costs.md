@@ -21,7 +21,7 @@ The repository retains FastAPI/LangGraph source and Terraform under `backend/` f
 
 ### Artifact boundaries
 
-- `frontend/build.py` copies the root redirect, `pages/`, required site assets, and `images/` into `frontend/dist/`. It excludes the legacy chat API client/config, unused Sass, template JavaScript/CSS, and repository tooling.
+- `frontend/build.py` copies the home page, `pages/`, required site assets, and `images/` into `frontend/dist/`. It excludes the dormant chat API client/config and repository tooling.
 - The Pages workflow publishes only `frontend/dist/`; it does not access or publish `backend/`, Terraform, tests, documentation, local references, or Project Starter files.
 - `backend/Dockerfile` and `.dockerignore` retain a separate bounded Lambda image build for future use; that image is not built in the current workflow.
 

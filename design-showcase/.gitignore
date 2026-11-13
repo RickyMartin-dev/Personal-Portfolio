@@ -1,0 +1,5 @@
+# Generated review screenshots, scratch output and a stray nested copy: local only
+_review/
+_scratch/
+/design-showcase/
+node_modules/

@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Logo contact sheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500&family=Hanken+Grotesk:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../aurora-final/assets/css/afterglow.css?v=20261112f">
+<style>
+  body { margin: 0; padding: 28px 24px 60px; background: var(--ground); color: var(--text); font-family: var(--font-body); }
+  h1 { font-size: 1.7rem; margin: 0 0 4px; } .sub { color: var(--muted); font-size: .9rem; margin: 0 0 18px; }
+  .bar { display: flex; gap: 8px; align-items: center; margin-bottom: 22px; flex-wrap: wrap; }
+  .bar button { background: var(--surface); color: var(--text); border: 1px solid var(--line-strong); border-radius: 8px; padding: 6px 12px; font: inherit; font-size: .85rem; cursor: pointer; }
+  .bar button[aria-pressed=true] { border-color: var(--accent); color: var(--accent-text); }
+  h2 { font: 600 .74rem var(--font-mono); letter-spacing: .16em; text-transform: uppercase; color: var(--faint); margin: 26px 0 10px; border-bottom: 1px solid var(--line); padding-bottom: 6px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+  .cell { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 12px 10px 9px; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  .cell.w { grid-column: span 2; }
+  .row { display: flex; align-items: center; justify-content: center; gap: 14px; min-height: 76px; }
+  .big svg { width: 64px; height: 64px; } .row svg { overflow: visible; }
+  .lab { font: .7rem var(--font-mono); color: var(--muted); text-align: center; } .lab b { color: var(--text); font-weight: 500; display: block; }
+  .nav-demo { display: flex; align-items: center; gap: 9px; font-family: var(--font-display); font-size: 1.1rem; color: var(--text); }
+  .cell .brandlike svg { width: 30px; height: 30px; }
+</style>
+</head>
+<body>
+<h1>Logo contact sheet</h1>
+<p class="sub" id="sub"></p>
+<div class="bar"><button data-t="dark" aria-pressed="true">Dark</button><button data-t="light" aria-pressed="false">Light</button><button data-c="text" aria-pressed="true">Text colour</button><button data-c="crest" aria-pressed="false">Crest</button><button data-c="aurora" aria-pressed="false">Aurora</button></div>
+<div id="out"></div>
+<script src="../aurora-final/assets/js/logos.js?v=20261112f"></script>
+<script>
+(function () {
+  var q = new URLSearchParams(location.search), theme = q.get('theme') === 'light' ? 'light' : 'dark', color = q.get('color') || 'text';
+  var out = document.getElementById('out');
+  function draw() {
+    document.documentElement.dataset.theme = theme;
+    document.getElementById('sub').textContent = window.RM_LOGOS.length + ' marks · shown at 64px, 40px and 24px';
+    var fams = {}, order = [];
+    window.RM_LOGOS.forEach(function (e) { if (!fams[e.family]) { fams[e.family] = []; order.push(e.family); } fams[e.family].push(e); });
+    out.innerHTML = order.map(function (f) {
+      return '<h2>' + f + ' · ' + fams[f].length + '</h2><div class="grid">' + fams[f].map(function (e) {
+        var big = e.text ? '<span class="nav-demo" style="font-style:italic;font-size:1.3rem">Ricky Martin</span>' : RMLogos.markup(e, { color: color, size: e.wide ? 1.15 : 2.1 });
+        var mid = e.text ? '' : RMLogos.markup(e, { color: color, size: 1.33 });
+        var sm = e.text ? '' : RMLogos.markup(e, { color: color, size: .8 });
+        return '<div class="cell' + (e.wide || e.text ? ' w' : '') + '"><div class="row">' + big + '</div><div class="row">' + mid + sm + '</div><div class="lab"><b>' + e.name + '</b>' + e.id + '</div></div>';
+      }).join('') + '</div>';
+    }).join('');
+    document.querySelectorAll('.bar button').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.t ? b.dataset.t === theme : b.dataset.c === color)); });
+  }
+  document.querySelector('.bar').addEventListener('click', function (e) { var b = e.target.closest('button'); if (!b) return; if (b.dataset.t) theme = b.dataset.t; else color = b.dataset.c; draw(); });
+  document.fonts && document.fonts.ready.then(function () {}); draw();
+})();
+</script>
+</body>
+</html>

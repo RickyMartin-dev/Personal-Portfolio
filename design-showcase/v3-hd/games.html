@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Games | Ricky Martin</title>
+<meta name="description" content="Bonus features: browser games by Ricky Martin built with pure HTML, CSS, and JavaScript.">
+<meta name="rm-version" content="v3">
+<meta name="rm-page" content="games">
+<script src="../shared/bridge.js"></script>
+<script>document.documentElement.classList.add('js')</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Michroma&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/style.css">
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
+</head>
+<body class="lite">
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
+<filter id="blur-lg" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="30"/></filter>
+<filter id="blur-md" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="8"/></filter>
+<filter id="blur-sm" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur stdDeviation="5"/></filter>
+<symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M18.7 5.3l-1.6 1.6M6.9 17.1l-1.6 1.6"/></symbol>
+<symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></symbol>
+<symbol id="i-chat" viewBox="0 0 24 24"><path d="M4 5h16v11H10l-4 4v-4H4z"/><path d="M8 9.5h8M8 12.5h5"/></symbol>
+<symbol id="i-close" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+<symbol id="i-arrow-right" viewBox="0 0 24 24"><path d="M4 12h15M13 6l6 6-6 6"/></symbol>
+<symbol id="i-arrow-down" viewBox="0 0 24 24"><path d="M12 4v15M6 13l6 6 6-6"/></symbol>
+<symbol id="i-external" viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></symbol>
+<symbol id="i-linkedin" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="17" height="17" rx="3"/><path d="M8 11v6M8 7.8v.2M12 17v-6M12 13.5c0-1.6 1.1-2.5 2.5-2.5s2.5.9 2.5 2.5V17"/></symbol>
+<symbol id="i-github" viewBox="0 0 24 24"><circle cx="6.5" cy="5.5" r="2.2"/><circle cx="6.5" cy="18.5" r="2.2"/><circle cx="17.5" cy="9" r="2.2"/><path d="M6.5 7.7v8.6M17.5 11.2c0 4-5 3.6-9.4 5.9"/></symbol>
+<symbol id="i-kaggle" viewBox="0 0 24 24"><path d="M7 4v16M17.5 4L9.5 13M10.8 12l7.2 8"/></symbol>
+<symbol id="i-spotify" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M7 9.8c3.4-1 7.2-.8 10.2 1M7.6 13c2.8-.8 6-.5 8.4 1M8.2 16c2.2-.5 4.4-.3 6.2.7"/></symbol>
+<symbol id="i-mail" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3.5 7l8.5 6 8.5-6"/></symbol>
+<symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 21s-6.5-5.4-6.5-11a6.5 6.5 0 0 1 13 0C18.5 15.6 12 21 12 21z"/><circle cx="12" cy="10" r="2.3"/></symbol>
+<symbol id="i-play" viewBox="0 0 24 24"><path d="M8 5l11 7-11 7z"/></symbol>
+<symbol id="i-camera" viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="12" rx="2"/><circle cx="12" cy="13" r="3.4"/><path d="M8.5 7l1.4-2.5h4.2L15.5 7"/></symbol>
+<symbol id="i-check" viewBox="0 0 24 24"><path d="M4.5 12.5l5 5 10-11"/></symbol>
+</defs></svg>
+<a class="skip" href="#main">Skip to content</a>
+<canvas id="scene" data-scene="lite" aria-hidden="true"></canvas>
+<div class="grain" aria-hidden="true"></div>
+<header class="bar">
+  <a class="brand" href="index.html">Ricky Martin</a>
+  <nav aria-label="Primary"><ul><li><a href="index.html">Home</a></li><li><a href="about.html">About</a></li><li><a href="games.html" aria-current="page">Games</a></li></ul></nav>
+  <div class="bar-right">
+    <button class="theme-toggle" type="button" data-theme-toggle aria-label="Dark mode" aria-pressed="true"><svg class="icon i-moon" aria-hidden="true" focusable="false"><use href="#i-moon"/></svg><svg class="icon i-sun" aria-hidden="true" focusable="false"><use href="#i-sun"/></svg></button>
+  </div>
+</header>
+
+<main id="main">
+<section class="page-hero" aria-labelledby="games-h">
+  <div class="wrap">
+    <div class="title-card" data-reveal="rise" style="display:grid;gap:18px;max-width:720px">
+      <h1 id="games-h" style="font-size:clamp(1.7rem,4.3vw,3.6rem);line-height:1.12">Bonus features</h1>
+      <p class="games-intro">Built for fun. Playable in your browser. Pure HTML, CSS, and JavaScript — no downloads, no plugins.</p>
+    </div>
+  </div>
+</section>
+<div class="lower">
+<section class="block" aria-label="Games">
+  <div class="wrap posters">
+
+    <article class="poster big" data-reveal="rise">
+      <div class="poster-art"><svg viewBox="0 0 400 600" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Poster art: a Tetris well with stacked blocks and a falling T piece.">
+<rect width="400" height="600" fill="url(#pg1)"/>
+<defs><linearGradient id="pg1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--still-bg-a)"/><stop offset="1" stop-color="var(--still-bg-b)"/></linearGradient></defs>
+<circle class="s-glow s-cool-fill" cx="200" cy="200" r="130"/>
+<rect x="64" y="54" width="272" height="402" rx="4" fill="var(--still-node)" opacity=".75" stroke="var(--still-line)" stroke-width="2"/>
+<path d="M70 60V450M96 60V450M122 60V450M148 60V450M174 60V450M200 60V450M226 60V450M252 60V450M278 60V450M304 60V450M330 60V450M70 60H330M70 86H330M70 112H330M70 138H330M70 164H330M70 190H330M70 216H330M70 242H330M70 268H330M70 294H330M70 320H330M70 346H330M70 372H330M70 398H330M70 424H330M70 450H330" stroke="var(--still-line)" stroke-width=".6" opacity=".35" fill="none"/>
+<rect class="p-block" x="227" y="269" width="24" height="24" rx="3" fill="var(--c3)" opacity=".92"/><rect class="p-block" x="71" y="295" width="24" height="24" rx="3" fill="var(--c2)" opacity=".92"/><rect class="p-block" x="227" y="295" width="24" height="24" rx="3" fill="var(--c3)" opacity=".92"/><rect class="p-block" x="253" y="295" width="24" height="24" rx="3" fill="var(--c3)" opacity=".92"/><rect class="p-block" x="305" y="295" width="24" height="24" rx="3" fill="var(--c5)" opacity=".92"/><rect class="p-block" x="71" y="321" width="24" height="24" rx="3" fill="var(--c2)" opacity=".92"/><rect class="p-block" x="97" y="321" width="24" height="24" rx="3" fill="var(--c2)" opacity=".92"/><rect class="p-block" x="149" y="321" width="24" height="24" rx="3" fill="var(--c4)" opacity=".92"/><rect class="p-block" x="175" y="321" width="24" height="24" rx="3" fill="var(--c4)" opacity=".92"/><rect class="p-block" x="227" y="321" width="24" height="24" rx="3" fill="var(--c3)" opacity=".92"/><rect class="p-block" x="253" y="321" width="24" height="24" rx="3" fill="var(--c5)" opacity=".92"/><rect class="p-block" x="279" y="321" width="24" height="24" rx="3" fill="var(--c5)" opacity=".92"/><rect class="p-block" x="305" y="321" width="24" height="24" rx="3" fill="var(--c5)" opacity=".92"/><rect class="p-block" x="71" y="347" width="24" height="24" rx="3" fill="var(--c2)" opacity=".92"/><rect class="p-block" x="97" y="347" width="24" height="24" rx="3" fill="var(--c2)" opacity=".92"/><rect class="p-block" x="123" y="347" width="24" height="24" rx="3" fill="var(--c1)" opacity=".92"/><rect class="p-block" x="149" y="347" width="24" height="24" rx="3" fill="var(--c4)" opacity=".92"/><rect class="p-block" x="175" y="347" width="24" height="24" rx="3" fill="var(--c4)" opacity=".92"/><rect class="p-block" x="201" y="347" width="24" height="24" rx="3" fill="var(--c1)" opacity=".92"/><rect class="p-block" x="227" y="347" width="24" height="24" rx="3" fill="var(--c1)" opacity=".92"/><rect class="p-block" x="253" y="347" width="24" height="24" rx="3" fill="var(--c2)" opacity=".92"/><rect class="p-block" x="279" y="347" width="24" height="24" rx="3" fill="var(--c5)" opacity=".92"/><rect class="p-block" x="305" y="347" width="24" height="24" rx="3" fill="var(--c2)" opacity=".92"/><rect class="p-block" x="71" y="373" width="24" height="24" rx="3" fill="var(--c1)" opacity=".92"/><rect class="p-block" x="97" y="373" width="24" height="24" rx="3" fill="var(--c1)" opacity=".92"/><rect class="p-block" x="123" y="373" width="24" height="24" rx="3" fill="var(--c1)" opacity=".92"/><rect class="p-block" x="149" y="373" width="24" height="24" rx="3" fill="var(--c3)" opacity=".92"/><rect class="p-block" x="175" y="373" width="24" height="24" rx="3" fill="var(--c4)" opacity=".92"/><rect class="p-block" x="201" y="373" width="24" height="24" rx="3" fill="var(--c1)" opacity=".92"/><rect class="p-block" x="227" y="373" width="24" height="24" rx="3" fill="var(--c1)" opacity=".92"/><rect class="p-block" x="253" y="373" width="24" height="24" rx="3" fill="var(--c2)" opacity=".92"/><rect class="p-block" x="279" y="373" width="24" height="24" rx="3" fill="var(--c2)" opacity=".92"/><rect class="p-block" x="305" y="373" width="24" height="24" rx="3" fill="var(--c2)" opacity=".92"/><rect class="p-block" x="71" y="399" width="24" height="24" rx="3" fill="var(--c1)" opacity=".92"/><rect class="p-block" x="97" y="399" width="24" height="24" rx="3" fill="var(--c2)" opacity=".92"/><rect class="p-block" x="123" y="399" width="24" height="24" rx="3" fill="var(--c1)" opacity=".92"/><rect class="p-block" x="149" y="399" width="24" height="24" rx="3" fill="var(--c3)" opacity=".92"/><rect class="p-block" x="175" y="399" width="24" height="24" rx="3" fill="var(--c3)" opacity=".92"/><rect class="p-block" x="201" y="399" width="24" height="24" rx="3" fill="var(--c1)" opacity=".92"/><rect class="p-block" x="227" y="399" width="24" height="24" rx="3" fill="var(--c2)" opacity=".92"/><rect class="p-block" x="253" y="399" width="24" height="24" rx="3" fill="var(--c2)" opacity=".92"/><rect class="p-block" x="279" y="399" width="24" height="24" rx="3" fill="var(--c1)" opacity=".92"/><rect class="p-block" x="305" y="399" width="24" height="24" rx="3" fill="var(--c2)" opacity=".92"/><rect class="p-block" x="71" y="425" width="24" height="24" rx="3" fill="var(--c2)" opacity=".92"/><rect class="p-block" x="97" y="425" width="24" height="24" rx="3" fill="var(--c2)" opacity=".92"/><rect class="p-block" x="123" y="425" width="24" height="24" rx="3" fill="var(--c1)" opacity=".92"/><rect class="p-block" x="149" y="425" width="24" height="24" rx="3" fill="var(--c3)" opacity=".92"/><rect class="p-block" x="175" y="425" width="24" height="24" rx="3" fill="var(--c3)" opacity=".92"/><rect class="p-block" x="201" y="425" width="24" height="24" rx="3" fill="var(--c3)" opacity=".92"/><rect class="p-block" x="227" y="425" width="24" height="24" rx="3" fill="var(--c2)" opacity=".92"/><rect class="p-block" x="253" y="425" width="24" height="24" rx="3" fill="var(--c2)" opacity=".92"/><rect class="p-block" x="279" y="425" width="24" height="24" rx="3" fill="var(--c1)" opacity=".92"/><rect class="p-block" x="305" y="425" width="24" height="24" rx="3" fill="var(--c2)" opacity=".92"/>
+<g opacity=".28" fill="none" stroke="var(--c2)" stroke-width="2"><rect x="148" y="216" width="26" height="26"/><rect x="174" y="216" width="26" height="26"/><rect x="200" y="216" width="26" height="26"/><rect x="174" y="190" width="26" height="26"/></g>
+<g class="s-glow-g"><g filter="url(#blur-md)" opacity=".7" fill="var(--c3)"><rect x="148" y="138" width="78" height="26"/><rect x="174" y="112" width="26" height="26"/></g>
+<g fill="var(--c3)"><rect class="p-block" x="149" y="139" width="24" height="24" rx="3"/><rect class="p-block" x="175" y="139" width="24" height="24" rx="3"/><rect class="p-block" x="201" y="139" width="24" height="24" rx="3"/><rect class="p-block" x="175" y="113" width="24" height="24" rx="3"/></g></g>
+<text class="p-title" x="200" y="515" text-anchor="middle">TETRIS</text><text class="p-sub" x="200" y="545" text-anchor="middle">PUZZLE</text>
+</svg></div>
+      <div class="billing"><div><h2>Tetris</h2><p class="genre">Puzzle</p></div><p class="prose">Classic block-stacking puzzle. Clear lines, level up, and survive as long as you can.</p><p class="status">Playable on live site</p><div class="actions"><button class="btn btn-primary" type="button" data-play aria-label="Play Tetris"><svg class="icon " aria-hidden="true" focusable="false"><use href="#i-play"/></svg>Play</button></div></div>
+    </article>
+
+    <article class="poster big" data-reveal="rise">
+      <div class="poster-art"><svg viewBox="0 0 400 600" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Poster art: a top-down road with oncoming traffic and a player car.">
+<defs><linearGradient id="pg2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--still-bg-a)"/><stop offset="1" stop-color="var(--still-bg-b)"/></linearGradient>
+<linearGradient id="beam" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="var(--c2)" stop-opacity=".55"/><stop offset="1" stop-color="var(--c2)" stop-opacity="0"/></linearGradient></defs>
+<rect width="400" height="600" fill="url(#pg2)"/>
+<rect x="84" width="232" height="600" fill="var(--still-node)"/>
+<path d="M84 0V600M316 0V600" stroke="var(--still-text)" stroke-width="3" opacity=".7"/>
+<path d="M161 0V600M239 0V600" stroke="var(--still-line)" stroke-width="3" stroke-dasharray="40 32"/>
+<g stroke="var(--still-line)" stroke-width="2" opacity=".5"><path d="M30 80v50M46 220v80M24 380v70M370 120v70M356 300v60M376 470v50"/></g>
+<polygon points="200,330 110,0 290,0" fill="url(#beam)" transform="translate(0 100)" opacity=".7"/>
+<g transform="translate(122 190)"><rect x="-22" y="-42" width="44" height="84" rx="12" fill="var(--c1)" stroke="rgba(0,0,0,.35)" stroke-width="1.2"/><rect x="-15" y="2" width="30" height="24" rx="6" fill="rgba(10,16,30,.78)"/><rect x="-12" y="-30" width="24" height="10" rx="3" fill="rgba(10,16,30,.5)"/><path d="M-22 -4h-5M22 -4h5M-22 8h-5M22 8h5" stroke="var(--c1)" stroke-width="3"/></g><g transform="translate(278 290)"><rect x="-22" y="-42" width="44" height="84" rx="12" fill="var(--c4)" stroke="rgba(0,0,0,.35)" stroke-width="1.2"/><rect x="-15" y="2" width="30" height="24" rx="6" fill="rgba(10,16,30,.78)"/><rect x="-12" y="-30" width="24" height="10" rx="3" fill="rgba(10,16,30,.5)"/><path d="M-22 -4h-5M22 -4h5M-22 8h-5M22 8h5" stroke="var(--c4)" stroke-width="3"/></g><g transform="translate(200 82)"><rect x="-22" y="-42" width="44" height="84" rx="12" fill="var(--c3)" stroke="rgba(0,0,0,.35)" stroke-width="1.2"/><rect x="-15" y="2" width="30" height="24" rx="6" fill="rgba(10,16,30,.78)"/><rect x="-12" y="-30" width="24" height="10" rx="3" fill="rgba(10,16,30,.5)"/><path d="M-22 -4h-5M22 -4h5M-22 8h-5M22 8h5" stroke="var(--c3)" stroke-width="3"/></g>
+<g filter="url(#blur-md)" opacity=".8"><rect x="-22" y="-42" width="44" height="84" rx="12" fill="var(--c2)" transform="translate(200 430)"/></g>
+<g transform="translate(200 430)"><rect x="-22" y="-42" width="44" height="84" rx="12" fill="var(--c2)" stroke="rgba(0,0,0,.35)" stroke-width="1.2"/><rect x="-15" y="-26" width="30" height="24" rx="6" fill="rgba(10,16,30,.78)"/><rect x="-12" y="24" width="24" height="10" rx="3" fill="rgba(10,16,30,.5)"/><path d="M-22 -4h-5M22 -4h5M-22 8h-5M22 8h5" stroke="var(--c2)" stroke-width="3"/></g>
+<rect width="400" height="130" fill="var(--still-bg-b)" opacity=".55"/>
+<text class="p-title" x="200" y="74" text-anchor="middle" style="font-size:30px">ROAD RACER</text><text class="p-sub" x="200" y="104" text-anchor="middle">ARCADE</text>
+</svg></div>
+      <div class="billing"><div><h2>Road Racer</h2><p class="genre">Arcade</p></div><p class="prose">Top-down road racer. Dodge oncoming traffic at increasing speeds — how far can you go?</p><p class="status">Playable on live site</p><div class="actions"><button class="btn btn-primary" type="button" data-play aria-label="Play Road Racer"><svg class="icon " aria-hidden="true" focusable="false"><use href="#i-play"/></svg>Play</button></div></div>
+    </article>
+
+    <article class="poster small soon" data-reveal="rise">
+      <div class="poster-art"><svg viewBox="0 0 400 600" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+<defs><linearGradient id="pv1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="var(--still-bg-a)"/><stop offset="1" stop-color="var(--still-bg-b)"/></linearGradient>
+<pattern id="hatch1" width="14" height="14" patternUnits="userSpaceOnUse" patternTransform="rotate(40)"><path d="M0 0V14" stroke="var(--still-line)" stroke-width="1" opacity=".35"/></pattern></defs>
+<rect width="400" height="600" fill="url(#pv1)"/>
+<g filter="url(#blur-sm)" opacity=".85"><circle cx="200" cy="260" r="110" fill="none" stroke="var(--c2)" stroke-width="10"/><circle cx="200" cy="260" r="62" fill="var(--c1)" opacity=".7"/><path d="M60 420L200 330L340 420" fill="none" stroke="var(--c3)" stroke-width="12"/><rect x="170" y="400" width="60" height="60" fill="var(--c4)" opacity=".75"/></g>
+<rect width="400" height="600" fill="var(--still-bg-b)" opacity=".42"/><rect width="400" height="600" fill="url(#hatch1)"/>
+</svg><span class="veil-label">Coming soon</span></div>
+      <div class="billing"><div><h2>Coming soon</h2></div><p class="prose">Something new is taking shape on the workbench.</p><p class="status">In development</p></div>
+    </article>
+
+    <article class="poster small soon" data-reveal="rise">
+      <div class="poster-art"><svg viewBox="0 0 400 600" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+<defs><linearGradient id="pv2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="var(--still-bg-a)"/><stop offset="1" stop-color="var(--still-bg-b)"/></linearGradient>
+<pattern id="hatch2" width="14" height="14" patternUnits="userSpaceOnUse" patternTransform="rotate(40)"><path d="M0 0V14" stroke="var(--still-line)" stroke-width="1" opacity=".35"/></pattern></defs>
+<rect width="400" height="600" fill="url(#pv2)"/>
+<g filter="url(#blur-sm)" opacity=".85"><rect x="100" y="150" width="200" height="200" rx="24" fill="none" stroke="var(--c3)" stroke-width="12" transform="rotate(14 200 250)"/><circle cx="130" cy="400" r="46" fill="var(--c5)" opacity=".75"/><circle cx="280" cy="150" r="30" fill="var(--c2)"/><path d="M60 480H340" stroke="var(--c1)" stroke-width="14"/></g>
+<rect width="400" height="600" fill="var(--still-bg-b)" opacity=".42"/><rect width="400" height="600" fill="url(#hatch2)"/>
+</svg><span class="veil-label">Coming soon</span></div>
+      <div class="billing"><div><h2>Coming soon</h2></div><p class="prose">Another idea in the queue. Will ship when it's actually fun.</p><p class="status">In the queue</p></div>
+    </article>
+  </div>
+</section>
+<section class="contact" id="contact" aria-labelledby="contact-h">
+  <div class="wrap contact-grid">
+    <div data-reveal="rise">
+      <h2 id="contact-h">Looking for a builder who can ship modern AI products?</h2>
+      <p class="prose muted">Interested in building ambitious AI products together? Send a note and I will reply by email.</p>
+      <ul class="contact-links">
+        <li><a href="https://www.linkedin.com/in/rickylm/" rel="noopener"><svg class="icon " aria-hidden="true" focusable="false"><use href="#i-linkedin"/></svg>LinkedIn</a></li>
+        <li><a href="https://github.com/RickyMartin-dev" rel="noopener"><svg class="icon " aria-hidden="true" focusable="false"><use href="#i-github"/></svg>GitHub</a></li>
+        <li><a href="https://www.kaggle.com/rickymartindev" rel="noopener"><svg class="icon " aria-hidden="true" focusable="false"><use href="#i-kaggle"/></svg>Kaggle</a></li>
+        <li><a href="https://open.spotify.com/artist/7slfeZO9LsJbWgpkIoXBUJ" rel="noopener"><svg class="icon " aria-hidden="true" focusable="false"><use href="#i-spotify"/></svg>Spotify</a></li>
+        <li><a href="mailto:rickylenmartin@gmail.com"><svg class="icon " aria-hidden="true" focusable="false"><use href="#i-mail"/></svg>rickylenmartin@gmail.com</a></li>
+        <li><span class="loc"><svg class="icon " aria-hidden="true" focusable="false"><use href="#i-pin"/></svg>New York, NY</span></li>
+      </ul>
+    </div>
+    <div data-reveal="rise">
+      <form class="form" id="contact-form" novalidate>
+        <div class="field"><label for="f-name">Name</label><input id="f-name" name="name" type="text" autocomplete="name" aria-describedby="err-name" required><p class="err" id="err-name" hidden></p></div>
+        <div class="field"><label for="f-email">Email</label><input id="f-email" name="email" type="email" autocomplete="email" aria-describedby="err-email" required><p class="err" id="err-email" hidden></p></div>
+        <div class="field"><label for="f-msg">Message</label><textarea id="f-msg" name="message" aria-describedby="err-message" required></textarea><p class="err" id="err-message" hidden></p></div>
+        <div><button class="btn btn-primary" type="submit">Send message <svg class="icon " aria-hidden="true" focusable="false"><use href="#i-arrow-right"/></svg></button></div>
+      </form>
+      <div class="form-ok" id="contact-ok" tabindex="-1" role="status" hidden>
+        <svg class="icon " aria-hidden="true" focusable="false"><use href="#i-check"/></svg>
+        <h3>Message received</h3>
+        <p>Thanks for writing. This is a preview, so nothing was sent. Email rickylenmartin@gmail.com to reach Ricky directly.</p>
+        <button class="btn" type="button" id="contact-again">Write another</button>
+      </div>
+    </div>
+  </div>
+</section>
+</div>
+</main>
+<footer class="foot"><span>© Ricky Martin.</span><span>New York, NY</span></footer>
+<button class="assistant-btn" id="assistant-btn" type="button" aria-expanded="false" aria-controls="assistant-panel" aria-label="Ask about Ricky"><svg class="icon " aria-hidden="true" focusable="false"><use href="#i-chat"/></svg><span>Ask about Ricky</span></button>
+<div class="assistant-panel" id="assistant-panel" role="dialog" aria-labelledby="assistant-h" hidden>
+  <button class="x" type="button" data-assistant-close aria-label="Close assistant panel"><svg class="icon " aria-hidden="true" focusable="false"><use href="#i-close"/></svg></button>
+  <h2 id="assistant-h">Under construction</h2>
+  <p>Ricky's AI assistant is being rebuilt. Check back soon.</p>
+</div>
+<div class="toast" role="status" aria-live="polite"></div>
+<script src="assets/js/common.js"></script>
+<script type="module" src="assets/js/scene.js"></script>
+</body>
+</html>

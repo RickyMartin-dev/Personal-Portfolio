@@ -30,7 +30,7 @@ Run a suite individually:
 python3 frontend/build.py
 ```
 
-The static builder copies `frontend/index.html`, pages, styles, scripts, and site images into `frontend/dist/`. It excludes the backend chatbot client/config, Terraform, docs, tests, starter tools, local references, Sass source, and legacy template assets. `WEB3FORMS_KEY` is optional; when missing, the build replaces the Web3Forms form with a direct email link.
+The static builder copies `frontend/index.html`, pages, styles, scripts, and site images into `frontend/dist/`. It excludes the dormant backend chatbot client/config, Terraform, docs, tests, starter tools, and local references. `WEB3FORMS_KEY` is optional; when missing, the build replaces the Web3Forms form with a direct email link.
 
 ## GitHub Pages deployment
 

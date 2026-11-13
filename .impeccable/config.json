@@ -38,6 +38,15 @@
         ],
         "createdAt": "2026-11-09T00:17:23.998Z",
         "reason": "Claude (agent) triage: same theme.css false positive as other .lavish pages"
+      },
+      {
+        "rule": "overused-font",
+        "value": "geist",
+        "files": [
+          "design-showcase/index.html"
+        ],
+        "createdAt": "2026-11-09T21:18:19.507Z",
+        "reason": "orchestrator decided: dev-only review hub is an Operate-mode tool where a workhorse UI face is appropriate; it never ships"
       }
     ]
   }

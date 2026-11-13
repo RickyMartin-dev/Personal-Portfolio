@@ -1,0 +1,59 @@
+{
+  "version": "v0",
+  "saved": "2026-11-13",
+  "source": "Studio working config (rm-studio-current); all non-colour settings are RM_DEFAULTS",
+  "colors": {
+    "dark": {
+      "bg": "#0d0f11",
+      "surface": "#1d2025",
+      "surface2": "#ffffff",
+      "text": "#eceff4",
+      "muted": "#bcc6d4",
+      "faint": "#8d99ab",
+      "accent": "#364cba",
+      "accentInk": "#0d0f12",
+      "accentText": "#88c0d0",
+      "aurora": [
+        "#f9e0ae",
+        "#a65995",
+        "#46a0b9",
+        "#0080ff",
+        "#000000"
+      ],
+      "lineAlpha": 0.22,
+      "skyGlow": 0.8,
+      "lineGlow": 0.9
+    },
+    "light": {
+      "bg": "#e3e3e3",
+      "surface": "#fbf9f3",
+      "surface2": "#e6e2d8",
+      "text": "#161614",
+      "muted": "#484640",
+      "faint": "#64625a",
+      "accent": "#a02727",
+      "accentInk": "#ffffff",
+      "accentText": "#161614",
+      "aurora": [
+        "#931471",
+        "#95d333",
+        "#8d0c1e",
+        "#4c8d25",
+        "#7a2353"
+      ],
+      "lineAlpha": 0.16,
+      "skyGlow": 0,
+      "lineGlow": 0.97
+    }
+  },
+  "logo": {
+    "mark": "sig-faithful",
+    "mirror": "horizontal",
+    "size": 1,
+    "showName": true,
+    "color": "text",
+    "anim": "none",
+    "rotate": 0
+  },
+  "favicon": "favicon.svg (sig-faithful, mirrored, follows OS theme)"
+}

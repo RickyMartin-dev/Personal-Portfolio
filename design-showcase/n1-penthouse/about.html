@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>About | Ricky Martin</title>
+<meta name="description" content="Ricky Martin: machine learning engineer with 8+ years building and deploying production-grade systems.">
+<meta name="rm-version" content="n1">
+<meta name="rm-page" content="about">
+<script src="../shared/bridge.js"></script>
+<link rel="icon" href="assets/svg/mark.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..600;1,6..96,400..600&family=Hanken+Grotesk:wght@300..700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/penthouse.css">
+</head><body>
+<a class="skip" href="#main">Skip to content</a>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
+<symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M5.6 18.4L7 17M17 7l1.4-1.4"/></symbol>
+<symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></symbol>
+<symbol id="i-arrow" viewBox="0 0 24 24"><path d="M4 12h15M13 6l6 6-6 6"/></symbol>
+<symbol id="i-down" viewBox="0 0 24 24"><path d="M12 4v15M6 13l6 6 6-6"/></symbol>
+<symbol id="i-ext" viewBox="0 0 24 24"><path d="M7 17L17 7M8 7h9v9"/></symbol>
+<symbol id="i-git" viewBox="0 0 24 24"><circle cx="6" cy="5.5" r="2.2"/><circle cx="6" cy="18.5" r="2.2"/><circle cx="18" cy="9" r="2.2"/><path d="M6 7.7v8.6M18 11.2c0 4-6 3-11 6"/></symbol>
+<symbol id="i-in" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="17" height="17" rx="2"/><path d="M8 11v5.5M8 7.7v.01M12 16.5V11m0 2.5a2.7 2.7 0 0 1 5.4 0v3"/></symbol>
+<symbol id="i-kaggle" viewBox="0 0 24 24"><path d="M7.5 4v16M7.5 13.5L15.5 4.5M10.6 11.2l6.1 8.8"/></symbol>
+<symbol id="i-spotify" viewBox="0 0 24 24"><path d="M7.5 10c3.2-1 6.6-.7 9.2 1M8 13c2.6-.7 5.2-.5 7.5.8M8.6 15.8c2-.5 4-.3 5.7.6"/><path d="M12 3.5a8.5 8.5 0 1 0 0 17 8.5 8.5 0 0 0 0-17z"/></symbol>
+<symbol id="i-mail" viewBox="0 0 24 24"><rect x="3.5" y="5.5" width="17" height="13" rx="1.5"/><path d="M4 7l8 6 8-6"/></symbol>
+<symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 21s6.5-5.6 6.5-11a6.5 6.5 0 0 0-13 0c0 5.4 6.5 11 6.5 11z"/><path d="M12 7.8v4.4M9.8 10h4.4"/></symbol>
+<symbol id="i-chat" viewBox="0 0 24 24"><path d="M4.5 6.5a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v7.5a2 2 0 0 1-2 2H11l-4.5 3.5V16h0a2 2 0 0 1-2-2z"/><path d="M8.5 9.5h7M8.5 12.2h4"/></symbol>
+<symbol id="i-close" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+<symbol id="i-doc" viewBox="0 0 24 24"><path d="M6.5 3.5h7l4 4v13h-11z"/><path d="M13.5 3.5v4h4M9 12h6M9 15.5h6"/></symbol>
+<symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></symbol>
+<symbol id="i-send" viewBox="0 0 24 24"><path d="M4 12l16-7-6 15-2.5-6z"/></symbol>
+</defs></svg>
+<header class="bar">
+  <a class="brand" href="index.html">Ricky Martin</a>
+  <div class="bar-r">
+  <nav aria-label="Primary"><ul>
+    <li><a href="index.html">Home</a></li>
+    <li><a href="about.html" aria-current="page">About</a></li>
+    <li><a href="games.html">Games</a></li>
+  </ul></nav>
+  <button type="button" class="theme-btn" data-theme-toggle aria-label="Dark mode" aria-pressed="true"><svg class="ico i-moon" aria-hidden="true" focusable="false"><use href="#i-moon"/></svg><svg class="ico i-sun" aria-hidden="true" focusable="false"><use href="#i-sun"/></svg></button>
+  </div>
+</header>
+<canvas id="city" aria-hidden="true" data-scene="compact"></canvas>
+<div class="page">
+<main id="main">
+  <section class="hero hero-sm" id="hero" aria-labelledby="about-h">
+    <div class="wrap about-top">
+      <div class="about-copy">
+        <h1 id="about-h" class="display">Engineer first, <em>researcher always.</em></h1>
+        <p class="hero-statement">I specialize in taking AI ideas from notebooks to reliable software that teams can trust in production.</p>
+        <div class="profile">
+          <p>I am a machine learning engineer with 8+ years of experience building and deploying production-grade systems across healthcare, security, and enterprise workflows. My work spans classical ML, time-series modeling, and modern LLM-based applications.</p>
+          <p>I focus on architecture and execution: secure integrations, robust data pipelines, model reliability, and measurable impact for business teams. I like shipping quickly, learning from user feedback, and iterating toward systems that are both powerful and maintainable.</p>
+        </div>
+        <div class="cta" style="margin-top:30px"><a class="btn btn-primary" href="#experience"><span>See the career line</span><svg class="ico " aria-hidden="true" focusable="false"><use href="#i-arrow"/></svg></a><a class="tlink" href="#contact"><span>Get in touch</span><svg class="ico " aria-hidden="true" focusable="false"><use href="#i-down"/></svg></a></div>
+      </div>
+      <figure class="portrait frame"><div class="frame-in" style="padding:10px"><img src="../shared/img/ricky-720.jpg" srcset="../shared/img/ricky-720.jpg 720w, ../shared/img/ricky.jpg 1067w" sizes="(min-width: 900px) 380px, 90vw" width="720" height="720" alt="Portrait of Ricky Martin" decoding="async"></div></figure>
+    </div>
+  </section>
+  <section class="veil sec" id="experience" aria-labelledby="exp-h">
+    <div class="wrap">
+      <div class="sec-h"><h2 id="exp-h" class="h2">Experience</h2><p class="lede">One line from 2018 to today, most recent stop first.</p></div>
+      <ol class="line-v" aria-label="Career line">
+        <li class="stn now">
+          <div class="stn-head"><h3 class="h3">DCCA</h3><span class="rl">AI/ML Engineer</span><span class="dt">Jul 2023 &ndash; Present</span></div>
+          <ul><li>Led development of a secure internal Agentic RAG chatbot stack on EC2 and scaled adoption to 80+ employees.</li><li>Deployed and monitored GPU-accelerated Llama 2/3 SageMaker endpoints for summarization, SQL assistance, and report generation POCs.</li><li>Productionized a drug price forecasting API with 5&ndash;11% error rates to enable proactive planning.</li><li>Scaled PySpark anomaly detection workflows that surfaced potentially fraudulent charges at large volume.</li></ul>
+        </li>
+        <li class="stn">
+          <div class="stn-head"><h3 class="h3">Ardent</h3><span class="rl">ML Engineer</span><span class="dt">Jan 2022 &ndash; May 2023</span></div>
+          <ul><li>Built 20+ containerized training and serving pipelines for microservice health models using scikit-learn, PyTorch, and AWS.</li><li>Improved model quality on skewed OCR data through TF-IDF, XGBoost, and SMOTE, achieving PR-AUC of 0.91.</li><li>Implemented time-series anomaly detection for security logs, reducing incident detection latency by 80%.</li></ul>
+        </li>
+        <li class="stn">
+          <div class="stn-head"><h3 class="h3">Redica Systems</h3><span class="rl">Data Scientist</span><span class="dt">Oct 2020 &ndash; Oct 2021</span></div>
+          <ul><li>Developed semi-supervised DBSCAN segmentation with TF-IDF and NLP techniques, saving 64+ business hours each month.</li><li>Engineered feature sets that improved precision and recall by 10% on supervised models.</li></ul>
+          <p class="ov">Overlaps the UCSD lab stop until Jun 2021.</p>
+        </li>
+        <li class="stn">
+          <div class="stn-head"><h3 class="h3">UCSD Bio-Inspired Robotics Lab</h3><span class="rl">Data Science Researcher</span><span class="dt">May 2018 &ndash; Jun 2021</span></div>
+          <ul><li>Built ML-on-edge sensor pipelines with Python, C++, CUDA, and deep learning for live robotics data.</li><li>Created GAN-based synthetic data generation to improve model generalization.</li><li>Published work in IEEE-RAS on affective touch classification.</li></ul>
+        </li>
+      </ol>
+    </div>
+  </section>
+  <section class="veil sec" id="toolkit" aria-labelledby="tool-h" style="padding-top:0">
+    <div class="wrap">
+      <div class="sec-h"><h2 id="tool-h" class="h2">Toolkit</h2></div>
+      <div class="kit"><section><h3>LLM &amp; agents</h3><ul><li>Anthropic</li><li>OpenAI</li><li>LangChain</li><li>LangGraph</li><li>LangSmith</li><li>LlamaIndex</li><li>CrewAI</li><li>Hugging Face</li><li>Transformers</li></ul></section><section><h3>ML &amp; data</h3><ul><li>Python</li><li>NumPy</li><li>Pandas</li><li>Polars</li><li>SciPy</li><li>scikit-learn</li><li>XGBoost</li><li>LightGBM</li><li>PyTorch</li><li>TensorFlow</li><li>CUDA</li><li>Matplotlib</li><li>Seaborn</li><li>Jupyter</li></ul></section><section><h3>MLOps</h3><ul><li>MLflow</li><li>Weights &amp; Biases</li><li>Optuna</li><li>Ray</li><li>Airflow</li><li>Spark</li></ul></section><section><h3>Cloud &amp; infra</h3><ul><li>AWS (SageMaker</li><li>Lambda</li><li>S3</li><li>EC2</li><li>DynamoDB)</li><li>GCP</li><li>Docker</li><li>Kubernetes</li><li>Terraform</li><li>GitHub Actions</li><li>Linux</li><li>Bash</li></ul></section><section><h3>Apps &amp; data stores</h3><ul><li>FastAPI</li><li>Flask</li><li>Streamlit</li><li>React</li><li>TypeScript</li><li>JavaScript</li><li>PostgreSQL</li><li>SQL</li><li>Redis</li><li>Pinecone</li><li>Pydantic</li></ul></section></div>
+    </div>
+  </section>
+  <section class="veil sec" id="outside" aria-labelledby="out-h" style="padding-top:0">
+    <div class="wrap">
+      <div class="sec-h"><h2 id="out-h" class="h2">Life outside code</h2></div>
+      <ul class="outside"><li><div class="slot" aria-hidden="true"><span>Photo coming soon</span></div><h3>Travel</h3><p>New places, same curiosity.</p></li><li><div class="slot" aria-hidden="true"><span>Photo coming soon</span></div><h3>Hiking</h3><p>Trails over timelines.</p></li><li><div class="slot" aria-hidden="true"><span>Photo coming soon</span></div><h3>Music</h3><p>There is a Spotify artist page for the curious.</p></li><li><div class="slot" aria-hidden="true"><span>Photo coming soon</span></div><h3>Surfing</h3><p>Patience, then a burst of effort.</p></li><li><div class="slot" aria-hidden="true"><span>Photo coming soon</span></div><h3>Photography</h3><p>Always looking for good light.</p></li><li><div class="slot" aria-hidden="true"><span>Photo coming soon</span></div><h3>Coffee</h3><p>A good cup, taken slowly.</p></li><li><div class="slot" aria-hidden="true"><span>Photo coming soon</span></div><h3>Outdoors</h3><p>Time away from screens.</p></li><li><div class="slot" aria-hidden="true"><span>Photo coming soon</span></div><h3>Reading</h3><p>Always a book in progress.</p></li></ul>
+    </div>
+  </section>
+  <section class="contact veil" id="contact" aria-labelledby="contact-h">
+  <div class="wrap contact-grid">
+    <div class="contact-copy">
+      <h2 id="contact-h" class="h2">Interested in building ambitious AI products together?</h2>
+      <p class="lede">Send a note about the problem you are trying to solve. Ricky replies from New York, NY.</p>
+      <ul class="links" aria-label="Ricky Martin online">
+        <li><a href="https://www.linkedin.com/in/rickylm/" target="_blank" rel="noopener noreferrer"><svg class="ico " aria-hidden="true" focusable="false"><use href="#i-in"/></svg><span>LinkedIn</span><svg class="ico ext" aria-hidden="true" focusable="false"><use href="#i-ext"/></svg></a></li>
+        <li><a href="https://github.com/RickyMartin-dev" target="_blank" rel="noopener noreferrer"><svg class="ico " aria-hidden="true" focusable="false"><use href="#i-git"/></svg><span>GitHub</span><svg class="ico ext" aria-hidden="true" focusable="false"><use href="#i-ext"/></svg></a></li>
+        <li><a href="https://www.kaggle.com/rickymartindev" target="_blank" rel="noopener noreferrer"><svg class="ico " aria-hidden="true" focusable="false"><use href="#i-kaggle"/></svg><span>Kaggle</span><svg class="ico ext" aria-hidden="true" focusable="false"><use href="#i-ext"/></svg></a></li>
+        <li><a href="https://open.spotify.com/artist/7slfeZO9LsJbWgpkIoXBUJ" target="_blank" rel="noopener noreferrer"><svg class="ico " aria-hidden="true" focusable="false"><use href="#i-spotify"/></svg><span>Spotify</span><svg class="ico ext" aria-hidden="true" focusable="false"><use href="#i-ext"/></svg></a></li>
+        <li><a href="mailto:rickylenmartin@gmail.com"><svg class="ico " aria-hidden="true" focusable="false"><use href="#i-mail"/></svg><span>Email</span></a></li>
+        <li class="place"><svg class="ico " aria-hidden="true" focusable="false"><use href="#i-pin"/></svg><span>New York, NY</span></li>
+      </ul>
+    </div>
+    <div class="contact-panel">
+      <form id="contact-form" novalidate>
+        <div class="field"><label for="f-name">Name</label><input id="f-name" name="name" type="text" autocomplete="name" aria-describedby="err-name" aria-invalid="false"><p class="err" id="err-name" role="alert"></p></div>
+        <div class="field"><label for="f-email">Email</label><input id="f-email" name="email" type="email" autocomplete="email" aria-describedby="err-email" aria-invalid="false"><p class="err" id="err-email" role="alert"></p></div>
+        <div class="field"><label for="f-msg">Message</label><textarea id="f-msg" name="message" rows="5" aria-describedby="err-message" aria-invalid="false"></textarea><p class="err" id="err-message" role="alert"></p></div>
+        <button type="submit" class="btn btn-primary"><svg class="ico " aria-hidden="true" focusable="false"><use href="#i-send"/></svg><span>Send message</span></button>
+      </form>
+      <div id="contact-ok" class="ok" tabindex="-1" hidden>
+        <span class="ok-ico"><svg class="ico " aria-hidden="true" focusable="false"><use href="#i-check"/></svg></span>
+        <h3 class="h3">Message received, <span id="ok-name"></span>.</h3>
+        <p>This is a design preview, so nothing was sent over the network. The real site will deliver this to Ricky.</p>
+        <button type="button" class="btn" data-form-reset>Write another</button>
+      </div>
+    </div>
+  </div>
+</section>
+</main>
+<footer class="foot veil">
+  <div class="wrap foot-in">
+    <p>&copy; Ricky Martin.</p>
+    <nav aria-label="Footer"><a href="index.html">Home</a><a href="about.html">About</a><a href="games.html">Games</a><a href="#resume" data-resume>R&eacute;sum&eacute;</a></nav>
+  </div>
+</footer>
+<button type="button" class="fab" data-assistant-open aria-label="Ask about Ricky" aria-expanded="false" aria-controls="assistant"><svg class="ico " aria-hidden="true" focusable="false"><use href="#i-chat"/></svg><span>Ask about Ricky</span></button>
+<div class="assistant" id="assistant" role="dialog" aria-modal="false" aria-labelledby="as-h" hidden>
+  <div class="as-top"><h2 id="as-h" class="as-title">Ask about Ricky</h2><button type="button" class="icon-btn" data-assistant-close aria-label="Close assistant panel"><svg class="ico " aria-hidden="true" focusable="false"><use href="#i-close"/></svg></button></div>
+  <p class="as-badge">Under construction</p>
+  <p>Ricky's AI assistant is being rebuilt. Check back soon.</p>
+  <p class="as-note">Nothing you type here is sent anywhere, because there is nothing to type into yet.</p>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+</div>
+<script src="assets/js/scene.js"></script>
+<script src="assets/js/ui.js"></script>
+</body>
+</html>

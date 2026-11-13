@@ -1,5 +1,9 @@
 # Current task: GitHub Pages deployment from develop
 
+## Latest: v0 Aurora Lines port
+
+`frontend/` now is the finished v0 "Aurora Lines" site (home, About, Games with playable Tetris and Road Racer). Design source: `design-showcase/aurora-final/` and `studio/`; `v0-config.json` is the saved v0 look. Old HTML5UP template assets were removed; Playwright covers pages, nav, theme, chatbot notice (no requests), contact form, favicon, and games.
+
 ## Status
 
 The static site is published from `develop`. Commit `135963b` passed the full GitHub Actions deployment workflow, and the live Home route returns HTTP 200. `develop` is now the repository default and the only branch allowed by the `github-pages` environment. No AWS resources or AWS deployment settings were changed.

@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ricky Martin | Forward Deployed AI Engineer</title>
+<meta name="description" content="Ricky Martin, Forward Deployed AI Engineer. Full-stack AI/ML systems from prototype to production.">
+<meta name="rm-version" content="v3">
+<meta name="rm-page" content="home">
+<script src="../shared/bridge.js"></script>
+<script>document.documentElement.classList.add('js')</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Michroma&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/style.css">
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
+<filter id="blur-lg" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="30"/></filter>
+<filter id="blur-md" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="8"/></filter>
+<filter id="blur-sm" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur stdDeviation="5"/></filter>
+<symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M18.7 5.3l-1.6 1.6M6.9 17.1l-1.6 1.6"/></symbol>
+<symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></symbol>
+<symbol id="i-chat" viewBox="0 0 24 24"><path d="M4 5h16v11H10l-4 4v-4H4z"/><path d="M8 9.5h8M8 12.5h5"/></symbol>
+<symbol id="i-close" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+<symbol id="i-arrow-right" viewBox="0 0 24 24"><path d="M4 12h15M13 6l6 6-6 6"/></symbol>
+<symbol id="i-arrow-down" viewBox="0 0 24 24"><path d="M12 4v15M6 13l6 6 6-6"/></symbol>
+<symbol id="i-external" viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></symbol>
+<symbol id="i-linkedin" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="17" height="17" rx="3"/><path d="M8 11v6M8 7.8v.2M12 17v-6M12 13.5c0-1.6 1.1-2.5 2.5-2.5s2.5.9 2.5 2.5V17"/></symbol>
+<symbol id="i-github" viewBox="0 0 24 24"><circle cx="6.5" cy="5.5" r="2.2"/><circle cx="6.5" cy="18.5" r="2.2"/><circle cx="17.5" cy="9" r="2.2"/><path d="M6.5 7.7v8.6M17.5 11.2c0 4-5 3.6-9.4 5.9"/></symbol>
+<symbol id="i-kaggle" viewBox="0 0 24 24"><path d="M7 4v16M17.5 4L9.5 13M10.8 12l7.2 8"/></symbol>
+<symbol id="i-spotify" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M7 9.8c3.4-1 7.2-.8 10.2 1M7.6 13c2.8-.8 6-.5 8.4 1M8.2 16c2.2-.5 4.4-.3 6.2.7"/></symbol>
+<symbol id="i-mail" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3.5 7l8.5 6 8.5-6"/></symbol>
+<symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 21s-6.5-5.4-6.5-11a6.5 6.5 0 0 1 13 0C18.5 15.6 12 21 12 21z"/><circle cx="12" cy="10" r="2.3"/></symbol>
+<symbol id="i-play" viewBox="0 0 24 24"><path d="M8 5l11 7-11 7z"/></symbol>
+<symbol id="i-camera" viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="12" rx="2"/><circle cx="12" cy="13" r="3.4"/><path d="M8.5 7l1.4-2.5h4.2L15.5 7"/></symbol>
+<symbol id="i-check" viewBox="0 0 24 24"><path d="M4.5 12.5l5 5 10-11"/></symbol>
+</defs></svg>
+<a class="skip" href="#main">Skip to content</a>
+<canvas id="scene" data-scene="full" aria-hidden="true"></canvas>
+<div class="grain" aria-hidden="true"></div>
+<header class="bar">
+  <a class="brand" href="index.html">Ricky Martin</a>
+  <nav aria-label="Primary"><ul><li><a href="index.html" aria-current="page">Home</a></li><li><a href="about.html">About</a></li><li><a href="games.html">Games</a></li></ul></nav>
+  <div class="bar-right">
+    <button class="theme-toggle" type="button" data-theme-toggle aria-label="Dark mode" aria-pressed="true"><svg class="icon i-moon" aria-hidden="true" focusable="false"><use href="#i-moon"/></svg><svg class="icon i-sun" aria-hidden="true" focusable="false"><use href="#i-sun"/></svg></button>
+  </div>
+</header>
+
+<nav class="scene-index" aria-label="Scenes"><ul>
+<li><a href="#opening"><span>Opening</span></a></li>
+<li><a href="#work"><span>Selected work</span></a></li>
+<li><a href="#focus"><span>Current focus</span></a></li>
+<li><a href="#contact"><span>Contact</span></a></li>
+</ul></nav>
+<main id="main">
+<section class="hero" id="opening" aria-labelledby="hero-h">
+  <div class="hero-inner">
+    <h1 id="hero-h">Ricky Martin</h1>
+    <p class="credit-role">Forward Deployed AI Engineer</p>
+    <p class="hero-statement">I build reliable machine learning systems that move from prototype to production and create measurable business impact.</p>
+    <p class="hero-support">I embed with teams, ship the full stack — data, models, APIs, and interface — and stay until it works in production.</p>
+    <div class="cta-row">
+      <a class="btn btn-primary" href="about.html#experience">View experience <svg class="icon " aria-hidden="true" focusable="false"><use href="#i-arrow-right"/></svg></a>
+      <a class="btn" href="#resume">Résumé</a>
+      <a class="btn" href="#contact">Get in touch</a>
+    </div>
+  </div>
+  <div class="hero-bar"><a href="#work">Scroll to begin <svg class="icon " aria-hidden="true" focusable="false"><use href="#i-arrow-down"/></svg></a><span class="right">AI/ML Engineer · New York, NY</span></div>
+</section>
+
+<section class="shot" id="work" aria-labelledby="work-h">
+  <div class="wrap">
+    <div class="shot-head" data-reveal="rise"><div class="title-card"><h2 id="work-h">Selected work</h2></div></div>
+    <div class="scene-list">
+
+<article class="scene " data-reveal="wipe">
+  <div class="still"><svg viewBox="0 0 1400 600" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Diagram of the agentic RAG flow: a user question passes through the Streamlit interface to a LangGraph agent, which calls a FAISS retriever and a Bedrock model, with LangSmith tracing, and returns an answer.">
+<defs><pattern id="dots1" width="36" height="36" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.2" fill="var(--still-line)" opacity=".35"/></pattern></defs>
+<rect width="1400" height="600" fill="url(#dots1)"/>
+<circle class="s-glow s-hot-fill" cx="920" cy="300" r="120"/>
+<circle class="s-glow s-cool-fill" cx="1220" cy="140" r="90"/>
+<g>
+<path class="s-edge" d="M644 300H676M800 300H850M990 300H1050M1190 300H1235"/>
+<path class="s-edge" d="M990 280C1020 280 1020 136 1050 136M990 320C1020 320 1020 464 1050 464"/>
+<path class="s-flow" d="M644 300H676M800 300H850M990 300H1050M1190 300H1235"/>
+<path class="s-flow cool" d="M990 280C1020 280 1020 136 1050 136M990 320C1020 320 1020 464 1050 464"/>
+</g>
+<g>
+<rect class="s-node" x="520" y="274" width="124" height="52" rx="10"/><text class="s-label" x="582" y="305" text-anchor="middle">User question</text>
+<rect class="s-node" x="676" y="274" width="124" height="52" rx="10"/><text class="s-label" x="738" y="305" text-anchor="middle">Streamlit UI</text>
+<rect class="s-node hot" x="850" y="240" width="140" height="120" rx="14"/><text class="s-label disp" x="920" y="296" text-anchor="middle">LANGGRAPH</text><text class="s-label sm" x="920" y="320" text-anchor="middle">agent</text>
+<rect class="s-node" x="1050" y="110" width="140" height="52" rx="10"/><text class="s-label" x="1120" y="141" text-anchor="middle">FAISS retriever</text>
+<rect class="s-node" x="1050" y="274" width="140" height="52" rx="10"/><text class="s-label" x="1120" y="305" text-anchor="middle">Bedrock LLM</text>
+<rect class="s-node" x="1050" y="438" width="140" height="52" rx="10"/><text class="s-label" x="1120" y="469" text-anchor="middle">LangSmith traces</text>
+<rect class="s-node hot" x="1235" y="274" width="125" height="52" rx="10"/><text class="s-label" x="1297" y="305" text-anchor="middle">Answer</text>
+</g></svg></div>
+  <div class="scene-card">
+    <p class="scene-type">LLM Platform</p>
+    <h3>Agentic RAG Chatbot for Enterprise Knowledge</h3>
+    <p>Led full-stack development of a secure internal assistant using Bedrock, FAISS, LangGraph, Streamlit, and LangSmith, adopted across the organization (80+ employees).</p>
+    <ul class="stack"><li>Bedrock</li><li>FAISS</li><li>LangGraph</li><li>Streamlit</li><li>LangSmith</li></ul>
+    <a class="link-arrow" href="https://github.com/RickyMartin-dev/Website_AI_Chatbot" rel="noopener">View related work<svg class="icon " aria-hidden="true" focusable="false"><use href="#i-arrow-right"/></svg></a>
+  </div>
+</article>
+
+<article class="scene flip" data-reveal="wipe">
+  <div class="still"><svg viewBox="0 0 1400 600" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Illustration of a microscope feeding a pipeline: DVC, TensorFlow, MLflow, Flask, Docker, AWS.">
+<defs><pattern id="dots2" width="36" height="36" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.2" fill="var(--still-line)" opacity=".3"/></pattern>
+<clipPath id="fov"><circle cx="520" cy="400" r="86"/></clipPath></defs>
+<rect width="1400" height="600" fill="url(#dots2)"/>
+<circle class="s-glow s-hot-fill" cx="520" cy="400" r="110"/>
+<circle class="s-glow s-cool-fill" cx="1000" cy="170" r="130"/>
+<g class="micro">
+  <path class="s-stroke" d="M120 540h210M225 540v-26M170 514h110"/>
+  <path class="s-stroke" d="M300 514C380 470 372 300 296 244"/>
+  <g transform="translate(240 190) rotate(-18)">
+    <rect class="s-stroke" x="-24" y="-130" width="48" height="160" rx="6"/>
+    <rect class="s-stroke" x="-16" y="-162" width="32" height="30" rx="4"/>
+    <rect class="s-stroke hot" x="-13" y="32" width="26" height="40" rx="4"/>
+  </g>
+  <path class="s-stroke" d="M170 400h160M190 410h120"/>
+  <rect class="s-stroke hot" x="212" y="388" width="60" height="12" rx="2"/>
+  <path class="s-stroke" d="M242 330L452 322M242 330L448 478" stroke-dasharray="4 10"/>
+</g>
+<circle cx="520" cy="400" r="86" fill="var(--still-node)" stroke="var(--still-hot)" stroke-width="1.6"/>
+<g clip-path="url(#fov)">
+  <g fill="none" stroke="var(--still-cool)" stroke-width="1.6">
+    <circle cx="486" cy="370" r="16"/><circle cx="486" cy="370" r="5"/><circle cx="548" cy="392" r="22"/><circle cx="552" cy="388" r="7"/>
+    <circle cx="500" cy="438" r="12"/><circle cx="560" cy="440" r="9"/><circle cx="470" cy="418" r="7"/><circle cx="530" cy="352" r="8"/>
+  </g>
+  <circle cx="518" cy="412" r="18" fill="none" stroke="var(--still-hot)" stroke-width="2.2"/><circle cx="518" cy="412" r="6" fill="var(--still-hot)"/>
+</g>
+<path class="s-edge" d="M560 326C580 250 600 205 640 190"/>
+<path class="s-flow" d="M560 326C580 250 600 205 640 190"/>
+<g>
+<path class="s-edge" d="M744 178H760M864 178H880M984 178H1000M1104 178H1120M1224 178H1240"/>
+<path class="s-flow cool" d="M744 178H760M864 178H880M984 178H1000M1104 178H1120M1224 178H1240"/>
+<rect class="s-node" x="640" y="150" width="104" height="56" rx="10"/><text class="s-label" x="692" y="184" text-anchor="middle">DVC</text><rect class="s-node hot" x="760" y="150" width="104" height="56" rx="10"/><text class="s-label" x="812" y="184" text-anchor="middle">TensorFlow</text><rect class="s-node" x="880" y="150" width="104" height="56" rx="10"/><text class="s-label" x="932" y="184" text-anchor="middle">MLflow</text><rect class="s-node" x="1000" y="150" width="104" height="56" rx="10"/><text class="s-label" x="1052" y="184" text-anchor="middle">Flask</text><rect class="s-node" x="1120" y="150" width="104" height="56" rx="10"/><text class="s-label" x="1172" y="184" text-anchor="middle">Docker</text><rect class="s-node hot" x="1240" y="150" width="104" height="56" rx="10"/><text class="s-label" x="1292" y="184" text-anchor="middle">AWS</text>
+</g></svg></div>
+  <div class="scene-card">
+    <p class="scene-type">Computer Vision · MLOps</p>
+    <h3>End-to-End Disease Classification</h3>
+    <p>Image-based diagnosis pipeline with MLflow, DVC, TensorFlow, Flask, Docker, and AWS for reproducible experimentation and deployment.</p>
+    <ul class="stack"><li>MLflow</li><li>DVC</li><li>TensorFlow</li><li>Flask</li><li>Docker</li><li>AWS</li></ul>
+    <a class="link-arrow" href="https://github.com/RickyMartin-dev/End-to-End-CancerClassification" rel="noopener">View on GitHub<svg class="icon " aria-hidden="true" focusable="false"><use href="#i-arrow-right"/></svg></a>
+  </div>
+</article>
+
+<article class="scene flip" data-reveal="wipe">
+  <div class="still"><svg viewBox="0 0 1400 600" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Heat map of a soft sensor array responding to touch, feeding feature extraction and a touch classifier.">
+<defs><pattern id="dots3" width="36" height="36" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.2" fill="var(--still-line)" opacity=".3"/></pattern></defs>
+<rect width="1400" height="600" fill="url(#dots3)"/>
+<circle class="s-glow s-hot-fill" cx="420" cy="280" r="150"/>
+<circle class="s-glow s-cool-fill" cx="1180" cy="200" r="100"/>
+<g transform="translate(100 96)" id="sensor-grid"></g>
+<rect x="92" y="88" width="666" height="384" rx="14" fill="none" stroke="var(--still-line)" stroke-width="1.4"/>
+<path class="s-edge" d="M758 200H820M950 200H1000M1130 200H1180"/>
+<path class="s-flow cool" d="M758 200H820M950 200H1000M1130 200H1180"/>
+<rect class="s-node" x="820" y="174" width="130" height="52" rx="10"/><text class="s-label" x="885" y="205" text-anchor="middle">Features</text>
+<rect class="s-node hot" x="1000" y="174" width="130" height="52" rx="10"/><text class="s-label" x="1065" y="205" text-anchor="middle">Classifier</text>
+<rect class="s-node" x="1180" y="174" width="150" height="52" rx="10"/><text class="s-label" x="1255" y="205" text-anchor="middle">Touch class</text>
+</svg></div>
+  <div class="scene-card">
+    <p class="scene-type">Research Publication (IEEE-RAS)</p>
+    <h3>Affective Touch Classification with Soft Sensor Skins</h3>
+    <p>Primary developer. Rapidly manufacturable soft sensors plus ML classification for tactile understanding.</p>
+    <ul class="stack"><li>Soft sensors</li><li>Machine learning</li><li>IEEE-RAS</li></ul>
+    <a class="link-arrow" href="https://ieeexplore.ieee.org/document/9116023" rel="noopener">Read the publication<svg class="icon " aria-hidden="true" focusable="false"><use href="#i-arrow-right"/></svg></a>
+  </div>
+</article>
+    </div>
+  </div>
+</section>
+
+<section class="credits" aria-label="Experience at a glance">
+  <p class="credit" data-reveal="fade"><b>8+</b> years of professional development experience</p>
+  <p class="credit" data-reveal="fade"><b>30+</b> projects shipped or containerized to production</p>
+  <p class="credit" data-reveal="fade"><b>100+</b> models trained or fine-tuned</p>
+</section>
+
+<section class="shot" id="focus" aria-labelledby="focus-h">
+  <div class="wrap">
+    <div class="shot-head" data-reveal="rise"><div class="title-card"><h2 id="focus-h">Current focus</h2></div></div>
+    <div class="focus-list">
+      <article class="focus-item title-card" data-reveal="left"><h3>LLM Systems</h3><p>Designing secure, domain-aware assistants and task agents that combine retrieval, orchestration, and reliable evaluation loops.</p></article>
+      <article class="focus-item title-card" data-reveal="right"><h3>MLOps and Reliability</h3><p>Automating training, drift checks, model monitoring, and deployment paths so data products remain stable under changing production conditions.</p></article>
+      <article class="focus-item title-card" data-reveal="left"><h3>Business Impact</h3><p>Partnering with product and operations teams to tie model outputs to clear outcomes such as cost savings, faster decisions, and safer systems.</p></article>
+    </div>
+  </div>
+</section>
+
+<section class="credits" aria-label="One more thing">
+  <p class="credit soft" data-reveal="fade"><b>A million+ tokens</b> used for the greater good</p>
+</section>
+
+<section class="contact" id="contact" aria-labelledby="contact-h">
+  <div class="wrap contact-grid">
+    <div data-reveal="rise">
+      <h2 id="contact-h">Looking for a builder who can ship modern AI products?</h2>
+      <p class="prose muted">Interested in building ambitious AI products together? Send a note and I will reply by email.</p>
+      <ul class="contact-links">
+        <li><a href="https://www.linkedin.com/in/rickylm/" rel="noopener"><svg class="icon " aria-hidden="true" focusable="false"><use href="#i-linkedin"/></svg>LinkedIn</a></li>
+        <li><a href="https://github.com/RickyMartin-dev" rel="noopener"><svg class="icon " aria-hidden="true" focusable="false"><use href="#i-github"/></svg>GitHub</a></li>
+        <li><a href="https://www.kaggle.com/rickymartindev" rel="noopener"><svg class="icon " aria-hidden="true" focusable="false"><use href="#i-kaggle"/></svg>Kaggle</a></li>
+        <li><a href="https://open.spotify.com/artist/7slfeZO9LsJbWgpkIoXBUJ" rel="noopener"><svg class="icon " aria-hidden="true" focusable="false"><use href="#i-spotify"/></svg>Spotify</a></li>
+        <li><a href="mailto:rickylenmartin@gmail.com"><svg class="icon " aria-hidden="true" focusable="false"><use href="#i-mail"/></svg>rickylenmartin@gmail.com</a></li>
+        <li><span class="loc"><svg class="icon " aria-hidden="true" focusable="false"><use href="#i-pin"/></svg>New York, NY</span></li>
+      </ul>
+    </div>
+    <div data-reveal="rise">
+      <form class="form" id="contact-form" novalidate>
+        <div class="field"><label for="f-name">Name</label><input id="f-name" name="name" type="text" autocomplete="name" aria-describedby="err-name" required><p class="err" id="err-name" hidden></p></div>
+        <div class="field"><label for="f-email">Email</label><input id="f-email" name="email" type="email" autocomplete="email" aria-describedby="err-email" required><p class="err" id="err-email" hidden></p></div>
+        <div class="field"><label for="f-msg">Message</label><textarea id="f-msg" name="message" aria-describedby="err-message" required></textarea><p class="err" id="err-message" hidden></p></div>
+        <div><button class="btn btn-primary" type="submit">Send message <svg class="icon " aria-hidden="true" focusable="false"><use href="#i-arrow-right"/></svg></button></div>
+      </form>
+      <div class="form-ok" id="contact-ok" tabindex="-1" role="status" hidden>
+        <svg class="icon " aria-hidden="true" focusable="false"><use href="#i-check"/></svg>
+        <h3>Message received</h3>
+        <p>Thanks for writing. This is a preview, so nothing was sent. Email rickylenmartin@gmail.com to reach Ricky directly.</p>
+        <button class="btn" type="button" id="contact-again">Write another</button>
+      </div>
+    </div>
+  </div>
+</section>
+</main>
+<footer class="foot"><span>© Ricky Martin.</span><span>New York, NY</span></footer>
+<button class="assistant-btn" id="assistant-btn" type="button" aria-expanded="false" aria-controls="assistant-panel" aria-label="Ask about Ricky"><svg class="icon " aria-hidden="true" focusable="false"><use href="#i-chat"/></svg><span>Ask about Ricky</span></button>
+<div class="assistant-panel" id="assistant-panel" role="dialog" aria-labelledby="assistant-h" hidden>
+  <button class="x" type="button" data-assistant-close aria-label="Close assistant panel"><svg class="icon " aria-hidden="true" focusable="false"><use href="#i-close"/></svg></button>
+  <h2 id="assistant-h">Under construction</h2>
+  <p>Ricky's AI assistant is being rebuilt. Check back soon.</p>
+</div>
+<div class="toast" role="status" aria-live="polite"></div>
+<script src="assets/js/common.js"></script>
+<script type="module" src="assets/js/scene.js"></script>
+</body>
+</html>

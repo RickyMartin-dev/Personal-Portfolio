@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Aurora Studio</title>
+<link rel="stylesheet" href="studio.css?v=20261112f">
+</head>
+<body>
+<div class="narrow-note" id="narrow" hidden>The studio works best at 1280px or wider. Use a wider window; the preview stays usable.</div>
+<header class="bar" role="toolbar" aria-label="Studio toolbar">
+  <div class="brand"><span class="dot"></span>Studio</div>
+  <div class="seg" id="pages" role="group" aria-label="Page"></div>
+  <div class="seg" id="devices" role="group" aria-label="Device width"></div>
+  <div class="seg" id="views" role="group" aria-label="Theme preview"></div>
+  <div class="cmp" id="cmp">
+    <button class="btn" id="cmpBtn" aria-pressed="false" title="Compare working look (A) with a saved look (B). F flips.">A/B</button>
+    <select id="cmpSel" aria-label="Compare against" hidden></select>
+    <div class="seg" id="cmpMode" role="group" aria-label="Compare layout" hidden></div>
+  </div>
+  <div class="spacer"></div>
+  <button class="btn ic" id="undo" title="Undo (Cmd/Ctrl+Z)" aria-label="Undo">&#8630;</button>
+  <button class="btn ic" id="redo" title="Redo (Shift+Cmd/Ctrl+Z)" aria-label="Redo">&#8631;</button>
+  <span class="hint" id="histN"></span>
+  <button class="btn" id="reset" title="Reset everything to defaults">Reset</button>
+  <a class="btn" id="standalone" target="_blank" rel="noopener" title="Open standalone with this config">Open standalone</a>
+  <button class="btn ic" id="helpBtn" title="Shortcuts (?)" aria-label="Help and shortcuts">?</button>
+  <button class="btn ic" id="toggleInsp" title="Collapse inspector ([)" aria-label="Toggle inspector" aria-pressed="true">&#9776;</button>
+</header>
+<main class="shell">
+  <section class="stage" id="stage" aria-label="Preview"></section>
+  <aside class="insp" id="insp" aria-label="Inspector">
+    <div class="search"><input id="search" type="search" placeholder="Search controls  ( / )" aria-label="Search controls" autocomplete="off"></div>
+    <nav class="tabs" id="tabs" role="tablist" aria-label="Inspector sections"></nav>
+    <div class="panels" id="panels"></div>
+  </aside>
+</main>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<dialog id="help" class="help"><h2>Shortcuts</h2>
+  <dl>
+    <dt>Cmd/Ctrl Z</dt><dd>Undo</dd><dt>Shift Cmd/Ctrl Z</dt><dd>Redo</dd>
+    <dt>P</dt><dd>Pick an element in the preview</dd><dt>Esc</dt><dd>Leave pick mode / close</dd>
+    <dt>F</dt><dd>Flip A/B compare</dd><dt>[</dt><dd>Collapse or expand the inspector</dd>
+    <dt>/</dt><dd>Search controls</dd><dt>1 2 3</dt><dd>Home, About, Games</dd>
+    <dt>D L S</dt><dd>Dark, Light, Split preview</dd><dt>?</dt><dd>This list</dd>
+  </dl>
+  <form method="dialog"><button class="btn">Close</button></form>
+</dialog>
+<script src="../aurora-final/assets/js/logos.js?v=20261112f"></script>
+<script src="color.js?v=20261112f"></script>
+<script src="presets.js?v=20261112f" onerror="void 0"></script>
+<script src="studio.js?v=20261112f"></script>
+</body>
+</html>

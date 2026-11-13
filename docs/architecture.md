@@ -12,7 +12,7 @@ Chatbot launcher
         └── No API request is made
 ```
 
-The site source, browser tests, and static build live in `frontend/`. `frontend/build.py` publishes only the static site files into `frontend/dist/`; backend source, Terraform, test tooling, and Project Starter files are excluded. The site needs no backend process or AWS account access to run locally.
+The site source, browser tests, and static build live in `frontend/`. The site is the v0 "Aurora Lines" design (home, About, Games; plain HTML/CSS/JS, fonts from Google Fonts, theme follows the OS); `design-showcase/aurora-final/` and `studio/` are its design source. `frontend/build.py` publishes only the static site files into `frontend/dist/`; backend source, Terraform, test tooling, and Project Starter files are excluded. The site needs no backend process or AWS account access to run locally.
 
 ## Temporarily inactive chatbot backend
 
