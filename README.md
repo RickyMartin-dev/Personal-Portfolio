@@ -14,7 +14,7 @@ Static portfolio for Ricky Martin, published with GitHub Pages. The portfolio as
 | Area | Location | Purpose |
 | --- | --- | --- |
 | Website | `frontend/` | Portfolio pages, styles, browser behavior, static build, and Playwright tests. |
-| Future chatbot | `backend/` | FastAPI/LangGraph source, backend tests, Lambda packaging, and Terraform. |
+| Chatbot backend | `backend/` | V0 FastAPI/LangGraph source, backend tests, Lambda packaging, and Terraform. |
 | Checks | `frontend/tests/`, `backend/tests/` | UI, API, and Pages artifact verification. |
 | Project workflow | `scripts/`, `prompts/`, `agents/`, `docs/` | Local commands, checks, agent guidance, and project knowledge. |
 | Local references | `resources/` | Ignored checkouts for migration/reference only; never deployed. |
