@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Games | Ricky Martin</title>
+<meta name="description" content="Arcade on 14th: browser games built with pure HTML, CSS, and JavaScript by Ricky Martin.">
+<meta name="rm-version" content="v7">
+<meta name="rm-page" content="games">
+<script src="../shared/bridge.js"></script>
+<link rel="icon" href="assets/svg/mark.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@500;600;700;800&family=Work+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/nocturne.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
+<symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M5.6 18.4L7 17M17 7l1.4-1.4"/></symbol>
+<symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></symbol>
+<symbol id="i-arrow" viewBox="0 0 24 24"><path d="M4 12h15M13 6l6 6-6 6"/></symbol>
+<symbol id="i-ext" viewBox="0 0 24 24"><path d="M7 17L17 7M8 7h9v9"/></symbol>
+<symbol id="i-git" viewBox="0 0 24 24"><circle cx="6" cy="5.5" r="2.2"/><circle cx="6" cy="18.5" r="2.2"/><circle cx="18" cy="9" r="2.2"/><path d="M6 7.7v8.6M18 11.2c0 4-6 3-11 6"/></symbol>
+<symbol id="i-in" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="17" height="17" rx="3"/><path d="M8 11v5.5M8 7.7v.01M12 16.5V11m0 2.5a2.7 2.7 0 0 1 5.4 0v3"/></symbol>
+<symbol id="i-kaggle" viewBox="0 0 24 24"><path d="M7.5 4v16M7.5 13.5L15.5 4.5M10.6 11.2l6.1 8.8"/></symbol>
+<symbol id="i-spotify" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M7.5 10c3.2-1 6.6-.7 9.2 1M8 13c2.6-.7 5.2-.5 7.5.8M8.6 15.8c2-.5 4-.3 5.7.6"/></symbol>
+<symbol id="i-mail" viewBox="0 0 24 24"><rect x="3.5" y="5.5" width="17" height="13" rx="2"/><path d="M4 7l8 6 8-6"/></symbol>
+<symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 21s6.5-5.6 6.5-11a6.5 6.5 0 0 0-13 0c0 5.4 6.5 11 6.5 11z"/><circle cx="12" cy="10" r="2.2"/></symbol>
+<symbol id="i-chat" viewBox="0 0 24 24"><path d="M4.5 6.5a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v7.5a2 2 0 0 1-2 2H11l-4.5 3.5V16h0a2 2 0 0 1-2-2z"/><path d="M8.5 9.5h7M8.5 12.2h4"/></symbol>
+<symbol id="i-close" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+<symbol id="i-play" viewBox="0 0 24 24"><path d="M8 5.5v13l10.5-6.5z"/></symbol>
+<symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></symbol>
+<symbol id="i-doc" viewBox="0 0 24 24"><path d="M6.5 3.5h7l4 4v13h-11z"/><path d="M13.5 3.5v4h4M9 12h6M9 15.5h6"/></symbol>
+<symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+<symbol id="i-send" viewBox="0 0 24 24"><path d="M4 12l16-7-6 15-2.5-6z"/></symbol>
+</defs></svg>
+<header class="bar" id="bar">
+  <a class="brand" href="index.html"><span class="mark-wrap"><svg class="mark" viewBox="0 0 28 28" aria-hidden="true" focusable="false"><path d="M6 24V12h6V6h4v18M16 24v-9h6v9M3 24h22"/><path d="M14 2.5v3"/><path d="M8.5 15.5h1M8.5 19h1M18.5 18h1M18.5 21h1"/></svg></span><span class="brand-name">Ricky Martin</span></a>
+  <nav aria-label="Primary"><ul><li><a href="index.html">Home</a></li><li><a href="about.html">About</a></li><li><a href="games.html" aria-current="page">Games</a></li></ul></nav>
+  <button type="button" class="theme-btn" data-theme-toggle aria-label="Dark mode" aria-pressed="true"><span class="theme-track"><span class="theme-thumb"></span><svg class="ico i-moon" aria-hidden="true" focusable="false"><use href="#i-moon"/></svg><svg class="ico i-sun" aria-hidden="true" focusable="false"><use href="#i-sun"/></svg></span></button>
+</header>
+<canvas id="city" aria-hidden="true" data-scene="compact"></canvas>
+<div class="page">
+<main id="main">
+  <section class="hero hero-sm" id="hero" aria-labelledby="games-h">
+    <div class="wrap">
+      <h1 id="games-h" class="h1 h1-sm">Arcade <em>on 14th</em></h1>
+      <p class="hero-statement">Built for fun. Playable in your browser. Pure HTML, CSS, and JavaScript &mdash; no downloads, no plugins.</p>
+    </div>
+  </section>
+
+  <section class="veil section arcade" id="floor" aria-label="Arcade cabinets">
+    <div class="wrap">
+      <div class="cabs">
+        <article class="cab cab-1">
+  <div class="cab-body">
+    <div class="marquee"><h3 class="marquee-t">Tetris</h3></div>
+    <div class="screen"><svg viewBox="0 0 180 240" role="img" aria-label="Game screen: a tetromino well with stacked blocks and a falling piece" class="gart">
+<rect width="180" height="240" class="g-bg"/>
+<rect x="10" y="8" width="160" height="224" class="g-well"/>
+<path d="M26 8V232" class="g-grid"/><path d="M42 8V232" class="g-grid"/><path d="M58 8V232" class="g-grid"/><path d="M74 8V232" class="g-grid"/><path d="M90 8V232" class="g-grid"/><path d="M106 8V232" class="g-grid"/><path d="M122 8V232" class="g-grid"/><path d="M138 8V232" class="g-grid"/><path d="M154 8V232" class="g-grid"/>
+<rect x="123" y="153" width="14" height="14" rx="2" class="tb c3"/><rect x="11" y="169" width="14" height="14" rx="2" class="tb c5"/><rect x="107" y="169" width="14" height="14" rx="2" class="tb c2"/><rect x="123" y="169" width="14" height="14" rx="2" class="tb c2"/><rect x="139" y="169" width="14" height="14" rx="2" class="tb c3"/><rect x="155" y="169" width="14" height="14" rx="2" class="tb c3"/><rect x="11" y="185" width="14" height="14" rx="2" class="tb c5"/><rect x="27" y="185" width="14" height="14" rx="2" class="tb c5"/><rect x="75" y="185" width="14" height="14" rx="2" class="tb c4"/><rect x="91" y="185" width="14" height="14" rx="2" class="tb c4"/><rect x="107" y="185" width="14" height="14" rx="2" class="tb c2"/><rect x="123" y="185" width="14" height="14" rx="2" class="tb c2"/><rect x="139" y="185" width="14" height="14" rx="2" class="tb c3"/><rect x="155" y="185" width="14" height="14" rx="2" class="tb c6"/><rect x="11" y="201" width="14" height="14" rx="2" class="tb c5"/><rect x="27" y="201" width="14" height="14" rx="2" class="tb c6"/><rect x="59" y="201" width="14" height="14" rx="2" class="tb c4"/><rect x="75" y="201" width="14" height="14" rx="2" class="tb c4"/><rect x="91" y="201" width="14" height="14" rx="2" class="tb c1"/><rect x="107" y="201" width="14" height="14" rx="2" class="tb c1"/><rect x="123" y="201" width="14" height="14" rx="2" class="tb c1"/><rect x="139" y="201" width="14" height="14" rx="2" class="tb c1"/><rect x="155" y="201" width="14" height="14" rx="2" class="tb c6"/><rect x="11" y="217" width="14" height="14" rx="2" class="tb c5"/><rect x="27" y="217" width="14" height="14" rx="2" class="tb c6"/><rect x="43" y="217" width="14" height="14" rx="2" class="tb c6"/><rect x="59" y="217" width="14" height="14" rx="2" class="tb c4"/><rect x="75" y="217" width="14" height="14" rx="2" class="tb c4"/><rect x="91" y="217" width="14" height="14" rx="2" class="tb c3"/><rect x="107" y="217" width="14" height="14" rx="2" class="tb c3"/><rect x="123" y="217" width="14" height="14" rx="2" class="tb c1"/><rect x="139" y="217" width="14" height="14" rx="2" class="tb c1"/><rect x="155" y="217" width="14" height="14" rx="2" class="tb c6"/><rect x="75" y="25" width="14" height="14" rx="2" class="tb c3 fall"/><rect x="91" y="25" width="14" height="14" rx="2" class="tb c3 fall"/><rect x="107" y="25" width="14" height="14" rx="2" class="tb c3 fall"/><rect x="91" y="41" width="14" height="14" rx="2" class="tb c3 fall"/>
+</svg><div class="preview" aria-hidden="true"><p>Playable in the full release</p></div></div>
+    <svg viewBox="0 0 140 50" class="deck-art" aria-hidden="true" focusable="false"><rect x="0" y="0" width="140" height="50" rx="5" class="deck-b"/><circle cx="34" cy="26" r="12" class="deck-ring"/><path d="M34 26V12" class="deck-stick"/><circle cx="34" cy="11" r="6" class="deck-knob"/><circle cx="84" cy="30" r="7" class="deck-btn"/><circle cx="108" cy="22" r="7" class="deck-btn"/></svg>
+    <div class="slot" aria-hidden="true"><i></i></div>
+  </div>
+  <div class="cab-info">
+    <p class="cat">Puzzle</p>
+    <p class="body">Classic block-stacking puzzle. Clear lines, level up, and survive as long as you can.</p>
+    <p class="status live"><span class="led" aria-hidden="true"></span>Playable on live site</p>
+    <button type="button" class="btn btn-primary" data-play aria-pressed="false"><svg class="ico " aria-hidden="true" focusable="false"><use href="#i-play"/></svg><span class="btn-label">Play</span></button>
+  </div>
+</article>
+        <article class="cab cab-2">
+  <div class="cab-body">
+    <div class="marquee"><h3 class="marquee-t">Road Racer</h3></div>
+    <div class="screen"><svg viewBox="0 0 180 240" role="img" aria-label="Game screen: a top-down avenue with yellow taxis and one blue car" class="gart">
+<rect width="180" height="240" class="g-bg"/>
+<rect x="0" y="0" width="30" height="240" class="r-walk"/><rect x="150" y="0" width="30" height="240" class="r-walk"/>
+<rect x="4" y="12" width="20" height="40" rx="2" class="r-roof"/><rect x="4" y="70" width="20" height="56" rx="2" class="r-roof"/><rect x="4" y="150" width="20" height="40" rx="2" class="r-roof"/>
+<rect x="156" y="30" width="20" height="50" rx="2" class="r-roof"/><rect x="156" y="104" width="20" height="38" rx="2" class="r-roof"/><rect x="156" y="170" width="20" height="50" rx="2" class="r-roof"/>
+<rect x="30" y="0" width="120" height="240" class="r-road"/>
+<path d="M70 -20V260M110 -20V260" class="r-lane"/>
+<g transform="translate(38 28)" class="taxi"><rect x="0" y="0" width="22" height="42" rx="7" class="car-b"/><rect x="3" y="9" width="16" height="9" rx="2" class="car-w"/><rect x="3" y="26" width="16" height="7" rx="2" class="car-w"/></g><g transform="translate(118 88)" class="taxi"><rect x="0" y="0" width="22" height="42" rx="7" class="car-b"/><rect x="3" y="9" width="16" height="9" rx="2" class="car-w"/><rect x="3" y="26" width="16" height="7" rx="2" class="car-w"/></g><g transform="translate(78 6)" class="taxi"><rect x="0" y="0" width="22" height="42" rx="7" class="car-b"/><rect x="3" y="9" width="16" height="9" rx="2" class="car-w"/><rect x="3" y="26" width="16" height="7" rx="2" class="car-w"/></g><g transform="translate(38 126)" class="taxi"><rect x="0" y="0" width="22" height="42" rx="7" class="car-b"/><rect x="3" y="9" width="16" height="9" rx="2" class="car-w"/><rect x="3" y="26" width="16" height="7" rx="2" class="car-w"/></g>
+<g transform="translate(78 176)" class="me"><rect x="0" y="0" width="22" height="42" rx="7" class="car-b"/><rect x="3" y="9" width="16" height="9" rx="2" class="car-w"/><rect x="3" y="26" width="16" height="7" rx="2" class="car-w"/></g>
+<rect x="30" y="0" width="1.5" height="240" class="r-kerb"/><rect x="148.5" y="0" width="1.5" height="240" class="r-kerb"/>
+</svg><div class="preview" aria-hidden="true"><p>Playable in the full release</p></div></div>
+    <svg viewBox="0 0 140 50" class="deck-art" aria-hidden="true" focusable="false"><rect x="0" y="0" width="140" height="50" rx="5" class="deck-b"/><circle cx="34" cy="26" r="12" class="deck-ring"/><path d="M34 26V12" class="deck-stick"/><circle cx="34" cy="11" r="6" class="deck-knob"/><circle cx="84" cy="30" r="7" class="deck-btn"/><circle cx="108" cy="22" r="7" class="deck-btn"/></svg>
+    <div class="slot" aria-hidden="true"><i></i></div>
+  </div>
+  <div class="cab-info">
+    <p class="cat">Arcade</p>
+    <p class="body">Top-down road racer. Dodge oncoming traffic at increasing speeds &mdash; how far can you go?</p>
+    <p class="status live"><span class="led" aria-hidden="true"></span>Playable on live site</p>
+    <button type="button" class="btn btn-primary" data-play aria-pressed="false"><svg class="ico " aria-hidden="true" focusable="false"><use href="#i-play"/></svg><span class="btn-label">Play</span></button>
+  </div>
+</article>
+        <article class="cab cab-3 is-dark">
+  <div class="cab-body">
+    <div class="marquee"><h3 class="marquee-t">Coming soon</h3></div>
+    <div class="screen"><svg viewBox="0 0 180 240" role="img" aria-label="Game screen: dark, with the words Opening soon" class="gart">
+<rect width="180" height="240" class="g-bg"/>
+<rect x="10" y="8" width="160" height="224" class="g-soon"/>
+<text x="90" y="124" text-anchor="middle" class="g-soon-t">OPENING</text><text x="90" y="152" text-anchor="middle" class="g-soon-t">SOON</text>
+</svg><div class="preview" aria-hidden="true"><p>Playable in the full release</p></div></div>
+    <svg viewBox="0 0 140 50" class="deck-art" aria-hidden="true" focusable="false"><rect x="0" y="0" width="140" height="50" rx="5" class="deck-b"/><circle cx="34" cy="26" r="12" class="deck-ring"/><path d="M34 26V12" class="deck-stick"/><circle cx="34" cy="11" r="6" class="deck-knob"/><circle cx="84" cy="30" r="7" class="deck-btn"/><circle cx="108" cy="22" r="7" class="deck-btn"/></svg>
+    <div class="slot" aria-hidden="true"><i></i></div>
+  </div>
+  <div class="cab-info">
+    <p class="cat">Opening soon</p>
+    <p class="body">Something new is taking shape on the workbench.</p>
+    <p class="status"><span class="led" aria-hidden="true"></span>Opening soon</p>
+
+  </div>
+</article>
+        <article class="cab cab-4 is-dark">
+  <div class="cab-body">
+    <div class="marquee"><h3 class="marquee-t">Coming soon</h3></div>
+    <div class="screen"><svg viewBox="0 0 180 240" role="img" aria-label="Game screen: dark, with the words Opening soon" class="gart">
+<rect width="180" height="240" class="g-bg"/>
+<rect x="10" y="8" width="160" height="224" class="g-soon"/>
+<text x="90" y="124" text-anchor="middle" class="g-soon-t">OPENING</text><text x="90" y="152" text-anchor="middle" class="g-soon-t">SOON</text>
+</svg><div class="preview" aria-hidden="true"><p>Playable in the full release</p></div></div>
+    <svg viewBox="0 0 140 50" class="deck-art" aria-hidden="true" focusable="false"><rect x="0" y="0" width="140" height="50" rx="5" class="deck-b"/><circle cx="34" cy="26" r="12" class="deck-ring"/><path d="M34 26V12" class="deck-stick"/><circle cx="34" cy="11" r="6" class="deck-knob"/><circle cx="84" cy="30" r="7" class="deck-btn"/><circle cx="108" cy="22" r="7" class="deck-btn"/></svg>
+    <div class="slot" aria-hidden="true"><i></i></div>
+  </div>
+  <div class="cab-info">
+    <p class="cat">Opening soon</p>
+    <p class="body">Another idea in the queue. Will ship when it&rsquo;s actually fun.</p>
+    <p class="status"><span class="led" aria-hidden="true"></span>Opening soon</p>
+
+  </div>
+</article>
+      </div>
+      <div class="floor-wet" aria-hidden="true"></div>
+    </div>
+  </section>
+
+  <section class="contact veil" id="contact" aria-labelledby="contact-h">
+  <div class="wrap contact-grid">
+    <div class="contact-copy">
+      <h2 id="contact-h" class="h2">Interested in building ambitious AI products together?</h2>
+      <p class="lede">Send a note about the problem you are trying to solve. Ricky replies from New York, NY.</p>
+      <ul class="stations-list" aria-label="Ricky Martin online">
+        <li><a href="https://www.linkedin.com/in/rickylm/" target="_blank" rel="noopener noreferrer"><svg class="ico " aria-hidden="true" focusable="false"><use href="#i-in"/></svg><span>LinkedIn</span><svg class="ico ext" aria-hidden="true" focusable="false"><use href="#i-ext"/></svg></a></li><li><a href="https://github.com/RickyMartin-dev" target="_blank" rel="noopener noreferrer"><svg class="ico " aria-hidden="true" focusable="false"><use href="#i-git"/></svg><span>GitHub</span><svg class="ico ext" aria-hidden="true" focusable="false"><use href="#i-ext"/></svg></a></li><li><a href="https://www.kaggle.com/rickymartindev" target="_blank" rel="noopener noreferrer"><svg class="ico " aria-hidden="true" focusable="false"><use href="#i-kaggle"/></svg><span>Kaggle</span><svg class="ico ext" aria-hidden="true" focusable="false"><use href="#i-ext"/></svg></a></li><li><a href="https://open.spotify.com/artist/7slfeZO9LsJbWgpkIoXBUJ" target="_blank" rel="noopener noreferrer"><svg class="ico " aria-hidden="true" focusable="false"><use href="#i-spotify"/></svg><span>Spotify</span><svg class="ico ext" aria-hidden="true" focusable="false"><use href="#i-ext"/></svg></a></li><li><a href="mailto:rickylenmartin@gmail.com"><svg class="ico " aria-hidden="true" focusable="false"><use href="#i-mail"/></svg><span>Email</span></a></li>
+        <li class="place"><svg class="ico " aria-hidden="true" focusable="false"><use href="#i-pin"/></svg><span>New York, NY</span></li>
+      </ul>
+    </div>
+    <div class="contact-panel">
+      <form id="contact-form" novalidate>
+        <div class="field"><label for="f-name">Name</label><input id="f-name" name="name" type="text" autocomplete="name" aria-describedby="err-name" aria-invalid="false"><p class="err" id="err-name" role="alert"></p></div>
+        <div class="field"><label for="f-email">Email</label><input id="f-email" name="email" type="email" autocomplete="email" aria-describedby="err-email" aria-invalid="false"><p class="err" id="err-email" role="alert"></p></div>
+        <div class="field"><label for="f-msg">Message</label><textarea id="f-msg" name="message" rows="5" aria-describedby="err-message" aria-invalid="false"></textarea><p class="err" id="err-message" role="alert"></p></div>
+        <button type="submit" class="btn btn-primary"><svg class="ico " aria-hidden="true" focusable="false"><use href="#i-send"/></svg><span>Send message</span></button>
+      </form>
+      <div id="contact-ok" class="ok" tabindex="-1" hidden>
+        <span class="ok-ico"><svg class="ico " aria-hidden="true" focusable="false"><use href="#i-check"/></svg></span>
+        <h3 class="h3">Message received, <span id="ok-name"></span>.</h3>
+        <p>This is a design preview, so nothing was sent over the network. The real site will deliver this to Ricky.</p>
+        <button type="button" class="btn btn-ghost" data-form-reset>Write another</button>
+      </div>
+    </div>
+  </div>
+</section>
+</main>
+<footer class="foot veil">
+  <div class="wrap foot-in">
+    <p>&copy; Ricky Martin.</p>
+    <p class="foot-mid">New York, NY</p>
+    <nav aria-label="Footer"><a href="index.html">Home</a><a href="about.html">About</a><a href="games.html">Games</a><a href="#resume" data-resume>R&eacute;sum&eacute;</a></nav>
+  </div>
+</footer>
+<button type="button" class="fab" data-assistant-open aria-label="Ask about Ricky" aria-expanded="false" aria-controls="assistant"><svg class="ico " aria-hidden="true" focusable="false"><use href="#i-chat"/></svg><span>Ask about Ricky</span></button>
+<div class="assistant" id="assistant" role="dialog" aria-modal="false" aria-labelledby="as-h" hidden>
+  <div class="as-top"><h2 id="as-h" class="as-title">Ask about Ricky</h2><button type="button" class="icon-btn" data-assistant-close aria-label="Close assistant panel"><svg class="ico " aria-hidden="true" focusable="false"><use href="#i-close"/></svg></button></div>
+  <p class="as-badge">Under construction</p>
+  <p>Ricky's AI assistant is being rebuilt. Check back soon.</p>
+  <p class="as-note">Nothing you type here is sent anywhere, because there is nothing to type into yet.</p>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+</div>
+<script src="assets/js/scene.js"></script>
+<script src="assets/js/ui.js"></script>
+</body>
+</html>

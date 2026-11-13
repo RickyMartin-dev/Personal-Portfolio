@@ -1,0 +1,61 @@
+import { chromium } from '../../frontend/node_modules/playwright/index.mjs';
+import { mkdirSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+const out = join(dirname(fileURLToPath(import.meta.url)), '..', '_review', 'hub');
+mkdirSync(out, { recursive: true });
+const base = 'http://127.0.0.1:4810/';
+const browser = await chromium.launch();
+const errors = [];
+async function ctx(w, h, theme) {
+  const c = await browser.newContext({ viewport: { width: w, height: h }, colorScheme: theme });
+  await c.addInitScript(t => { try { localStorage.setItem('rm-showcase-theme', t); } catch (e) {} }, theme);
+  const p = await c.newPage();
+  p.on('console', m => { if (m.type() === 'error' && !/404|Failed to load resource/.test(m.text())) errors.push(m.text()); });
+  p.on('pageerror', e => errors.push('pageerror ' + e.message));
+  return p;
+}
+const shot = (p, n, o = {}) => p.screenshot({ path: join(out, n + '.png'), ...o });
+for (const [w, h] of [[1440, 900], [390, 844]]) for (const t of ['dark', 'light']) {
+  const p = await ctx(w, h, t);
+  await p.goto(base + '#/'); await p.waitForTimeout(1300);
+  await shot(p, `gallery-${t}-${w}`, { fullPage: true });
+  const sw = await p.evaluate(() => document.documentElement.scrollWidth > innerWidth);
+  if (sw) errors.push(`h-scroll gallery ${t} ${w}`);
+  await p.context().close();
+}
+let p = await ctx(1440, 900, 'dark');
+await p.goto(base + '#/v1/home'); await p.waitForTimeout(900);
+await shot(p, 'viewer-desktop');
+await p.keyboard.press('ArrowRight'); await p.waitForTimeout(300);
+console.log('after arrow:', await p.evaluate(() => location.hash));
+await p.goto(base + '#/v1/home?d=mobile'); await p.waitForTimeout(700);
+await shot(p, 'viewer-mobile-device');
+await p.goto(base + '#/v1/home?d=tablet'); await p.waitForTimeout(700);
+await shot(p, 'viewer-tablet-device');
+await p.goto(base + '#/compare/v1/v4?p=about&sync=1'); await p.waitForTimeout(700);
+await shot(p, 'compare');
+await p.goto(base + '#/v3/about'); await p.waitForTimeout(500);
+await p.click('#tb-feedback'); await p.waitForTimeout(700);
+await p.click('#dr-title');
+await p.click('.stars button:nth-child(4)');
+await p.click('.fav');
+for (const [k, t] of [['love', 'The ridge hairline is exquisite'], ['dislike', 'Headline wraps awkwardly'], ['keep', 'Shooting star underline']]) { await p.fill('#in-' + k, t); await p.press('#in-' + k, 'Enter'); }
+await p.fill('#dr-notes', 'Strong overall. Tighten the hero.');
+await p.waitForTimeout(500);
+await shot(p, 'feedback-drawer');
+await p.keyboard.press('Escape'); await p.waitForTimeout(500);
+console.log('drawer closed:', await p.evaluate(() => !document.querySelector('#drawer').classList.contains('open')));
+await p.click('#tb-feedback'); await p.click('.dr-foot .btn'); await p.waitForTimeout(500);
+await shot(p, 'export-panel');
+await p.context().close();
+p = await ctx(390, 844, 'dark');
+await p.goto(base + '#/v1/home'); await p.waitForTimeout(600);
+await shot(p, 'viewer-390');
+await p.click('#tb-menu'); await p.waitForTimeout(300);
+await shot(p, 'viewer-390-menu');
+await p.goto(base + '#/compare/v1/v4'); await p.waitForTimeout(600);
+await shot(p, 'compare-390');
+await p.context().close();
+console.log('errors:', errors);
+await browser.close();

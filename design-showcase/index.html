@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Showcase Review Room</title>
+<meta name="description" content="Private review room for seven portfolio design directions.">
+<script>
+(function () {
+  var t = null;
+  try { t = localStorage.getItem('rm-showcase-theme'); } catch (e) {}
+  if (t !== 'light' && t !== 'dark') t = window.matchMedia && matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+  document.documentElement.dataset.theme = t;
+})();
+</script>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23161413'/%3E%3Cpath d='M4 23l7-8 4 4 5-9 8 13' fill='none' stroke='%23cfa968' stroke-width='1.6'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Gloock&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="hub/hub.css">
+</head>
+<body data-mode="gallery">
+<div id="live" class="sr" role="status" aria-live="polite"></div>
+
+<header class="toolbar" id="toolbar" aria-label="Viewer controls">
+  <a class="tb-btn" id="tb-back" href="#/" aria-label="Back to gallery"><i data-icon="arrow-left"></i><span class="lbl">Gallery</span></a>
+  <div class="tb-switch only-viewer" role="group" aria-label="Design version">
+    <button type="button" class="tb-btn icon" id="tb-prev" aria-label="Previous design"><i data-icon="chev-left"></i></button>
+    <span class="sel"><select id="tb-version" aria-label="Choose design"></select><i data-icon="chev-down"></i></span>
+    <button type="button" class="tb-btn icon" id="tb-next" aria-label="Next design"><i data-icon="chev-right"></i></button>
+  </div>
+  <div class="tb-title only-compare">Compare</div>
+  <button type="button" class="tb-btn icon tb-menu" id="tb-menu" aria-expanded="false" aria-controls="tb-extra" aria-label="More controls"><i data-icon="menu"></i></button>
+  <div class="tb-extra" id="tb-extra">
+    <nav class="tabs" id="tb-tabs" aria-label="Page"></nav>
+    <span class="spacer"></span>
+    <div class="seg only-viewer" id="tb-device" role="group" aria-label="Device size"></div>
+    <button type="button" class="tb-btn only-compare" id="tb-sync" aria-pressed="false"><i data-icon="link"></i><span class="lbl">Sync scroll</span></button>
+    <button type="button" class="tb-btn only-compare" id="tb-swap"><i data-icon="swap"></i><span class="lbl">Swap sides</span></button>
+    <a class="tb-btn only-viewer" id="tb-compare" href="#/compare/v1/v4"><i data-icon="compare"></i><span class="lbl">Compare</span></a>
+    <button type="button" class="tb-btn" id="tb-theme"><i data-icon="moon"></i><span class="lbl">Dark</span></button>
+    <a class="tb-btn only-viewer" id="tb-newtab" href="#/" target="_blank" rel="noopener"><i data-icon="external"></i><span class="lbl">New tab</span></a>
+    <button type="button" class="tb-btn accent" id="tb-feedback" aria-expanded="false" aria-controls="drawer"><i data-icon="note"></i><span>Feedback</span><span class="pill" id="tb-fbcount" hidden></span></button>
+  </div>
+</header>
+
+<main id="gallery" aria-label="Design gallery"></main>
+
+<div id="workspace">
+  <section id="viewer" aria-label="Design viewer">
+    <div id="stage" class="stage">
+      <div class="devwrap" id="devwrap"><div class="device fluid" id="device"><div class="screen" id="screen"></div></div></div>
+    </div>
+  </section>
+  <section id="compare" aria-label="Design comparison">
+    <div class="pane" data-i="0">
+      <div class="pane-head"><span class="sel"><select aria-label="Left design"></select><i data-icon="chev-down"></i></span><a class="tb-btn icon" target="_blank" rel="noopener" aria-label="Open left design in new tab"><i data-icon="external"></i></a></div>
+      <div class="screen"></div>
+    </div>
+    <div class="pane" data-i="1">
+      <div class="pane-head"><span class="sel"><select aria-label="Right design"></select><i data-icon="chev-down"></i></span><a class="tb-btn icon" target="_blank" rel="noopener" aria-label="Open right design in new tab"><i data-icon="external"></i></a></div>
+      <div class="screen"></div>
+    </div>
+  </section>
+</div>
+
+<aside class="drawer" id="drawer" role="dialog" aria-modal="false" aria-labelledby="dr-title" inert></aside>
+
+<dialog class="export" id="export" aria-labelledby="ex-title">
+  <form method="dialog" class="ex-head">
+    <h2 id="ex-title">Export feedback</h2>
+    <button class="tb-btn icon" aria-label="Close export panel"><i data-icon="x"></i></button>
+  </form>
+  <p class="ex-note">Markdown for your design lead. Copy it or download it as design-feedback.md.</p>
+  <label class="sr" for="ex-text">Feedback as Markdown</label>
+  <textarea id="ex-text" readonly spellcheck="false"></textarea>
+  <div class="ex-actions">
+    <button type="button" class="btn primary" id="ex-copy"><i data-icon="copy"></i>Copy</button>
+    <button type="button" class="btn" id="ex-download"><i data-icon="download"></i>Download</button>
+    <span class="spacer"></span>
+    <button type="button" class="btn danger" id="ex-clear"><i data-icon="trash"></i><span>Clear all</span></button>
+  </div>
+</dialog>
+
+<div class="toasts" id="toasts" role="status" aria-live="polite"></div>
+<noscript><p style="padding:2rem">The review room needs JavaScript.</p></noscript>
+<script src="hub/hub.js"></script>
+</body>
+</html>

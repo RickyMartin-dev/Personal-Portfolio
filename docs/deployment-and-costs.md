@@ -13,7 +13,7 @@ Push to develop
 
 GitHub Pages uses **GitHub Actions**. The repository default is `develop`, and the `github-pages` environment allows only `develop`; the new workflow deploys pushes to that branch. Commit `135963b` completed deployment successfully. A historical `static.yml` remains on `main`, but GitHub Actions marks it inactive and the Pages environment will not accept a deployment from `main`.
 
-`WEB3FORMS_KEY` is optional and only configures the contact form. If present, it is injected into client-side form markup and is therefore a public form identifier, not an AI credential. Without it, the Pages build replaces the form with a direct email link.
+The contact form uses the site's public Web3Forms access key, built in as `PUBLIC_WEB3FORMS_KEY` in `frontend/build.py`. It is a public client-side form identifier (it ships in the page HTML and can only deliver to the owner's registered address), not an AI credential. A `WEB3FORMS_KEY` environment value or secret overrides it; `WEB3FORMS_KEY=off` replaces the form with a direct email link.
 
 ## Retained backend design
 
@@ -21,7 +21,7 @@ The repository retains FastAPI/LangGraph source and Terraform under `backend/` f
 
 ### Artifact boundaries
 
-- `frontend/build.py` copies the root redirect, `pages/`, required site assets, and `images/` into `frontend/dist/`. It excludes the legacy chat API client/config, unused Sass, template JavaScript/CSS, and repository tooling.
+- `frontend/build.py` copies the home page, `pages/`, required site assets, and `images/` into `frontend/dist/`. It excludes the dormant chat API client/config and repository tooling.
 - The Pages workflow publishes only `frontend/dist/`; it does not access or publish `backend/`, Terraform, tests, documentation, local references, or Project Starter files.
 - `backend/Dockerfile` and `.dockerignore` retain a separate bounded Lambda image build for future use; that image is not built in the current workflow.
 

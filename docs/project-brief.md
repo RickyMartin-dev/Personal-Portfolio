@@ -11,7 +11,7 @@
 
 ### In scope
 
-- Preserve the current static portfolio design and its Web3Forms contact flow.
+- Preserve the v0 "Aurora Lines" static portfolio design (source: `design-showcase/aurora-final/` and `studio/`; saved look: `v0-config.json`) and its Web3Forms contact flow.
 - Consolidate the FastAPI/LangGraph chatbot and Project Starter tools into this repository.
 - Manage the new API Gateway, Lambda, ECR, IAM, state storage, and logging with Terraform.
 - Use Amazon Bedrock with the same supported Anthropic Haiku model locally and in production.

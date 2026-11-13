@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>About Ricky Martin — Observation Log</title>
+<meta name="description" content="Profile, experience, and toolkit of Ricky Martin, ML engineer: an observation log and constellation catalog.">
+<meta name="rm-version" content="v6">
+<meta name="rm-page" content="about">
+<script src="../shared/bridge.js"></script>
+<link rel="icon" type="image/svg+xml" href="assets/svg/mark.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Alegreya+Sans:ital,wght@0,400;0,500;0,700;1,400&family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..800;1,6..96,400..700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/atlas.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<main id="main">
+<div class="wrap">
+<section class="about-hero" aria-labelledby="h1">
+  <figure class="portrait">
+    <div class="portrait-frame">
+      <img src="../shared/img/ricky-720.jpg" srcset="../shared/img/ricky-720.jpg 720w, ../shared/img/ricky.jpg 1067w" sizes="(max-width: 1100px) 90vw, 440px" width="720" height="720" alt="Portrait of Ricky Martin" fetchpriority="high">
+      <span class="ticks-x" aria-hidden="true"></span>
+    </div>
+    <figcaption><b>Ricky Martin</b><span>Plate II &middot; New York, NY</span></figcaption>
+  </figure>
+  <div>
+    <h1 id="h1">Engineer first, researcher always.</h1>
+    <p class="lead">I specialize in taking AI ideas from notebooks to reliable software that teams can trust in production.</p>
+    <div class="profile">
+      <p>I am a machine learning engineer with 8+ years of experience building and deploying production-grade systems across healthcare, security, and enterprise workflows. My work spans classical ML, time-series modeling, and modern LLM-based applications.</p>
+      <p>I focus on architecture and execution: secure integrations, robust data pipelines, model reliability, and measurable impact for business teams. I like shipping quickly, learning from user feedback, and iterating toward systems that are both powerful and maintainable.</p>
+    </div>
+  </div>
+</section>
+
+<section class="band" id="experience" aria-labelledby="exp-h" style="padding-top:clamp(24px,4vw,48px)">
+  <div class="sec-head"><h2 id="exp-h">Observation log</h2><p>Dated observations, most recent first. The bar in each epoch cell places it on a 2018 to present axis.</p></div>
+  <table class="log-t">
+    <thead><tr><th scope="col">Epoch</th><th scope="col">Observatory</th><th scope="col">Observations</th></tr></thead>
+    <tbody>
+<tr><th scope="row" class="ep"><b>Jul 2023 &ndash; Present</b><div class="span-bar now" aria-hidden="true"><i style="left:61.8%;width:38.2%"></i></div></th><td class="org"><b>DCCA</b><span>AI/ML Engineer</span></td><td><ul><li>Led development of a secure internal Agentic RAG chatbot stack on EC2 and scaled adoption to 80+ employees.</li><li>Deployed and monitored GPU-accelerated Llama 2/3 SageMaker endpoints for summarization, SQL assistance, and report generation POCs.</li><li>Productionized a drug price forecasting API with 5&ndash;11% error rates to enable proactive planning.</li><li>Scaled PySpark anomaly detection workflows that surfaced potentially fraudulent charges at large volume.</li></ul></td></tr>
+<tr><th scope="row" class="ep"><b>Jan 2022 &ndash; May 2023</b><div class="span-bar" aria-hidden="true"><i style="left:44.9%;width:15.7%"></i></div></th><td class="org"><b>Ardent</b><span>ML Engineer</span></td><td><ul><li>Built 20+ containerized training and serving pipelines for microservice health models using scikit-learn, PyTorch, and AWS.</li><li>Improved model quality on skewed OCR data through TF-IDF, XGBoost, and SMOTE, achieving PR-AUC of 0.91.</li><li>Implemented time-series anomaly detection for security logs, reducing incident detection latency by 80%.</li></ul></td></tr>
+<tr><th scope="row" class="ep"><b>Oct 2020 &ndash; Oct 2021</b><div class="span-bar" aria-hidden="true"><i style="left:30.9%;width:11.2%"></i></div></th><td class="org"><b>Redica Systems</b><span>Data Scientist</span></td><td><ul><li>Developed semi-supervised DBSCAN segmentation with TF-IDF and NLP techniques, saving 64+ business hours each month.</li><li>Engineered feature sets that improved precision and recall by 10% on supervised models.</li></ul></td></tr>
+<tr><th scope="row" class="ep"><b>May 2018 &ndash; Jun 2021</b><div class="span-bar" aria-hidden="true"><i style="left:4.0%;width:34.8%"></i></div></th><td class="org"><b>UCSD Bio-Inspired Robotics Lab</b><span>Data Science Researcher</span></td><td><ul><li>Built ML-on-edge sensor pipelines with Python, C++, CUDA, and deep learning for live robotics data.</li><li>Created GAN-based synthetic data generation to improve model generalization.</li><li>Published work in IEEE-RAS on affective touch classification.</li></ul></td></tr>
+    </tbody>
+  </table>
+  <div class="axis" aria-hidden="true" style="max-width:200px"><span>2018</span><span>2022</span><span>Now</span></div>
+</section>
+
+<section class="band" aria-labelledby="tk-h">
+  <div class="sec-head"><h2 id="tk-h">Constellation catalog</h2><p>The toolkit, indexed by constellation. Each emblem is the chart of its stars.</p></div>
+  <div class="catalog" id="catalog"></div>
+</section>
+
+<section class="band" aria-labelledby="mb-h">
+  <div class="sec-head"><h2 id="mb-h">Minor bodies</h2><p>Life outside code. Photographs are awaiting observation.</p></div>
+  <div class="minor"><div class="mb"><div class="slot">Photo coming soon</div><div><h3>Travel<small>MB-1</small></h3><p>Charting new places, one trip at a time.</p></div></div><div class="mb"><div class="slot">Photo coming soon</div><div><h3>Hiking<small>MB-2</small></h3><p>Ridgelines, switchbacks, and long views.</p></div></div><div class="mb"><div class="slot">Photo coming soon</div><div><h3>Music<small>MB-3</small></h3><p>Records on the shelf, and a Spotify artist page of my own.</p></div></div><div class="mb"><div class="slot">Photo coming soon</div><div><h3>Surfing<small>MB-4</small></h3><p>Reading the swell and waiting for the set.</p></div></div><div class="mb"><div class="slot">Photo coming soon</div><div><h3>Photography<small>MB-5</small></h3><p>Light, framing, and the patience to wait for both.</p></div></div><div class="mb"><div class="slot">Photo coming soon</div><div><h3>Coffee<small>MB-6</small></h3><p>A good cup before the first commit.</p></div></div><div class="mb"><div class="slot">Photo coming soon</div><div><h3>Outdoors<small>MB-7</small></h3><p>Fresh air as a debugging tool.</p></div></div><div class="mb"><div class="slot">Photo coming soon</div><div><h3>Reading<small>MB-8</small></h3><p>Always a book in progress.</p></div></div></div>
+</section>
+</div>
+<section id="contact"></section>
+</main>
+<script src="assets/js/stars.js"></script>
+<script src="assets/js/common.js"></script>
+<script src="assets/js/about.js"></script>
+</body>
+</html>

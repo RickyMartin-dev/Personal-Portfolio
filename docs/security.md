@@ -48,3 +48,7 @@ The optional shared archive is local and opt-in through `PROJECT_SNAPSHOT_ARCHIV
 ## Incident response
 
 If a secret may have been exposed, stop using it, revoke or rotate it, preserve the minimum useful evidence, and notify the owner. Do not hide the incident by deleting logs or rewriting history.
+
+## Static site content security
+
+Every page sets a CSP meta tag: scripts only from `'self'` (no inline scripts), styles from `'self'`, inline styles and `fonts.googleapis.com`, fonts from `fonts.gstatic.com`, and form/connect targets limited to `api.web3forms.com`. Google Fonts is the only third-party origin.

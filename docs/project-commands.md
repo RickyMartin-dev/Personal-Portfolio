@@ -30,14 +30,14 @@ Run a suite individually:
 python3 frontend/build.py
 ```
 
-The static builder copies `frontend/index.html`, pages, styles, scripts, and site images into `frontend/dist/`. It excludes the backend chatbot client/config, Terraform, docs, tests, starter tools, local references, Sass source, and legacy template assets. `WEB3FORMS_KEY` is optional; when missing, the build replaces the Web3Forms form with a direct email link.
+The static builder copies `frontend/index.html`, pages, styles, scripts, and site images into `frontend/dist/`. It excludes the dormant backend chatbot client/config, Terraform, docs, tests, starter tools, and local references. The contact form uses the built-in public Web3Forms key; set `WEB3FORMS_KEY` to override it or to `off` for a direct email link.
 
 ## GitHub Pages deployment
 
 - Pull requests targeting `develop` run Project Starter/security checks, mocked backend and artifact tests, Playwright, and Terraform formatting/validation. These checks do not use AWS credentials or a remote Terraform state.
 - A push to `develop` runs the checks needed for the site, builds the static artifact, and publishes it to GitHub Pages with the `github-pages` environment.
 - The deploy workflow requires only GitHub Pages permissions. It does not use AWS OIDC, Terraform apply, a Lambda image, or live inference.
-- Configure GitHub Pages to use **GitHub Actions**. The `WEB3FORMS_KEY` secret is optional for publishing; without it, the site uses the direct email link.
+- Configure GitHub Pages to use **GitHub Actions**. The contact form works without any secret: the build uses the public Web3Forms key in `frontend/build.py`. An optional `WEB3FORMS_KEY` secret overrides it, and `off` switches to the direct email link.
 
 The GitHub repository default is `develop`, and the `github-pages` environment permits only that branch. Push changes for this site to `develop`; its workflow runs verification and publishes the built frontend. A historical Pages workflow file remains on `main`, but GitHub Actions marks it inactive and the environment blocks main-branch deployment.
 

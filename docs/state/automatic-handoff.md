@@ -1,12 +1,12 @@
 # Automatic handoff
 
-- Updated: 2026-11-09 15:29 EST
-- Snapshot: `docs/compactions/2026-11-09-152954-automatic-session.md`
+- Updated: 2026-11-13 00:27 EST
+- Snapshot: `docs/compactions/2026-11-13-002717-automatic-session.md`
 - Mode: machine-generated, repository-local
 
 ## Latest outcome
 
-Published the Pages-only portfolio from develop; workflow and live site verified; default branch and Pages allowlist use develop; chatbot remains under construction and contact form safely falls back to email; no AWS changes.
+Shipped v0 Aurora Lines to frontend; PR 14 to develop green on all checks; merge and v0 tag awaiting owner
 
 ## Resume path
 

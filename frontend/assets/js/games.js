@@ -19,24 +19,21 @@
   var activeGame  = null;
   var escListener = null;
 
-  var shelfState = { isDown: false, startX: 0, scrollLeft: 0, didDrag: false };
+  var openerButton = null;
 
   function initGames() {
-    var shelf    = document.getElementById('games-shelf');
+    var gallery  = document.getElementById('gallery');
     var modal    = document.getElementById('game-modal');
     var closeBtn = document.getElementById('game-modal-close');
     var canvas   = document.getElementById('game-canvas');
 
-    if (!shelf || !modal || !canvas) return;
+    if (!gallery || !modal || !canvas) return;
 
-    initShelfDrag(shelf);
-
-    shelf.addEventListener('click', function (e) {
-      if (shelfState.didDrag) return;
-      var btn = e.target.closest('.game-card__play-btn');
+    gallery.addEventListener('click', function (e) {
+      var btn = e.target.closest('[data-play][data-game]');
       if (!btn || btn.disabled) return;
-      var gameId = btn.getAttribute('data-game');
-      if (gameId) openGame(gameId, canvas, modal);
+      openerButton = btn;
+      openGame(btn.getAttribute('data-game'), canvas, modal);
     });
 
     closeBtn.addEventListener('click', function () {
@@ -46,25 +43,15 @@
     modal.addEventListener('click', function (e) {
       if (e.target === modal) closeGame(canvas, modal);
     });
-  }
 
-  function initShelfDrag(shelf) {
-    shelf.addEventListener('mousedown', function (e) {
-      shelfState.isDown     = true;
-      shelfState.didDrag    = false;
-      shelfState.startX     = e.pageX - shelf.offsetLeft;
-      shelfState.scrollLeft = shelf.scrollLeft;
+    /* Keep keyboard focus inside the dialog while it is open. */
+    modal.addEventListener('keydown', function (e) {
+      if (e.key !== 'Tab') return;
+      var items = modal.querySelectorAll('button');
+      var first = items[0], last = items[items.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
     });
-    shelf.addEventListener('mousemove', function (e) {
-      if (!shelfState.isDown) return;
-      e.preventDefault();
-      var x    = e.pageX - shelf.offsetLeft;
-      var walk = x - shelfState.startX;
-      if (Math.abs(walk) > 4) shelfState.didDrag = true;
-      shelf.scrollLeft = shelfState.scrollLeft - walk;
-    });
-    shelf.addEventListener('mouseup',    function () { shelfState.isDown = false; });
-    shelf.addEventListener('mouseleave', function () { shelfState.isDown = false; });
   }
 
   function openGame(gameId, canvas, modal) {
@@ -162,8 +149,7 @@
     document.addEventListener('keydown', escListener);
 
     /* Focus close button for accessibility */
-    var closeBtn = document.getElementById('game-modal-close');
-    if (closeBtn) closeBtn.focus();
+    canvas.focus();
   }
 
   function closeGame(canvas, modal) {
@@ -183,6 +169,7 @@
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     activeGame = null;
+    if (openerButton) { openerButton.focus(); openerButton = null; }
   }
 
   /* ================================================================

@@ -12,7 +12,7 @@ Chatbot launcher
         └── No API request is made
 ```
 
-The site source, browser tests, and static build live in `frontend/`. `frontend/build.py` publishes only the static site files into `frontend/dist/`; backend source, Terraform, test tooling, and Project Starter files are excluded. The site needs no backend process or AWS account access to run locally.
+The site source, browser tests, and static build live in `frontend/`. The site is the v0 "Aurora Lines" design (home, About, Games; plain HTML/CSS/JS, fonts from Google Fonts, theme follows the OS); `design-showcase/aurora-final/` and `studio/` are its design source. `frontend/build.py` publishes only the static site files into `frontend/dist/`; backend source, Terraform, test tooling, and Project Starter files are excluded. The site needs no backend process or AWS account access to run locally.
 
 ## Temporarily inactive chatbot backend
 
@@ -32,5 +32,5 @@ When the backend is reactivated in a separate reviewed task, the intended reques
 
 - Published JavaScript and HTML are public. Never put AI provider credentials in them.
 - The active chatbot notice sends no message text, analytics, or API request.
-- The contact form uses Web3Forms. Its optional access key is a public client-side form identifier, not an AI secret.
+- The contact form uses Web3Forms. Its access key is a public client-side form identifier built into `frontend/build.py` (overridable with `WEB3FORMS_KEY`), not an AI secret.
 - Existing AWS resources remain untouched. The future infrastructure design and prior cost notes are documented in [`deployment-and-costs.md`](deployment-and-costs.md); those estimates do not describe a newly deployed backend in this branch.
