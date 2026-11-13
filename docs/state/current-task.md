@@ -27,10 +27,13 @@ Activate an inexpensive portfolio assistant with a public website UI, stateless 
 
 ## Verification and remaining work
 
-- Backend/artifact tests: 31 passed. Offline and mocked-active Playwright suites: 10 passed using Playwright 1.65.0. `npm ci` found zero frontend vulnerabilities. Terraform 1.10.5: both roots format and validate. Workflow and release checks passed; CI will repeat after the dependency/action update.
-- Bootstrap apply created nine account resources; application plan reviewed as 14 additions, zero changes, zero destroys. Application root has not yet been applied.
-- All five PR checks passed on the first commit. The deploy action and Playwright version were then updated to the versions already proposed by Dependabot; local browser suites pass on the updated version. Push the follow-up commit and wait for fresh required checks before merge.
+- Backend/artifact tests: 31 passed. Offline and mocked-active Playwright suites: 10 passed using Playwright 1.65.0. `npm ci` found zero frontend vulnerabilities. Terraform 1.10.5: both roots format and validate. Workflow and release checks passed for this permission patch; its new PR checks are pending.
+- Bootstrap apply created nine account resources; app CI created the ECR repository/image, log groups, monthly DynamoDB table, and Lambda execution role. The first app apply then failed because the GitHub role lacked three narrowly scoped read/tag permissions; no old POC resources were changed. The existing app Terraform state records the partial resources. The API Gateway API and Lambda function were not created.
+- All five PR checks passed on both PR #16 commits. The deploy action and Playwright version were updated to the versions already proposed by Dependabot; local browser suites pass on Playwright 1.65.0, and npm reported zero vulnerabilities.
+- Updated the existing GitHub deploy-role policy in AWS through a one-resource Terraform plan/apply. The fix adds `iam:ListAttachedRolePolicies` only on the chatbot Lambda role, `dynamodb:DescribeContinuousBackups` only on the monthly counter table, and the API Gateway tags path for the chatbot HTTP API. Track the matching code change in the new follow-up PR.
+- Verified the ACTIVE DynamoDB table has the expected string partition key, on-demand billing, and deletion protection; verified the Lambda role trusts only Lambda. Cleared Terraform's temporary taint markers for those already-created resources and replanned: 8 additions, 0 changes, 0 destroys.
+- PR #16 merged, but the first deployment run failed during app Terraform apply and skipped health check/Pages publish. Confirmed partial state through Terraform and AWS inventory; next PR will rerun deployment with the corrected permissions.
 - After live cutover, refresh dependencies and retire the user-authorized POC cost resources; retain only the new portfolio agent and required deploy controls.
-- Wait for PR #16 CI. After merge, verify the API and one real response, then retire confirmed POC resources under the owner's existing authorization.
+- Open the deployment permission fix PR and wait for all checks. After merge, verify the API and one real response, then retire confirmed POC resources under the owner's existing authorization.
 - Finalize verification log, inspect diffs, check archive warning, finish project workflow, and save the task snapshot.
 - Owner provided the $5 budget notification email. No other owner input is currently known; report precisely if GitHub/AWS imposes another external approval gate.

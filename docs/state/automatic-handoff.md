@@ -6,13 +6,13 @@
 
 ## Latest outcome
 
-Implemented the low-cost chatbot V0 frontend/backend/infra/deploy path; provisioned the AWS budget/state/OIDC bootstrap and repository variables. The owner supplied the budget email. Docker Desktop cannot start because its app bundle has no executable; GitHub Actions is the intended image builder. Branch `codex/chatbot-v0` is pushed as commit `349edf3`; PR #16 is open. `develop` now requires a PR and five CI checks, including for admins. All checks passed for the first commit; Dependabot's deploy-pages v5 and Playwright 1.65.0 updates have since been incorporated and locally tested, so push the follow-up and wait for fresh checks. Backend deployment, live smoke, and POC cleanup remain.
+Implemented the low-cost chatbot V0 frontend/backend/infra/deploy path; provisioned the AWS budget/state/OIDC bootstrap and repository variables. The owner supplied the budget email. Docker Desktop cannot start because its app bundle has no executable; GitHub Actions is the intended image builder. PR #16 merged after all five checks passed, but the deployment failed during app Terraform apply. The image, logs, table, Lambda role, and ECR lifecycle were created and saved in app state; no API Gateway API or Lambda function was created, and Pages publish skipped. Exact missing deploy-role permissions have been fixed in AWS with a one-resource bootstrap policy apply; matching Terraform code is on branch `codex/chatbot-deploy-permissions`. Open a new PR, then redeploy, verify `/health` and one real `/chat`, and clean up confirmed POCs.
 
 ## Resume path
 
 1. Read `AGENTS.md`, `docs/state/current-task.md`, and `.agent-state/second-brain-checkpoint.md`.
 2. Finish local tests, workflow checks, Terraform validation, and documentation review.
-3. Push the follow-up with the tested dependency updates, wait for PR #16 quality checks, then merge per the user's existing deployment authorization and verify live `/health` plus one real `/chat` request.
+3. Finish and push the deploy-role permission fix, open a new PR, wait for five checks, merge per the user's existing deployment authorization, and verify live `/health` plus one real `/chat` request.
 4. Refresh AWS dependencies, retire confirmed POC resources under the owner's existing authorization, verify remaining inventory, and finish the archive workflow.
 
 ## Safety

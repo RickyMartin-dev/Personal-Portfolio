@@ -1,6 +1,6 @@
 # Personal Portfolio
 
-Static portfolio for Ricky Martin, published with GitHub Pages. The portfolio assistant is deployed as a compact chat panel with a mobile bottom sheet. Its FastAPI/LangGraph backend runs on AWS Lambda behind API Gateway and calls Amazon Bedrock; the browser never receives provider credentials.
+Static portfolio for Ricky Martin, published with GitHub Pages. The portfolio assistant is implemented as a compact chat panel with a mobile bottom sheet. Its FastAPI/LangGraph backend deploys to AWS Lambda behind API Gateway and calls Amazon Bedrock; the browser never receives provider credentials.
 
 ## Stack
 
