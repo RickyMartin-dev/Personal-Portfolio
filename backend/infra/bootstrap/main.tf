@@ -2,14 +2,15 @@ data "aws_caller_identity" "current" {}
 data "aws_partition" "current" {}
 
 locals {
-  state_bucket_name = var.state_bucket_name != "" ? var.state_bucket_name : "${var.project_name}-tfstate-${data.aws_caller_identity.current.account_id}"
-  oidc_provider_arn = var.github_oidc_provider_arn != "" ? var.github_oidc_provider_arn : aws_iam_openid_connect_provider.github[0].arn
-  state_key_prefix  = "personal-portfolio/chatbot/"
-  repository_arn    = "arn:${data.aws_partition.current.partition}:ecr:${var.aws_region}:${data.aws_caller_identity.current.account_id}:repository/personal-portfolio-chatbot"
-  lambda_arn        = "arn:${data.aws_partition.current.partition}:lambda:${var.aws_region}:${data.aws_caller_identity.current.account_id}:function:personal-portfolio-chatbot"
-  usage_table_arn   = "arn:${data.aws_partition.current.partition}:dynamodb:${var.aws_region}:${data.aws_caller_identity.current.account_id}:table/personal-portfolio-chatbot-monthly-usage"
-  lambda_role_arn   = "arn:${data.aws_partition.current.partition}:iam::${data.aws_caller_identity.current.account_id}:role/personal-portfolio-chatbot-lambda"
-  log_group_arn     = "arn:${data.aws_partition.current.partition}:logs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:log-group:/aws/lambda/personal-portfolio-chatbot*"
+  state_bucket_name    = var.state_bucket_name != "" ? var.state_bucket_name : "${var.project_name}-tfstate-${data.aws_caller_identity.current.account_id}"
+  oidc_provider_arn    = var.github_oidc_provider_arn != "" ? var.github_oidc_provider_arn : aws_iam_openid_connect_provider.github[0].arn
+  state_key_prefix     = "personal-portfolio/chatbot/"
+  repository_arn       = "arn:${data.aws_partition.current.partition}:ecr:${var.aws_region}:${data.aws_caller_identity.current.account_id}:repository/personal-portfolio-chatbot"
+  lambda_arn           = "arn:${data.aws_partition.current.partition}:lambda:${var.aws_region}:${data.aws_caller_identity.current.account_id}:function:personal-portfolio-chatbot"
+  usage_table_arn      = "arn:${data.aws_partition.current.partition}:dynamodb:${var.aws_region}:${data.aws_caller_identity.current.account_id}:table/personal-portfolio-chatbot-monthly-usage"
+  lambda_role_arn      = "arn:${data.aws_partition.current.partition}:iam::${data.aws_caller_identity.current.account_id}:role/personal-portfolio-chatbot-lambda"
+  log_group_arn        = "arn:${data.aws_partition.current.partition}:logs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:log-group:/aws/lambda/personal-portfolio-chatbot*"
+  api_gateway_tags_arn = "arn:${data.aws_partition.current.partition}:apigateway:${var.aws_region}::/tags/arn%3A${data.aws_partition.current.partition}%3Aapigateway%3A${var.aws_region}%3A%3A%2Fv2%2Fapis%2F*"
 }
 
 resource "aws_s3_bucket" "terraform_state" {
@@ -228,6 +229,7 @@ data "aws_iam_policy_document" "github_deploy" {
       "iam:GetRole",
       "iam:GetRolePolicy",
       "iam:ListRolePolicies",
+      "iam:ListAttachedRolePolicies",
       "iam:PassRole",
       "iam:PutRolePolicy",
       "iam:TagRole",
@@ -256,6 +258,7 @@ data "aws_iam_policy_document" "github_deploy" {
     resources = [
       "arn:${data.aws_partition.current.partition}:apigateway:${var.aws_region}::/apis",
       "arn:${data.aws_partition.current.partition}:apigateway:${var.aws_region}::/apis/*",
+      local.api_gateway_tags_arn,
     ]
   }
 
@@ -279,6 +282,7 @@ data "aws_iam_policy_document" "github_deploy" {
     actions = [
       "dynamodb:CreateTable",
       "dynamodb:DeleteTable",
+      "dynamodb:DescribeContinuousBackups",
       "dynamodb:DescribeTable",
       "dynamodb:ListTagsOfResource",
       "dynamodb:TagResource",
