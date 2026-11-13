@@ -30,6 +30,20 @@ CONTACT_FORM = re.compile(
 BUILD_IGNORES = shutil.ignore_patterns(".DS_Store")
 
 
+# Web3Forms access keys are public client identifiers: they ship in the page HTML
+# and can only deliver mail to the owner's registered address. This is the key
+# the site has used since launch. WEB3FORMS_KEY overrides it; WEB3FORMS_KEY=off
+# swaps the form for a direct email link.
+PUBLIC_WEB3FORMS_KEY = "ca3bcb6c-5284-4f18-971c-ee541cc36de8"
+
+
+def resolve_contact_key(env: Mapping[str, str]) -> str:
+    value = env.get("WEB3FORMS_KEY", "").strip()
+    if value.lower() == "off":
+        return ""
+    return value or PUBLIC_WEB3FORMS_KEY
+
+
 def site_pages(output: Path) -> list[Path]:
     """Every built HTML page (home plus pages/*.html) that may hold the contact form."""
     return [output / "index.html", *sorted((output / "pages").glob("*.html"))]
@@ -52,7 +66,7 @@ def build_site(
         else:
             shutil.copy2(path, output / source)
 
-    contact_key = env.get("WEB3FORMS_KEY", "").strip()
+    contact_key = resolve_contact_key(env)
     if contact_key:
         for page in site_pages(output):
             page.write_text(
@@ -72,7 +86,7 @@ def build_site(
                 CONTACT_FORM.sub(fallback, page.read_text(encoding="utf-8")),
                 encoding="utf-8",
             )
-        print("info: WEB3FORMS_KEY is unset; using the direct email contact link")
+        print("info: WEB3FORMS_KEY=off; using the direct email contact link")
 
     print(f"Built static site in {output}")
 

@@ -89,14 +89,26 @@ def test_build_site_needs_no_chatbot_or_aws_configuration(tmp_path: Path) -> Non
     assert not (output / "assets/js/chatbot.config.js").exists()
 
 
-def test_build_site_uses_direct_email_contact_without_a_key(
+def test_build_site_uses_the_public_contact_key_by_default(tmp_path: Path) -> None:
+    source = tmp_path / "repo"
+    output = tmp_path / "dist"
+    create_source_tree(source)
+
+    build_site_module.build_site(source, output, environment={"WEB3FORMS_KEY": ""})
+
+    page = (output / "index.html").read_text(encoding="utf-8")
+    assert build_site_module.PUBLIC_WEB3FORMS_KEY in page
+    assert "__WEB3FORMS_KEY__" not in page
+
+
+def test_build_site_uses_direct_email_contact_when_the_form_is_off(
     tmp_path: Path, capsys
 ) -> None:
     source = tmp_path / "repo"
     output = tmp_path / "dist"
     create_source_tree(source)
 
-    build_site_module.build_site(source, output, environment={})
+    build_site_module.build_site(source, output, environment={"WEB3FORMS_KEY": "off"})
 
     for page_path in ("index.html", "pages/about.html", "pages/games.html"):
         page = (output / page_path).read_text(encoding="utf-8")

@@ -32,5 +32,5 @@ When the backend is reactivated in a separate reviewed task, the intended reques
 
 - Published JavaScript and HTML are public. Never put AI provider credentials in them.
 - The active chatbot notice sends no message text, analytics, or API request.
-- The contact form uses Web3Forms. Its optional access key is a public client-side form identifier, not an AI secret.
+- The contact form uses Web3Forms. Its access key is a public client-side form identifier built into `frontend/build.py` (overridable with `WEB3FORMS_KEY`), not an AI secret.
 - Existing AWS resources remain untouched. The future infrastructure design and prior cost notes are documented in [`deployment-and-costs.md`](deployment-and-costs.md); those estimates do not describe a newly deployed backend in this branch.
