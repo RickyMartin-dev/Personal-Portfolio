@@ -27,6 +27,7 @@ from src.config import (
     SERVICE_UNAVAILABLE_MESSAGE,
 )
 from src.logging_config import configure_logging
+from src.usage_budget import ChatQuotaExceeded, UsageBudget, UsageBudgetUnavailable
 
 
 configure_logging()
@@ -82,6 +83,7 @@ class ChatResponse(BaseModel):
 
 
 agent = ChatAgent()
+usage_budget = UsageBudget.from_environment()
 
 
 @app.exception_handler(RequestValidationError)
@@ -112,6 +114,7 @@ def chat(payload: ChatRequest, request: Request) -> ChatResponse:
     request_id = str(uuid.uuid4())
     started = perf_counter()
     try:
+        usage_budget.reserve()
         result = agent.chat(
             user_input=payload.input,
             history=[message.model_dump() for message in payload.history],
@@ -132,6 +135,35 @@ def chat(payload: ChatRequest, request: Request) -> ChatResponse:
             },
         )
         return ChatResponse(message=result["message"])
+    except ChatQuotaExceeded:
+        logger.info(
+            "chat.monthly_limit_reached",
+            extra={
+                "event": "chat.monthly_limit_reached",
+                "request_id": request_id,
+                "outcome": "rate_limited",
+                "http_status": 429,
+            },
+        )
+        return JSONResponse(
+            status_code=429,
+            content={"detail": "The assistant has reached its monthly request limit."},
+        )
+    except UsageBudgetUnavailable as error:
+        logger.error(
+            "chat.usage_budget_unavailable",
+            extra={
+                "event": "chat.usage_budget_unavailable",
+                "request_id": request_id,
+                "outcome": "error",
+                "http_status": 503,
+                "error_type": type(error).__name__,
+            },
+        )
+        return JSONResponse(
+            status_code=503,
+            content={"detail": SERVICE_UNAVAILABLE_MESSAGE},
+        )
     except BedrockServiceError as error:
         logger.error(
             "chat.bedrock_unavailable",

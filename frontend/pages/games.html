@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data:; connect-src 'self' https://api.web3forms.com; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action https://api.web3forms.com;">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data:; connect-src 'self' https://api.web3forms.com __CHATBOT_CONNECT_ORIGIN__; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action https://api.web3forms.com;">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
 <title>Games — Ricky Martin</title>
@@ -105,14 +105,11 @@
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <button class="assist-btn" id="assist-btn" type="button" aria-expanded="false" aria-controls="assist-panel" aria-label="Ask about Ricky"><svg class="i " viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 3c.6 4.5 1.5 7.4 9 9-7.5 1.6-8.4 4.5-9 9-.6-4.5-1.5-7.4-9-9 7.5-1.6 8.4-4.5 9-9z"/></svg><span class="lbl">Ask about Ricky</span></button>
-<div class="assist-panel" id="assist-panel" role="dialog" aria-labelledby="assist-h" aria-modal="false">
-  <h2 id="assist-h">Assistant under construction</h2>
-  <p>Ricky's AI assistant is being rebuilt. Check back soon.</p>
-  <button class="icon-btn" type="button" aria-label="Close assistant panel"><svg class="i " viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
-</div>
+<!-- ASSISTANT_PANEL -->
 <script src="../assets/js/hero.js"></script>
 <script src="../assets/js/cursor.js"></script>
 <script src="../assets/js/app.js"></script>
+<!-- CHATBOT_SCRIPTS -->
 <script src="../assets/js/games.js"></script>
 </body>
 </html>

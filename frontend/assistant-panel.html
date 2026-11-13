@@ -1,0 +1,27 @@
+<div class="assist-panel" id="assist-panel" role="dialog" aria-labelledby="assist-h" aria-describedby="assist-description" aria-modal="false" aria-hidden="true">
+  <header class="assistant-header">
+    <div>
+      <h2 id="assist-h">Ask about Ricky</h2>
+      <p class="assistant-description" id="assist-description" data-assistant-offline>Ricky's portfolio assistant is being rebuilt. Check back soon.</p>
+      <p class="assistant-description" data-assistant-live hidden>Questions about Ricky's background, skills, and selected work.</p>
+    </div>
+    <button class="icon-btn" id="chatbot-close" type="button" aria-label="Close assistant panel"><svg class="i" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+  </header>
+  <section class="assistant-offline" data-chatbot-disabled>
+    <p>Check back soon to ask Ricky's assistant about the work featured in this portfolio.</p>
+  </section>
+  <section class="chatbot-interface" data-chatbot-active hidden>
+    <div class="chatbot-messages" id="chatbot-messages" role="log" aria-live="polite" aria-relevant="additions text" aria-label="Conversation">
+      <div class="chatbot-message bot-message"><p>Hi, I can answer questions about Ricky's background, skills, and selected work.</p></div>
+    </div>
+    <form class="chatbot-form" id="chatbot-input-container">
+      <label class="sr-only" for="chatbot-input">Your question</label>
+      <textarea id="chatbot-input" name="question" rows="2" maxlength="500" placeholder="Ask about Ricky's experience…" autocomplete="off" autocapitalize="sentences" aria-describedby="chatbot-help chatbot-status"></textarea>
+      <div class="chatbot-form-foot">
+        <p id="chatbot-help">500 characters max. This conversation stays in this page.</p>
+        <button class="btn btn-primary" id="chatbot-send" type="submit">Send</button>
+      </div>
+      <p class="chatbot-status" id="chatbot-status" role="status" aria-live="polite"></p>
+    </form>
+  </section>
+</div>

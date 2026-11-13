@@ -7,6 +7,7 @@ import pytest
 
 from src import main
 from src.agent import ChatAgent
+from src.usage_budget import ChatQuotaExceeded, UsageBudgetUnavailable
 
 
 def safe_result(*, content_score: float = 0.0, attack_score: float = 0.0) -> dict[str, Any]:
@@ -81,6 +82,36 @@ def test_chat_endpoint_does_not_require_browser_secret(monkeypatch) -> None:
 
     assert response.status_code == 200
     assert response.json()["message"] == "Ricky is an AI/ML Engineer."
+
+
+def test_chat_endpoint_returns_429_without_calling_model_when_monthly_limit_is_reached(
+    monkeypatch,
+) -> None:
+    fake = FakeBedrockClient()
+    monkeypatch.setattr(main, "agent", ChatAgent(client_provider=lambda: fake))
+    monkeypatch.setattr(main.usage_budget, "reserve", lambda: (_ for _ in ()).throw(ChatQuotaExceeded()))
+    client = TestClient(main.app)
+
+    response = client.post("/chat", json={"input": "What does Ricky work on?"})
+
+    assert response.status_code == 429
+    assert fake.converse_calls == []
+
+
+def test_chat_endpoint_fails_closed_when_monthly_usage_store_is_unavailable(monkeypatch) -> None:
+    fake = FakeBedrockClient()
+    monkeypatch.setattr(main, "agent", ChatAgent(client_provider=lambda: fake))
+    monkeypatch.setattr(
+        main.usage_budget,
+        "reserve",
+        lambda: (_ for _ in ()).throw(UsageBudgetUnavailable()),
+    )
+    client = TestClient(main.app)
+
+    response = client.post("/chat", json={"input": "What does Ricky work on?"})
+
+    assert response.status_code == 503
+    assert fake.converse_calls == []
 
 
 def test_input_content_violation_is_enforced_before_model_call(monkeypatch) -> None:

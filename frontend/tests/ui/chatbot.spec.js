@@ -169,7 +169,7 @@ test('shows an accessible under-construction warning without making API calls', 
 
     await launcher.focus();
     await page.keyboard.press('Enter');
-    const notice = page.getByRole('dialog', { name: /under construction/i });
+    const notice = page.getByRole('dialog', { name: 'Ask about Ricky' });
     await expect(notice).toBeVisible();
     await expect(launcher).toHaveAttribute('aria-expanded', 'true');
     await expect(notice).toContainText('being rebuilt');

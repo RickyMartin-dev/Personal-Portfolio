@@ -4,6 +4,7 @@ Use this file when verification evidence should remain available after the agent
 
 | Date | Task or plan | Check | Result | Evidence | Owner | Follow-up |
 | --- | --- | --- | --- | --- | --- | --- |
+| 2026-11-13 | Low-cost portfolio chatbot V0 | Backend/artifact tests; Playwright offline/active suites; `npm ci`; Project Starter release check; workflow policy; Terraform 1.10.5 format/validate; PR #16 | PASS | 31 Python tests and 10 Playwright tests passed locally; after updating Playwright to 1.65.0, all 10 browser tests passed again and npm reported zero vulnerabilities. Terraform format/validation and workflow policy checks passed. All five required checks passed on PR #16's first commit; the dependency/action follow-up is awaiting fresh checks. AWS bootstrap is applied; app deployment, live inference, and POC cleanup remain. | Codex | Wait for updated PR checks, merge, verify live `/health` and one `/chat`, then retire confirmed POC resources under the existing authorization. |
 | 2026-09-23 | starter build | `./scripts/project doctor` | PASS | 36-file contract, shell syntax, and credential scan | project-starter maintainer | Run CI after push |
 | 2026-09-23 | title-rendering experiment | `./scripts/project plan title-edge 'A&B / C'` | PASS | Generated heading preserved literal title | project-starter maintainer | None |
 | 2026-09-23 | publish snapshot | `git diff --cached --check` | PASS | No staged whitespace errors | project-starter maintainer | CI will repeat the starter check |

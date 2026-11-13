@@ -9,7 +9,7 @@ The portfolio is static. Python 3 is the only requirement to serve it; no npm in
 # Visit http://127.0.0.1:8000
 ```
 
-The chatbot shows an under-construction notice and does not send network requests.
+Without `CHATBOT_API_ENDPOINT`, the chatbot shows an under-construction notice and sends no network requests. To preview the active client, build with a test HTTPS `/chat` endpoint and mock its responses in Playwright.
 
 ## Install tools for the full test suite
 
@@ -26,24 +26,24 @@ Run a suite individually:
 
 ```bash
 (cd backend && .venv/bin/python -m pytest tests ../frontend/tests/python)
-(cd frontend && npm run test:e2e)
+(cd frontend && npm run test:e2e && npm run test:e2e:chatbot)
 python3 frontend/build.py
 ```
 
-The static builder copies `frontend/index.html`, pages, styles, scripts, and site images into `frontend/dist/`. It excludes the dormant backend chatbot client/config, Terraform, docs, tests, starter tools, and local references. The contact form uses the built-in public Web3Forms key; set `WEB3FORMS_KEY` to override it or to `off` for a direct email link.
+The static builder copies `frontend/index.html`, pages, styles, scripts, and site images into `frontend/dist/`. It excludes Terraform, docs, tests, starter tools, and local references. With no `CHATBOT_API_ENDPOINT`, it omits the chat client/config and keeps the notice. Set a validated HTTPS `/chat` URL to generate the public client config and add its origin to the page CSP. The contact form uses the built-in public Web3Forms key; set `WEB3FORMS_KEY` to override it or to `off` for a direct email link.
 
 ## GitHub Pages deployment
 
 - Pull requests targeting `develop` run Project Starter/security checks, mocked backend and artifact tests, Playwright, and Terraform formatting/validation. These checks do not use AWS credentials or a remote Terraform state.
-- A push to `develop` runs the checks needed for the site, builds the static artifact, and publishes it to GitHub Pages with the `github-pages` environment.
-- The deploy workflow requires only GitHub Pages permissions. It does not use AWS OIDC, Terraform apply, a Lambda image, or live inference.
+- A push to `develop` runs the mocked API/UI tests and Terraform validation, then deploys the Lambda image and API with GitHub OIDC. The workflow checks `/health` and publishes Pages with the resulting endpoint.
+- AWS credentials are short-lived OIDC sessions; `AWS_ROLE_ARN` and `TF_STATE_BUCKET` are non-secret repository variables. No static AWS keys are stored in GitHub.
 - Configure GitHub Pages to use **GitHub Actions**. The contact form works without any secret: the build uses the public Web3Forms key in `frontend/build.py`. An optional `WEB3FORMS_KEY` secret overrides it, and `off` switches to the direct email link.
 
 The GitHub repository default is `develop`, and the `github-pages` environment permits only that branch. Push changes for this site to `develop`; its workflow runs verification and publishes the built frontend. A historical Pages workflow file remains on `main`, but GitHub Actions marks it inactive and the environment blocks main-branch deployment.
 
-## Dormant backend and AWS infrastructure
+## Backend and AWS infrastructure
 
-The `backend/` FastAPI/LangGraph code and Terraform roots are retained for a future chatbot launch, but are not part of the current frontend deployment. Keep the browser notice in place until a separate backend reactivation task confirms the endpoint, secret handling, monitoring, budgets, and cutover. Existing AWS resources were not modified as part of the GitHub Pages work. The historical backend setup and cost assumptions are in [`deployment-and-costs.md`](deployment-and-costs.md).
+The `backend/` FastAPI/LangGraph code and Terraform roots deploy the V0 assistant. The stack uses a $5 account-wide budget alert, 1,000-request monthly quota, and limited logs. The website never receives provider credentials. See [`deployment-and-costs.md`](deployment-and-costs.md) for cost and cutover steps, and [`future-rag-plan.md`](future-rag-plan.md) for future S3 ingestion.
 
 ## Project workflow
 

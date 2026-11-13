@@ -1,4 +1,4 @@
-name: Deploy GitHub Pages from develop
+name: Deploy portfolio and chatbot from develop
 
 on:
   push:
@@ -8,13 +8,13 @@ permissions:
   contents: read
 
 concurrency:
-  group: github-pages-deploy
+  group: portfolio-deploy
   cancel-in-progress: false
 
 jobs:
   verify-and-build:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
     steps:
       - name: Check out repository
         uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.0
@@ -42,34 +42,99 @@ jobs:
       - name: Install Chromium
         working-directory: frontend
         run: npx playwright install --with-deps chromium
-      - name: Build Pages artifact and run browser tests
+      - name: Verify the disabled portfolio build
         working-directory: frontend
-        env:
-          WEB3FORMS_KEY: ${{ secrets.WEB3FORMS_KEY }}
         run: npm run test:e2e
-      # test:e2e builds with a placeholder form key; rebuild so the published
-      # artifact carries the production contact key, then guard against leaks.
-      - name: Build production Pages artifact
+      - name: Verify the active chatbot build with mocked API responses
         working-directory: frontend
-        env:
-          WEB3FORMS_KEY: ${{ secrets.WEB3FORMS_KEY }}
-        run: |
-          python3 build.py
-          if grep -rq "playwright-test-key" dist; then
-            echo "::error::Test-only form key found in the Pages artifact"; exit 1
-          fi
-      - name: Upload Pages build artifact
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        run: npm run test:e2e:chatbot
+      - name: Validate Terraform
+        uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3.1.2
         with:
-          name: pages-build
-          path: frontend/dist
-          if-no-files-found: error
-          retention-days: 1
+          terraform_version: '1.10.5'
+      - name: Check Terraform formatting and configuration
+        run: |
+          terraform -chdir=backend/infra/bootstrap fmt -check -recursive
+          terraform -chdir=backend/infra/bootstrap init -backend=false -input=false
+          terraform -chdir=backend/infra/bootstrap validate
+          terraform -chdir=backend/infra/terraform fmt -check -recursive
+          terraform -chdir=backend/infra/terraform init -backend=false -input=false
+          terraform -chdir=backend/infra/terraform validate
 
-  publish-site:
+  deploy-backend:
     needs: verify-and-build
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      AWS_REGION: us-east-1
+      TF_STATE_BUCKET: ${{ vars.TF_STATE_BUCKET }}
+      AWS_ROLE_ARN: ${{ vars.AWS_ROLE_ARN }}
+    outputs:
+      api_endpoint: ${{ steps.terraform.outputs.api_endpoint }}
+      api_base_url: ${{ steps.terraform.outputs.api_base_url }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.0
+        with:
+          persist-credentials: false
+      - name: Check deployment bootstrap settings
+        run: |
+          if [[ -z "$AWS_ROLE_ARN" || -z "$TF_STATE_BUCKET" ]]; then
+            echo "::error::Complete backend/infra/bootstrap and set repository variables AWS_ROLE_ARN and TF_STATE_BUCKET."
+            exit 1
+          fi
+      - name: Configure short-lived AWS credentials with GitHub OIDC
+        uses: aws-actions/configure-aws-credentials@e1253824e5c10ff9df46874f81ed3ec929e19cfd # v6.3.0
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: us-east-1
+          role-session-name: PortfolioChatbotDeploy
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3.1.2
+        with:
+          terraform_version: '1.10.5'
+      - name: Initialize remote Terraform state
+        working-directory: backend/infra/terraform
+        run: >-
+          terraform init -input=false
+          -backend-config="bucket=$TF_STATE_BUCKET"
+          -backend-config="region=$AWS_REGION"
+          -backend-config="encrypt=true"
+          -backend-config="use_lockfile=true"
+      - name: Ensure chatbot image repository exists
+        working-directory: backend/infra/terraform
+        run: terraform apply -input=false -auto-approve -target=aws_ecr_repository.chatbot
+      - name: Build and publish the immutable Lambda image
+        env:
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          ecr_url="$(terraform -chdir=backend/infra/terraform output -raw ecr_repository_url)"
+          registry="${ecr_url%%/*}"
+          aws ecr get-login-password --region "$AWS_REGION" \
+            | docker login --username AWS --password-stdin "$registry"
+          docker build --platform linux/amd64 --tag "$ecr_url:$IMAGE_TAG" backend
+          docker push "$ecr_url:$IMAGE_TAG"
+      - name: Apply chatbot infrastructure and expose endpoint output
+        id: terraform
+        working-directory: backend/infra/terraform
+        env:
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          terraform apply -input=false -auto-approve -var="image_tag=$IMAGE_TAG"
+          echo "api_endpoint=$(terraform output -raw api_endpoint)" >> "$GITHUB_OUTPUT"
+          echo "api_base_url=$(terraform output -raw api_base_url)" >> "$GITHUB_OUTPUT"
+      - name: Check the deployed API health route
+        env:
+          API_BASE_URL: ${{ steps.terraform.outputs.api_base_url }}
+        run: curl --fail --silent --show-error --retry 8 --retry-delay 5 "$API_BASE_URL/health"
+
+  publish-site:
+    needs: [verify-and-build, deploy-backend]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
     environment:
       name: github-pages
     permissions:
@@ -77,11 +142,30 @@ jobs:
       id-token: write
       pages: write
     steps:
-      - name: Download Pages build artifact
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+      - name: Check out repository
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.0
         with:
-          name: pages-build
-          path: frontend/dist
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Set up Python
+        uses: actions/setup-python@4267e283df95c05d9f16ece6624106f44613b489 # v6.0.0
+        with:
+          python-version: '3.12'
+      - name: Build the active frontend artifact
+        working-directory: frontend
+        env:
+          WEB3FORMS_KEY: ${{ secrets.WEB3FORMS_KEY }}
+          CHATBOT_API_ENDPOINT: ${{ needs.deploy-backend.outputs.api_endpoint }}
+        run: |
+          python3 build.py
+          if grep -rq "playwright-test-key\|__CHATBOT_API_ENDPOINT__\|__CHATBOT_CONNECT_ORIGIN__" dist; then
+            echo "::error::Test values or unresolved chatbot build markers found in the Pages artifact"; exit 1
+          fi
+          test -s dist/assets/js/chatbot.config.js
+          test -s dist/assets/js/chatbot.js
+          if grep -RniE 'aws_access_key_id|aws_secret_access_key|bedrock.*key|api[_-]?key' dist/assets/js/chatbot.config.js; then
+            echo "::error::Unexpected credential-like setting in the public chatbot configuration"; exit 1
+          fi
       - name: Configure GitHub Pages
         uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5.0.0
       - name: Upload frontend artifact
@@ -90,4 +174,4 @@ jobs:
           path: frontend/dist
       - name: Publish frontend
         id: deployment
-        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1

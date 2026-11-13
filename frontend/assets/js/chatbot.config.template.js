@@ -1,5 +1,4 @@
-// This optional config contains public client settings only; keep provider secrets in the backend.
-// The chatbot falls back to /chat when apiEndpoint is empty.
+// Public endpoint only; never put provider credentials in this browser config.
 window.CHATBOT_CONFIG = {
-  apiEndpoint: ''
+  apiEndpoint: __CHATBOT_API_ENDPOINT__
 };

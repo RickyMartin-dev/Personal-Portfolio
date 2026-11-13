@@ -6,7 +6,7 @@ The current local snapshot `resources/Website_AI_Chatbot/` is the separate chatb
 
 The portfolio repo previously connected the browser to that backend through `CHATBOT_API_ENDPOINT` in `.github/workflows/static.yml`. The deploy workflow generated `assets/js/chatbot.config.js` with the endpoint and a browser-visible API key. The actual API Gateway ID, route, Lambda function name, IAM roles, and current bill are AWS account state; they are not recoverable from either checked-out source tree alone.
 
-The root repo now owns the replacement frontend, backend, Terraform, and `develop` deployment workflow. The old repo and endpoint must remain intact until the new API returns a real model response and the owner reviews the old resource inventory. The new workflow has no chatbot API key input.
+The root repo now owns the replacement frontend, backend, Terraform, and `develop` deployment workflow. Keep old resources until the replacement returns a real model response through the published site. The owner authorized retiring confirmed testing/POC resources after that cutover; this runbook requires a fresh dependency check before each deletion. The new workflow has no chatbot API key input.
 
 ## Read-only AWS inventory (2026-11-08)
 
@@ -22,7 +22,7 @@ Cost Explorer for the three completed months August–October 2026 shows an acco
 
 The same inventory found two unrelated Titanic async SageMaker endpoints, both currently `InService` with desired/current instance count zero and autoscaling from zero to two `ml.m5.large` instances. It also found two active SageMaker Studio domains, three SageMaker-managed EFS file systems, and a stopped notebook. The observed SageMaker charge is for Studio storage, not endpoint compute, during those completed months. These may be candidates for later cleanup, but they are not part of the chatbot and have not been changed.
 
-This inventory is a point-in-time snapshot, not Terraform state. It does not establish ownership for every account resource or allocate shared service charges exactly. Do not import, pause, or delete old resources until the replacement has passed a real inference check and the owner has reviewed a resource-by-resource retirement list.
+This inventory is a point-in-time snapshot, not Terraform state. It does not establish ownership for every account resource or allocate shared service charges exactly. Do not import, pause, or delete old resources until the replacement has passed a real inference check. The owner has already authorized removal of confirmed POC resources; a fresh identity and dependency check is still required because names and old inventory alone are not enough to identify a safe target.
 
 ## Read-only inventory required before cleanup
 
@@ -37,7 +37,7 @@ Use a working native AWS CLI v2 and the intended profile to record:
 - S3 buckets, lifecycle/retention rules, and Terraform state ownership;
 - Cost Explorer/service cost for at least the last three months, where available.
 
-Do not infer that an AWS resource belongs to the old chatbot only from a familiar name. Capture IDs, ARNs, tags, deployment source, and dependencies. After the new stack is live, prepare a separate exact cleanup proposal with current monthly cost and dependencies for owner review. No legacy AWS resource is deleted or paused by this repository's deployment workflow.
+Do not infer that an AWS resource belongs to the old chatbot only from a familiar name. Capture IDs, ARNs, tags, deployment source, and dependencies. After the new stack is live, use the user's standing authorization to remove confirmed POC resources after checking all dependencies. Leave an item untouched if its identity, test-only purpose, or lack of dependents cannot be established. The chatbot deployment workflow never deletes legacy resources.
 
 ## Retirement runbook for the old chatbot
 
@@ -61,12 +61,12 @@ The old website's workflow injected an API key into browser JavaScript. Treat th
 
 ### Safe cutover sequence
 
-1. Deploy from this repository's `develop` branch. Verify the new API's `/health`, a real `/chat` response through the published site, CloudWatch request logs, and the GitHub Pages deployment. Confirm the model/profile is `us.anthropic.claude-haiku-5-5` and no key appears in the static artifact.
-2. Record a fresh read-only AWS inventory and current Cost Explorer data. Confirm caller account and `us-east-1`; retrieve API routes/stages, Lambda versions/aliases/event sources/image URIs/roles, ECR image digests, CloudWatch groups/retention, IAM policies, and recent metrics. The table above is a names-only snapshot and is not sufficient authorization for a delete command.
-3. Check which pages, DNS entries, local checkouts, or external clients still call the old API. Observe the old API and Lambda metrics/logs for an interval appropriate to the old site's traffic; a quiet interval alone does not prove no hidden client remains.
-4. Disable the old repository's `deploy.yml` workflow so it cannot republish obsolete code. After confirming the new endpoint is carrying traffic, revoke the browser-exposed API key and any dedicated legacy AWS access key. Do not delete a credential that another repository or workload still uses.
-5. Delete the specifically approved API Gateway API(s), then their unused Lambda functions/versions and dedicated execution roles/policies. Delete old log groups only after deciding whether to retain the history. Delete `langraph-chatbot` images last, after verifying no Lambda image URI or other consumer points to them.
-6. Re-run read-only inventories and Cost Explorer after the next billing cycle. Compare ECR, Lambda, API Gateway, CloudWatch, and Anthropic/Marketplace charges to verify the old spend stopped.
+1. Deploy from this repository's `develop` branch. Verify the new API's `/health`, one real `/chat` response through the published site, CloudWatch request logs, and the GitHub Pages deployment. Confirm the model/profile is `us.anthropic.claude-haiku-5-5` and no key appears in the static artifact.
+2. Record a fresh read-only inventory before cleanup. Confirm the AWS caller and `us-east-1`; retrieve API routes/stages, Lambda versions/aliases/event sources/image URIs/roles, ECR image digests, CloudWatch groups/retention, IAM policies, SageMaker domains/endpoints/EFS dependencies, S3 bucket tags/contents, and recent metrics. Compare every candidate with the active Terraform state and preserve the new chatbot, its state bucket, budget, OIDC role/provider, and GitHub Pages setup.
+3. Check the current portfolio source and any known external clients for references to old endpoints. The old API keys were browser-visible and must not be reused. Disable the old repository's deployment workflow, then remove confirmed legacy API Gateway APIs, their exclusively used Lambda functions/versions and roles, stale invoke permissions, and old chatbot ECR images after confirming no remaining consumers. Delete legacy log groups only after confirming they contain no needed records.
+4. Remove confirmed Titanic/SageMaker POC endpoints, Studio domains, and attached file systems after verifying no other active project depends on them. Remove POC ECR repositories and S3 buckets only after checking that they are not bootstrap/state/site buckets and do not contain assets used by another live workload. Do not use `--force` on an unverified bucket or repository.
+5. Check for remaining EC2/networking, CDK stacks/assets, Lambda functions, API Gateway APIs, schedules, IAM roles, and CloudWatch groups with no dependency on the new portfolio assistant. Retire confirmed POC items; preserve unrelated resources whose purpose is unclear.
+6. Re-run the read-only inventory after cleanup and compare the next bill cycle. Cost Explorer may lag; do not spend additional calls solely to force immediate estimate changes.
 
 ### Read-only preflight examples
 
@@ -119,4 +119,4 @@ aws iam delete-role --role-name <confirmed-role>
 aws logs delete-log-group --log-group-name <confirmed-log-group> --region us-east-1
 ```
 
-The role names, inline policy names, statement IDs, and CloudWatch log group names must come from the fresh preflight; this snapshot intentionally does not invent them. Inspect the attached and inline policies first; detach/delete only policies proven to be legacy-only, then delete the role. Removing a stale invoke permission requires the exact statement ID from `aws lambda get-policy`; do not guess it. Disable the old repository workflow in its GitHub Actions settings (or with `gh workflow disable deploy.yml --repo RickyMartin-dev/Website_AI_Chatbot`) only after replacement traffic is confirmed. Do not delete the new Terraform-managed `personal-portfolio-chatbot` ECR/Lambda/API/log groups, the new state bucket or OIDC role, CDK asset repositories, Titanic model repositories, SageMaker domains, or EFS filesystems as part of this chatbot cleanup.
+The role names, inline policy names, statement IDs, and CloudWatch log group names must come from the fresh preflight; inspect attached and inline policies first and delete only policies proven to be POC-only. Removing a stale invoke permission requires the exact statement ID from `aws lambda get-policy`; do not guess it. Disable the old repository workflow in its GitHub Actions settings (or with the repository's GitHub tool) only after replacement traffic is confirmed. Preserve the new Terraform-managed `personal-portfolio-chatbot` ECR/Lambda/API/log groups, state bucket, budget, OIDC role/provider, and any shared GitHub Pages resources. This runbook's preflight and user's prior POC authorization are the basis for cleanup; do not ask the owner to approve each already-authorized test resource again.

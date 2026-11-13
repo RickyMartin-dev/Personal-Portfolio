@@ -39,3 +39,13 @@ variable "deploy_role_name" {
   type        = string
   default     = "personal-portfolio-github-deploy"
 }
+
+variable "budget_notification_email" {
+  description = "Email address for the monthly $5 account-wide AWS budget alerts."
+  type        = string
+
+  validation {
+    condition     = can(regex("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$", var.budget_notification_email))
+    error_message = "budget_notification_email must be a valid email address."
+  }
+}
