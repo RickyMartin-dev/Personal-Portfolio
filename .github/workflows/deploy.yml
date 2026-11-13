@@ -47,6 +47,17 @@ jobs:
         env:
           WEB3FORMS_KEY: ${{ secrets.WEB3FORMS_KEY }}
         run: npm run test:e2e
+      # test:e2e builds with a placeholder form key; rebuild so the published
+      # artifact carries the production contact key, then guard against leaks.
+      - name: Build production Pages artifact
+        working-directory: frontend
+        env:
+          WEB3FORMS_KEY: ${{ secrets.WEB3FORMS_KEY }}
+        run: |
+          python3 build.py
+          if grep -rq "playwright-test-key" dist; then
+            echo "::error::Test-only form key found in the Pages artifact"; exit 1
+          fi
       - name: Upload Pages build artifact
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
