@@ -264,6 +264,16 @@ data "aws_iam_policy_document" "github_deploy" {
   }
 
   statement {
+    sid       = "TagChatbotHttpApiStages"
+    effect    = "Allow"
+    actions   = ["apigateway:TagResource", "apigateway:UntagResource"]
+    resources = [
+      "arn:${data.aws_partition.current.partition}:apigateway:${var.aws_region}::/apis/*/stages",
+      "arn:${data.aws_partition.current.partition}:apigateway:${var.aws_region}::/apis/*/stages/*",
+    ]
+  }
+
+  statement {
     sid       = "ManageChatbotLogGroups"
     effect    = "Allow"
     actions   = ["logs:CreateLogGroup", "logs:DeleteLogGroup", "logs:DeleteRetentionPolicy", "logs:DescribeLogGroups", "logs:ListTagsForResource", "logs:PutRetentionPolicy", "logs:TagResource", "logs:UntagResource"]
