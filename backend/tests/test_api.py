@@ -66,7 +66,7 @@ def test_chat_endpoint_returns_response_and_uses_bounded_history(monkeypatch) ->
     assert response.json() == {"message": "Ricky is an AI/ML Engineer."}
     assert len(fake.safety_calls) == 2
     assert len(fake.converse_calls) == 1
-    assert fake.converse_calls[0]["modelId"] == "us.anthropic.claude-haiku-5-5"
+    assert fake.converse_calls[0]["modelId"] == "us.amazon.nova-micro-v1:0"
     assert fake.converse_calls[0]["messages"][0]["content"] == [
         {"text": "Tell me about Ricky."}
     ]

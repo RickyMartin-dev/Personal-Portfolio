@@ -19,7 +19,7 @@ For live local inference, edit `.env` and choose one credential source:
 - Set `AWS_BEARER_TOKEN_BEDROCK` to a Bedrock API key with permissions for `bedrock:InvokeModel` and `bedrock:InvokeGuardrailChecks`; or
 - Set `AWS_PROFILE` in the shell to a configured AWS CLI/SSO profile and leave the bearer token empty.
 
-The default model is `us.anthropic.claude-haiku-5-5` in `us-east-1`. Keep `BEDROCK_MODEL_ID` and `BEDROCK_REGION` the same locally and in Lambda to test the same model route. Real inference and guardrail checks incur Bedrock usage charges.
+The default model is `us.amazon.nova-micro-v1:0` through the active US inference profile in `us-east-1`. Keep `BEDROCK_MODEL_ID` and `BEDROCK_REGION` the same locally and in Lambda to test the same model route. Real inference and guardrail checks incur Bedrock usage charges.
 
 Run the local API on port 8001 while serving the static site on port 8000:
 

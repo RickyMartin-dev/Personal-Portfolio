@@ -78,7 +78,7 @@ Rates below are list-price references for `us-east-1` as of this document date. 
 
 | Component | How it is billed | Practical impact for this app |
 | --- | --- | --- |
-| Claude Haiku 5.5 on Bedrock | Tokens in and out. The `us.` inference profile uses the US cross-region tier: `$0.11/M` input and `$0.55/M` output tokens for prompts up to 100,000 tokens. Longer prompts have higher rates, but the app's bounded input is far below that threshold. | Main per-chat model charge. An illustrative 600 input + 60 output tokens costs about `$0.000099/chat`, or `$0.10/1,000 chats`. Actual token use is available in structured logs after successful calls. |
+| Amazon Nova Micro on Bedrock | On-demand input/output tokens. AWS's published reference is `$0.035/M` input and `$0.14/M` output tokens; check the live pricing page for current rates. | An illustrative 600 input + 60 output tokens costs about `$0.000029/chat`, or `$0.03/1,000 chats`. Actual token use is available in structured logs after successful calls. |
 | Bedrock `InvokeGuardrailChecks` | `$0.07/1,000` text units for content filters and `$0.08/1,000` text units for prompt-attack checks. One unit covers up to 1,000 characters. | The current system prompt is 1,076 characters, so it is 2 units. The maximum bounded input is conservatively 7 units (system prompt + four history messages + current input); the response limit is 2,000 characters. The conservative maximum is `(7 × $0.15) + (2 × $0.07) = $1.19/1,000 chats`. A short first turn is about 3 input + 1 output unit, or `$0.52/1,000 chats`. AWS's public description does not fully clarify whether separate message blocks are rounded independently, so actual `usage.textUnits` returned by the API should replace this upper-bound assumption after the first live call. |
 | API Gateway HTTP API | `$1.00/million` requests for the initial US East tier; no minimum fee. One million monthly API calls are free only for eligible new AWS customers for up to 12 months. | About `$0.001/1,000` requests at list price. Small request/response payloads keep transfer cost low. |
 | Lambda | `$0.20/million` requests plus `$0.0000166667/GB-second` at the x86 on-demand rate in the first usage tier. Published monthly free allowances are 1 million requests and 400,000 GB-seconds, where applicable. | No charge while idle and no provisioned concurrency. At 512 MB and an illustrative 3-second execution, compute is `$0.000025/request` before free allowances; the actual time is measured by request logs and will mostly be remote model wait. |
@@ -89,29 +89,30 @@ Rates below are list-price references for `us-east-1` as of this document date. 
 
 ### Example usage budget
 
-This table assumes 600 input and 60 output model tokens per chat, a 512 MB Lambda running for 3 seconds, HTTP API list price, and the conservative maximum Guardrails count. It excludes storage, tax, contact-form provider charges, retries, and free-tier offsets:
+This table assumes 600 input and 60 output Nova Micro tokens per chat, a 512 MB Lambda running for 3 seconds, HTTP API list price, and the conservative maximum Guardrails count. It excludes storage, tax, contact-form provider charges, retries, and free-tier offsets:
 
 | Chat requests/month | Model tokens | Guardrails | API Gateway | Lambda request + compute (gross) | CloudWatch log ingestion* | Estimated variable subtotal |
 | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| 1,000 | `$0.10` | `$1.19` | `$0.001` | `$0.025` | `<$0.001` | **`$1.32`** |
-| 10,000 | `$0.99` | `$11.90` | `$0.01` | `$0.25` | `$0.007` | **`$13.16`** |
-| 100,000 | `$9.90` | `$119.00` | `$0.10` | `$2.52` | `$0.068` | **`$131.59`** |
+| 1,000 | `$0.03` | `$1.19` | `$0.001` | `$0.025` | `<$0.001` | **`$1.25`** |
+| 10,000 | `$0.29` | `$11.90` | `$0.01` | `$0.25` | `$0.007` | **`$12.46`** |
+| 100,000 | `$2.94` | `$119.00` | `$0.10` | `$2.52` | `$0.068` | **`$124.63`** |
 
 *CloudWatch ingestion assumes roughly 1.35 KB of metadata per chat at `$0.50/GB`; actual record sizes and the shared free allowance change the bill. The 100,000-request Lambda example uses 150,000 GB-seconds and 100,000 requests; if the account's Lambda free allowances remain available and are not consumed by other functions, that line could be `$0`. Model usage assumes 600 input and 60 output tokens; adaptive thinking and actual conversation history can change the measured counts. The 300-token output ceiling still bounds the generated output budget. `guardrail_text_units` records usage totals without chat text.
 
-The shared DynamoDB counter stops valid chat requests at 1,000 per UTC month. At that limit, the conservative model/Guardrails/API/Lambda estimate is about `$1.32` in variable charges. Adding the sampled historical account baseline of `$1.08` gives roughly `$2.40/month` before the new state/image/log storage, tax, and usage variation. That estimate should stay below the `$5` alert threshold after POC resources are retired, but neither a request cap nor a budget alert is a hard dollar spending guarantee. API Gateway throttling is a secondary best-effort limit. A public unauthenticated endpoint can still be called outside browser CORS; requests stop at the monthly quota.
+The shared DynamoDB counter stops valid chat requests at 1,000 per UTC month. At that limit, the conservative model/Guardrails/API/Lambda estimate is about `$1.25` in variable charges. Adding the sampled historical account baseline of `$1.08` gives roughly `$2.33/month` before the new state/image/log storage, tax, and usage variation. That estimate should stay below the `$5` alert threshold after POC resources are retired, but neither a request cap nor a budget alert is a hard dollar spending guarantee. API Gateway throttling is a secondary best-effort limit. A public unauthenticated endpoint can still be called outside browser CORS; requests stop at the monthly quota.
 
 ### Billing outside the new chatbot stack
 
-- Old chatbot ECR, Lambda, API Gateway, and any Anthropic Marketplace charges continue until retired. The shared historical service totals above do not isolate those costs.
+- Old chatbot ECR, Lambda, API Gateway, and any model charges continue until retired. The shared historical service totals above do not isolate those costs.
 - Existing SageMaker Studio storage, EFS, and Titanic async test endpoints are separate POC costs. They remain until the new public assistant is verified, then the user-authorized cleanup can retire those resources after dependency checks.
 - The existing Web3Forms contact form is a separate provider and requires `WEB3FORMS_KEY`; its plan/usage is outside AWS chatbot costs.
 - Local unit and browser tests mock the model and incur no Bedrock charge. The current `scripts/dev.sh` serves the static site; a local backend run with live Bedrock credentials incurs model and Guardrails charges.
 
 ## References
 
-- [Claude Haiku 5.5 on Amazon Bedrock](https://docs.aws.amazon.com/bedrock/latest/userguide/model-card-anthropic-claude-haiku-5-5.html)
-- [Anthropic's current AWS Bedrock model price sheet](https://assets.claude.com/5633dc848caa431115468f31c7085d695bbfb9cc.pdf)
+- [Amazon Nova Micro on Amazon Bedrock](https://docs.aws.amazon.com/bedrock/latest/userguide/model-card-amazon-nova-micro.html)
+- [AWS published Nova Micro token price reference](https://aws.amazon.com/blogs/machine-learning/cost-efficient-custom-text-to-sql-using-amazon-nova-micro-and-amazon-bedrock-on-demand-inference/)
+- [Current Amazon Bedrock pricing](https://aws.amazon.com/bedrock/pricing/)
 - [Amazon Bedrock pricing, including `InvokeGuardrailChecks`](https://aws.amazon.com/bedrock/pricing/)
 - [Bedrock `InvokeGuardrailChecks` behavior and usage](https://docs.aws.amazon.com/bedrock/latest/userguide/guardrails-use-invoke-guardrail-checks.html)
 - [API Gateway HTTP API pricing and throttling](https://aws.amazon.com/api-gateway/pricing/)

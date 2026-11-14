@@ -14,7 +14,7 @@
 - Preserve the v0 "Aurora Lines" static portfolio design (source: `design-showcase/aurora-final/` and `studio/`; saved look: `v0-config.json`) and its Web3Forms contact flow.
 - Consolidate the FastAPI/LangGraph chatbot and Project Starter tools into this repository.
 - Manage the new API Gateway, Lambda, ECR, IAM, state storage, and logging with Terraform.
-- Use Amazon Bedrock with the same supported Anthropic Haiku model locally and in production.
+- Use Amazon Bedrock with the same supported Amazon Nova Micro model locally and in production.
 - Enforce a best-effort aggregate API Gateway target of 15 messages per minute and Bedrock prompt/content checks.
 - Run browser, backend, starter, security, and Terraform checks in CI; deploy site and API from `develop`.
 - Track model, token, latency, status, and request ID metrics without persisting message content.
@@ -43,6 +43,6 @@
 
 - Bedrock inference and safety checks incur variable per-request charges; the 15/minute API Gateway throttle is best-effort, not a hard monthly spend cap.
 - Lambda uses the execution role in production. Local development uses a local AWS profile or an ignored Bedrock API key.
-- The replacement uses the active `us.anthropic.claude-haiku-5-5` US inference profile in `us-east-1`; this was confirmed read-only. Keep model/profile support aligned between local `.env` and Terraform.
+- The replacement uses the active `us.amazon.nova-micro-v1:0` US inference profile in `us-east-1`; this was confirmed read-only. Keep model/profile support aligned between local `.env` and Terraform. Nova Micro is available in this account without a third-party marketplace agreement.
 - A read-only inventory was completed on 2026-11-08. The old chatbot chain and other account resources remain active until the new endpoint is live and cleanup is reviewed.
 - The app has public anonymous access. CORS is not authentication; safety depends on bounded requests, server-side checks, throttling, and least privilege.
