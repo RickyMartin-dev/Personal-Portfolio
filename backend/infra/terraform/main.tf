@@ -161,8 +161,6 @@ resource "aws_lambda_function" "chatbot" {
   memory_size   = var.lambda_memory_size
   timeout       = var.lambda_timeout
 
-  reserved_concurrent_executions = var.lambda_reserved_concurrency
-
   environment {
     variables = {
       BEDROCK_REGION            = var.aws_region

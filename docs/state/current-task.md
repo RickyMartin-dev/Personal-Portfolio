@@ -9,7 +9,7 @@ Activate an inexpensive portfolio assistant with a public website UI, stateless 
 - UI: compact desktop panel, mobile bottom sheet, and accessible focus behavior.
 - Runtime: API Gateway HTTP API → Lambda/FastAPI/LangGraph → Bedrock.
 - Privacy: page-memory-only history; no prompt/reply logging; only monthly aggregate request counts in DynamoDB.
-- Cost: hard cap of 1,000 valid requests/month, API Gateway throttle, Lambda concurrency 1, $5 account-wide budget alerts, newest ECR image only.
+- Cost: hard cap of 1,000 valid requests/month, API Gateway throttle (0.25 requests/second, burst 1), shared Lambda concurrency pool (account quota 10), $5 account-wide budget alerts, newest ECR image only.
 - RAG/S3 indexing is future scope and is not provisioned in V0.
 
 ## Completed
