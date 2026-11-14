@@ -91,6 +91,13 @@ def _text_units(response: dict[str, Any]) -> int:
     )
 
 
+def _invoke_bedrock(client: Any, operation: str, **request: Any) -> dict[str, Any]:
+    try:
+        return getattr(client, operation)(**request)
+    except Exception as error:
+        raise BedrockServiceError(type(error).__name__, operation) from error
+
+
 def _bedrock_messages(history: list[dict[str, str]], user_input: str) -> list[dict[str, Any]]:
     messages: list[dict[str, Any]] = []
     # A sliding history may begin with an orphaned assistant message, but
@@ -146,7 +153,9 @@ class ChatAgent:
                 {"role": "system", "content": [{"text": self._system_prompt}]},
                 *messages,
             ]
-            input_safety = client.invoke_guardrail_checks(
+            input_safety = _invoke_bedrock(
+                client,
+                "invoke_guardrail_checks",
                 messages=safety_messages,
                 checks=_input_checks(),
             )
@@ -165,7 +174,9 @@ class ChatAgent:
                     "latency_ms": (perf_counter() - started) * 1000,
                 }
 
-            model_response = client.converse(
+            model_response = _invoke_bedrock(
+                client,
+                "converse",
                 modelId=BEDROCK_MODEL_ID,
                 system=[{"text": self._system_prompt}],
                 messages=messages,
@@ -183,7 +194,9 @@ class ChatAgent:
             if len(answer) > MAX_OUTPUT_CHARS:
                 answer = answer[: MAX_OUTPUT_CHARS - 1].rstrip() + "…"
 
-            output_safety = client.invoke_guardrail_checks(
+            output_safety = _invoke_bedrock(
+                client,
+                "invoke_guardrail_checks",
                 messages=[{"role": "assistant", "content": [{"text": answer}]}],
                 checks=_content_checks(),
             )
@@ -206,5 +219,7 @@ class ChatAgent:
                 "guardrail_text_units": safety_units,
                 "latency_ms": (perf_counter() - started) * 1000,
             }
+        except BedrockServiceError:
+            raise
         except Exception as error:
-            raise BedrockServiceError(type(error).__name__) from error
+            raise BedrockServiceError(type(error).__name__, "agent_response") from error

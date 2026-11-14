@@ -37,7 +37,8 @@ Latest requests with status, outcome, token counts, guardrail usage, and latency
 
 ```text
 fields @timestamp, event, request_id, http_status, outcome, model_id,
-       latency_ms, input_tokens, output_tokens, guardrail_text_units, error_type
+       latency_ms, input_tokens, output_tokens, guardrail_text_units,
+       error_type, bedrock_operation
 | filter ispresent(event)
 | sort @timestamp desc
 | limit 100
