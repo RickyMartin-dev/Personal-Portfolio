@@ -66,7 +66,7 @@ Use `-var-file` only for non-secret configuration and do not commit local `.tfva
 | Input | Default | Purpose |
 |---|---:|---|
 | `aws_region` | `us-east-1` | Source AWS region and API/Lambda region |
-| `bedrock_model_id` | `us.anthropic.claude-haiku-5-5` | Same model route as local inference |
+| `bedrock_model_id` | `us.amazon.nova-micro-v1:0` | Same model route as local inference |
 | `allowed_origins` | GitHub Pages origin plus local ports | Browser CORS policy |
 | `image_tag` | `bootstrap` | Existing ECR image tag used by Lambda |
 | `max_output_tokens` | `300` | Bedrock response ceiling |

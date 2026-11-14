@@ -13,7 +13,7 @@ variable "project_name" {
 variable "bedrock_model_id" {
   description = "Bedrock model or inference profile ID used identically in local and deployed settings."
   type        = string
-  default     = "us.anthropic.claude-haiku-5-5"
+  default     = "us.amazon.nova-micro-v1:0"
 }
 
 variable "model_destination_regions" {
