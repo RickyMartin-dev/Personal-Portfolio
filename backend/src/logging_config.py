@@ -38,9 +38,11 @@ class JsonFormatter(logging.Formatter):
 
 
 def configure_logging() -> None:
-    root_logger = logging.getLogger()
-    if not root_logger.handlers:
-        root_logger.addHandler(logging.StreamHandler(sys.stdout))
-    for handler in root_logger.handlers:
-        handler.setFormatter(JsonFormatter())
-    root_logger.setLevel(logging.INFO)
+    api_logger = logging.getLogger("chatbot.api")
+    api_logger.handlers.clear()
+    handler = logging.StreamHandler(sys.stdout)
+    handler.setLevel(logging.INFO)
+    handler.setFormatter(JsonFormatter())
+    api_logger.addHandler(handler)
+    api_logger.setLevel(logging.INFO)
+    api_logger.propagate = False
