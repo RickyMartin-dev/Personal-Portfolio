@@ -24,8 +24,8 @@ On later deployments, skip the ECR target apply: build/push the new immutable co
 - Model output is capped at 300 Bedrock tokens and the delivered text is capped at 2,000 characters before output safety checks; longer text is clipped with an ellipsis.
 - API Gateway has a best-effort default-stage throttle of 0.25 requests/second and burst 1. The function uses shared unreserved Lambda concurrency: this account's current quota is 10, and AWS requires at least 10 unreserved executions. Lambda timeout defaults to 28 seconds.
 - Lambda uses a role scoped to the configured US inference profile and its backing foundation models, plus `bedrock:InvokeGuardrailChecks` (which is a resourceless IAM action and therefore needs `Resource = "*"`).
-- Application and API access logs retain metadata only for 14 days. No request or response bodies are written to CloudWatch or S3.
-- The access log omits client IP addresses. The application logs event/outcome, HTTP status, model ID, latency, token counts, and guardrail text-unit counts without chat text.
+- Lambda application logs retain metadata only for 14 days. No request or response bodies are written to CloudWatch or S3.
+- The application logs event/outcome, HTTP status, model ID, latency, token counts, and guardrail text-unit counts without chat text. API Gateway's built-in metrics provide request counts, HTTP errors, latency, and throttle visibility.
 - ECR retains only the newest tagged image and expires untagged images after one day to keep storage small; rebuild an older commit to roll back.
 - No VPC, NAT gateway, transcript bucket, database, or separate API key resource is created.
 
@@ -56,15 +56,7 @@ filter event in ["chat.completed", "chat.invalid_request", "chat.bedrock_unavail
   by bin(5m)
 ```
 
-For API Gateway throttles and HTTP errors, use the `/aws/apigateway/personal-portfolio-chatbot` log group:
-
-```text
-fields @timestamp, requestId, routeKey, status, integrationStatus,
-       integrationLatency, responseLength
-| filter status >= 400
-| sort @timestamp desc
-| limit 100
-```
+For API Gateway throttles and HTTP errors, open CloudWatch Metrics → API Gateway and select the chatbot API and `$default` stage. Review `Count`, `4xx`, `5xx`, `Latency`, `IntegrationLatency`, and `ThrottledRequests`.
 
 ## Main variables and outputs
 
@@ -81,4 +73,4 @@ Use `-var-file` only for non-secret configuration and do not commit local `.tfva
 | `api_throttle_rate` / `api_throttle_burst` | `0.25` / `1` | Best-effort API request throttle |
 | `monthly_chat_limit` | `1000` | Shared hard cap on valid API requests per UTC month |
 
-Outputs are `ecr_repository_url`, `api_endpoint` (the exact `/chat` URL), `api_base_url`, `lambda_function_name`, `lambda_log_group_name`, `api_access_log_group_name`, and `monthly_usage_table_name`.
+Outputs are `ecr_repository_url`, `api_endpoint` (the exact `/chat` URL), `api_base_url`, `lambda_function_name`, `lambda_log_group_name`, `monthly_usage_table_name`.

@@ -105,7 +105,7 @@ variable "image_tag" {
 }
 
 variable "log_retention_days" {
-  description = "CloudWatch application and API access log retention."
+  description = "CloudWatch application log retention."
   type        = number
   default     = 14
 }

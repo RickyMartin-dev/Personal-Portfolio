@@ -8,18 +8,8 @@ locals {
   lambda_role_name      = "${var.project_name}-lambda"
   usage_table_name      = "${var.project_name}-monthly-usage"
   lambda_log_group_name = "/aws/lambda/${var.project_name}"
-  api_log_group_name    = "/aws/apigateway/${var.project_name}"
   image_uri             = "${aws_ecr_repository.chatbot.repository_url}:${var.image_tag}"
   allowed_origin_string = join(",", var.allowed_origins)
-  api_access_log_format = jsonencode({
-    requestId          = "$context.requestId"
-    requestTime        = "$context.requestTime"
-    routeKey           = "$context.routeKey"
-    status             = "$context.status"
-    responseLength     = "$context.responseLength"
-    integrationLatency = "$context.integrationLatency"
-    integrationStatus  = "$context.integrationStatus"
-  })
 }
 
 resource "aws_ecr_repository" "chatbot" {
@@ -64,11 +54,6 @@ resource "aws_ecr_lifecycle_policy" "chatbot" {
 
 resource "aws_cloudwatch_log_group" "lambda" {
   name              = local.lambda_log_group_name
-  retention_in_days = var.log_retention_days
-}
-
-resource "aws_cloudwatch_log_group" "api" {
-  name              = local.api_log_group_name
   retention_in_days = var.log_retention_days
 }
 
@@ -221,11 +206,6 @@ resource "aws_apigatewayv2_stage" "default" {
   default_route_settings {
     throttling_rate_limit  = var.api_throttle_rate
     throttling_burst_limit = var.api_throttle_burst
-  }
-
-  access_log_settings {
-    destination_arn = aws_cloudwatch_log_group.api.arn
-    format          = local.api_access_log_format
   }
 
   depends_on = [
