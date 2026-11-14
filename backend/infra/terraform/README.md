@@ -22,7 +22,7 @@ On later deployments, skip the ECR target apply: build/push the new immutable co
 - The on-demand DynamoDB table stores a UTC `YYYY-MM` key and aggregate count. Conditional writes enforce the 1,000 valid requests/month default across instances. It has deletion protection and contains no visitor or conversation data.
 - The API accepts up to four prior chat messages and 2,000 history characters per request; this bounds repeated model input cost while preserving two recent exchanges.
 - Model output is capped at 300 Bedrock tokens and the delivered text is capped at 2,000 characters before output safety checks; longer text is clipped with an ellipsis.
-- API Gateway has a best-effort default-stage throttle of 0.25 requests/second and burst 1. Lambda reserved concurrency defaults to 1; Lambda timeout defaults to 28 seconds.
+- API Gateway has a best-effort default-stage throttle of 0.25 requests/second and burst 1. The function uses shared unreserved Lambda concurrency: this account's current quota is 10, and AWS requires at least 10 unreserved executions. Lambda timeout defaults to 28 seconds.
 - Lambda uses a role scoped to the configured US inference profile and its backing foundation models, plus `bedrock:InvokeGuardrailChecks` (which is a resourceless IAM action and therefore needs `Resource = "*"`).
 - Application and API access logs retain metadata only for 14 days. No request or response bodies are written to CloudWatch or S3.
 - The access log omits client IP addresses. The application logs event/outcome, HTTP status, model ID, latency, token counts, and guardrail text-unit counts without chat text.

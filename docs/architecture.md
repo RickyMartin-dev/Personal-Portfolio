@@ -21,7 +21,7 @@ The site source, browser tests, and static build live in `frontend/`. The site i
 
 `backend/` owns the FastAPI API, stateless LangGraph flow, Lambda image, and Terraform. Each request includes up to two recent exchanges stored only in browser page memory. The server validates message and history sizes and stores only the UTC month and aggregate request count in DynamoDB. A conditional update enforces the 1,000-request monthly cap across Lambda instances. If the counter cannot be reached, the API fails closed with 503. Lambda logs keep request IDs, outcome, model, latency, token counts, and safety-check units; request/response text is not logged.
 
-Bedrock receives the bounded turn and calls inline safety checks before and after generation. Output is limited to 300 model tokens. The API is public and unauthenticated; CORS only limits browser origins, so API Gateway throttling, Lambda concurrency 1, and the shared monthly cap provide the request controls. The $5 account budget sends alerts at 80% and 100% actual spend and 100% forecast; it is not an automatic service shutoff.
+Bedrock receives the bounded turn and calls inline safety checks before and after generation. Output is limited to 300 model tokens. The API is public and unauthenticated; CORS only limits browser origins. API Gateway applies a best-effort 0.25 requests/second throttle with burst 1, and the shared monthly cap stops accepted model requests at 1,000. This account currently has a 10-concurrent-execution Lambda quota, and AWS requires at least 10 to remain unreserved, so the function uses the shared account pool. The $5 account budget sends alerts at 80% and 100% actual spend and 100% forecast; it is not an automatic service shutoff.
 
 ## GitHub Actions and branch flow
 

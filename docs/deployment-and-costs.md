@@ -17,7 +17,7 @@ The contact form uses the site's public Web3Forms access key, built in as `PUBLI
 
 ## V0 stack and privacy
 
-The V0 path is API Gateway HTTP API → Lambda container (FastAPI + LangGraph) → Bedrock. A DynamoDB on-demand table stores one integer request count for each UTC calendar month and stops new chat calls at 1,000. It stores no prompts, replies, visitor IDs, or IP addresses. If the shared counter is missing or unavailable, the API fails closed with 503. The API uses a best-effort 0.25 requests/second throttle, burst 1, Lambda reserved concurrency 1, 500-character input limit, at most four history messages/2,000 history characters, and 300 maximum output tokens.
+The V0 path is API Gateway HTTP API → Lambda container (FastAPI + LangGraph) → Bedrock. A DynamoDB on-demand table stores one integer request count for each UTC calendar month and stops new chat calls at 1,000. It stores no prompts, replies, visitor IDs, or IP addresses. If the shared counter is missing or unavailable, the API fails closed with 503. The API uses a best-effort 0.25 requests/second throttle with burst 1, a 500-character input limit, at most four history messages/2,000 history characters, and 300 maximum output tokens. The current account concurrency quota is 10; AWS requires at least 10 executions to remain unreserved, so the function uses the shared pool. A higher account quota would be needed to reserve a dedicated slot.
 
 The browser receives only the public `/chat` URL. Conversation history is held in page memory and discarded on page close. No provider credential or long-lived API key is published. Application and API logs omit message bodies, with 14-day retention.
 

@@ -93,12 +93,6 @@ variable "lambda_timeout" {
   }
 }
 
-variable "lambda_reserved_concurrency" {
-  description = "Maximum concurrent Lambda requests to limit accidental model spend."
-  type        = number
-  default     = 1
-}
-
 variable "image_tag" {
   description = "Immutable Git commit tag already present in ECR before a full Terraform apply."
   type        = string

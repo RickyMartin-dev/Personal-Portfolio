@@ -203,8 +203,6 @@ data "aws_iam_policy_document" "github_deploy" {
       "lambda:GetFunctionConfiguration",
       "lambda:GetPolicy",
       "lambda:ListTags",
-      "lambda:DeleteFunctionConcurrency",
-      "lambda:PutFunctionConcurrency",
       "lambda:RemovePermission",
       "lambda:TagResource",
       "lambda:UntagResource",
