@@ -13,6 +13,11 @@ from src.config import BEDROCK_REGION
 class BedrockServiceError(RuntimeError):
     """Raised when Bedrock inference or safety checks cannot complete."""
 
+    def __init__(self, error_type: str, operation: str = "unknown") -> None:
+        self.error_type = error_type
+        self.operation = operation
+        super().__init__(error_type)
+
 
 @lru_cache(maxsize=1)
 def get_bedrock_client():
