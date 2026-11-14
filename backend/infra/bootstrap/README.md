@@ -24,6 +24,8 @@ Copy the `deploy_role_arn` output into the GitHub repository variable `AWS_ROLE_
 
 The S3 bucket has public access blocked, SSE-S3 encryption, versioning, and a 90-day lifecycle for old state versions. It uses Terraform's S3 native lock file; there is no Terraform lock table. The budget notification is an alert, not a hard spend cutoff. The chatbot has a separate 1,000-request UTC-month hard cap.
 
+The GitHub deploy role's API Gateway tagging permission is limited to HTTP API stage resources. This is required because API Gateway authorizes stage tags against the stage collection when Terraform creates the `$default` stage.
+
 ## App root remote state
 
 Initialize `infra/terraform` using the bucket output from bootstrap:
