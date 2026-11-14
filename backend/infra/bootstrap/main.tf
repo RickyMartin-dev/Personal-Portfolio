@@ -264,9 +264,9 @@ data "aws_iam_policy_document" "github_deploy" {
   }
 
   statement {
-    sid       = "TagChatbotHttpApiStages"
-    effect    = "Allow"
-    actions   = ["apigateway:TagResource", "apigateway:UntagResource"]
+    sid     = "TagChatbotHttpApiStages"
+    effect  = "Allow"
+    actions = ["apigateway:TagResource", "apigateway:UntagResource"]
     resources = [
       "arn:${data.aws_partition.current.partition}:apigateway:${var.aws_region}::/apis/*/stages",
       "arn:${data.aws_partition.current.partition}:apigateway:${var.aws_region}::/apis/*/stages/*",
