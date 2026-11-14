@@ -19,6 +19,7 @@ _SAFE_FIELDS = (
     "output_tokens",
     "guardrail_text_units",
     "error_type",
+    "bedrock_operation",
 )
 
 
