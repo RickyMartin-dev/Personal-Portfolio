@@ -47,8 +47,8 @@ This serves the static site only and needs Python 3, with no AWS or backend setu
 
 ## V0 monitoring
 
-- Lambda and API Gateway metrics are available in CloudWatch Metrics (invocations, errors, duration, throttles, HTTP 4xx/5xx).
-- Terraform configures CloudWatch log groups with 14-day retention. Application/access metadata omits prompts, responses, and conversation history.
+- Lambda and API Gateway metrics are available in CloudWatch Metrics (invocations, errors, duration, throttles, HTTP 4xx/5xx, and integration latency).
+- Terraform configures the Lambda application log group with 14-day retention. Logs omit prompts, responses, and conversation history.
 - Application events include request ID, outcome, model setting marker, HTTP status, latency, input/output token counts, and Guardrails text-unit counts.
 - `backend/infra/terraform/README.md` includes Logs Insights queries for request outcome, latency, token usage, API failures, and throttling.
 - The app stack creates no paid custom metrics, dashboard, alarm, transcript bucket, or tracing service. The aggregate quota table is on-demand and stores only monthly counts.
@@ -83,7 +83,7 @@ Rates below are list-price references for `us-east-1` as of this document date. 
 | API Gateway HTTP API | `$1.00/million` requests for the initial US East tier; no minimum fee. One million monthly API calls are free only for eligible new AWS customers for up to 12 months. | About `$0.001/1,000` requests at list price. Small request/response payloads keep transfer cost low. |
 | Lambda | `$0.20/million` requests plus `$0.0000166667/GB-second` at the x86 on-demand rate in the first usage tier. Published monthly free allowances are 1 million requests and 400,000 GB-seconds, where applicable. | No charge while idle and no provisioned concurrency. At 512 MB and an illustrative 3-second execution, compute is `$0.000025/request` before free allowances; the actual time is measured by request logs and will mostly be remote model wait. |
 | ECR | `$0.10/GB-month` private image storage; new ECR customers currently have 500 MB/month free for one year. | The Terraform lifecycle rule retains only the newest tagged image and expires untagged images after one day. At 326 MB, one wholly unique image is about `$0.03/month`; actual image bytes determine the bill. |
-| CloudWatch Logs | Pay for ingested, retained, and query-scanned data. The published US East ingestion example is `$0.50/GB`; the current CloudWatch free-tier page includes 5 GB/month across logs ingestion, archive storage, and Logs Insights scans. | Two log groups retain metadata for 14 days. The app never logs prompts or replies, so expected log volume is small; no paid dashboard, alarm, custom metric, or tracing service is created. |
+| CloudWatch Logs | Pay for ingested, retained, and query-scanned data. The published US East ingestion example is `$0.50/GB`; the current CloudWatch free-tier page includes 5 GB/month across logs ingestion, archive storage, and Logs Insights scans. | One Lambda log group retains metadata for 14 days. The app never logs prompts or replies, so expected log volume is small; no paid dashboard, alarm, custom metric, or tracing service is created. |
 | S3 Terraform state | Standard storage, requests, and versioned objects. No always-on charge; old state versions expire after 90 days. | Expected to be a small fraction of a cent monthly at this repository's state size, subject to request volume and AWS minimum billing granularity. |
 | GitHub Pages / CI | Pages is available for this public repository; GitHub-hosted standard runner usage is free for public repositories. | No separate hosting service or AWS static-site bucket/CDN is required. A custom domain/registrar, if used, is separate. |
 
