@@ -2,36 +2,34 @@
 
 ## Goal
 
-Deploy and verify a low-cost public portfolio assistant, then remove confirmed AWS testing/POC resources under the owner's standing authorization.
+Deploy and verify a low-cost public portfolio assistant, then retire confirmed AWS testing and POC resources under the owner's standing authorization.
 
-## Decisions
+## Deployed behavior
 
-- UI: compact panel on desktop and bottom sheet on phones.
-- Runtime: API Gateway HTTP API → Lambda/FastAPI/LangGraph → Bedrock.
-- Privacy: page-memory-only history; no prompt/reply logging; only aggregate request counts in DynamoDB.
-- Cost controls: 1,000 accepted requests per UTC month, API Gateway throttle 0.25 requests/second with burst 1, and $5 account-wide budget alerts to the owner. Alerts notify but do not stop spend.
-- V0 uses sanitized Lambda logs and built-in API Gateway metrics. API Gateway access-log delivery is disabled because the deploy role does not receive account-wide CloudWatch Logs delivery permissions.
-- S3 full-reindex RAG and future GitHub tools remain planned work, not part of V0.
+- The public site opens a compact assistant panel on desktop and a bottom sheet on phones.
+- The runtime is API Gateway HTTP API → Lambda/FastAPI/LangGraph → Amazon Nova Micro on Bedrock.
+- Chat history stays in page memory and is discarded when the page closes. The backend stores only a monthly request count and logs allowlisted operational metadata, never prompts or replies.
+- Cost controls include 1,000 accepted requests per UTC month, API Gateway throttling at 0.25 requests/second with burst 1, and $5 account-wide budget alerts. Budget alerts notify; they do not stop spending.
+- S3 document ingestion, automatic reindexing, persistent history, and a separate Pydantic agent flow are future work. V0 has no RAG index or monitored document bucket.
 
 ## Completed
 
-- Implemented and merged PRs #16–#25 through protected develop; required CI checks passed.
-- Provisioned the budget, private versioned Terraform state bucket, and develop-only GitHub OIDC deployment role.
-- Created the portfolio chatbot ECR repository/image, Lambda execution role/function, DynamoDB monthly counter, and HTTP API.
-- Reconciled Terraform state after partial failed applies and corrected deploy-role permissions based on observed provider errors.
-- The protected deploy passed backend Terraform apply, /health, and GitHub Pages publish. The live portfolio loads the active /chat endpoint configuration.
-- The Bedrock inference profile is active and its ARN/destinations match the configured IAM policy. A live /chat request returns HTTP 503 with AccessDeniedException.
-- PR #25 makes allowlisted application events visible in Lambda logs. PR #26 will add the Bedrock operation name to safe log metadata to locate the denied call.
+- PRs #16–#27 passed their required checks and were merged to protected `develop`; deployment run [43651315456](https://github.com/RickyMartin-dev/Personal-Portfolio/actions/runs/43651315456) passed backend apply, `/health`, and Pages publication.
+- The live `/chat` endpoint returned HTTP 200 with a nonempty response from the published-site origin. The active model is `us.amazon.nova-micro-v1:0`; response content was not retained.
+- Provisioned the $5 account-wide budget, private versioned Terraform state bucket, and `develop`-restricted GitHub OIDC deploy role.
+- Disabled the old `Website_AI_Chatbot` GitHub deployment workflow and removed its repository secrets.
+- Removed the old APIs, disconnected chatbot Lambdas, Titanic endpoints/configs/models, notebook, POC SageMaker domains/EFS, POC CloudFormation/CDK stacks, old ECR repositories/images, POC S3 buckets and versions, old logs, Glue metadata, alarms, and old DynamoDB test table.
+- Post-cleanup inventory found one portfolio API, Lambda, ECR image, request-quota table, and sanitized Lambda log group; the only S3 bucket is the Terraform state bucket. No SageMaker domains/endpoints, EFS filesystems, or POC CloudFormation stacks remain.
 
-## Verification and remaining work
+## Verification
 
-- Required CI checks passed for PRs #23–#25. The last protected deploy 43649467217 passed image build, Terraform apply, and /health; Pages publication was still running at this checkpoint.
-- Merge the operation-specific safe Bedrock diagnostic change, deploy it, and retry one live chat. Fix the identified Bedrock permission or model-access issue; verify a real response before cleanup.
-- Refresh AWS resources/dependencies after cutover; remove confirmed testing/POC resources, preserve the new assistant, state, budget, OIDC controls, and resources with unclear ownership or dependents.
-- Disable the legacy chatbot deployment workflow after confirming the replacement works. Reinventory once cleanup finishes.
-- Update docs/verification-log.md, review git diff and git diff --check, inspect the archive warning, run project finish, and archive a sanitized task snapshot.
+- Final health check passed with TLS verification; a bounded `/chat` request from the published-site origin returned HTTP 200 and a 49-character response. Only status and response length were retained.
+- The $5 budget notification rules are configured to the owner-supplied email at 80% and 100% actual spend and 100% forecast spend.
+- November Cost Explorer data still includes charges accrued before the November 14 cleanup. Compare the next complete billing cycle for the ongoing baseline.
+- The current active CLI and console identities were preserved. An automatic approval review blocked the optional bulk removal of POC IAM users/roles/keys because of account-access risk; no IAM changes were applied.
 
 ## Owner input
 
-- Budget alert recipient is the owner's provided AWS account email.
-- No further owner input is currently known; report any service-level approval gate if one appears.
+- No additional setup is required to run V0.
+- If the owner wants the remaining dormant POC IAM identities and roles removed, provide explicit approval for that account-access change. It does not block the chatbot.
+- When RAG work begins, provide or select the portfolio documents to seed the monitored S3 prefix.

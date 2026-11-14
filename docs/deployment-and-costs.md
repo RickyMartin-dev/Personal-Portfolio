@@ -33,7 +33,7 @@ The browser receives only the public `/chat` URL. Conversation history is held i
 2. GitHub repository variables `AWS_ROLE_ARN` and `TF_STATE_BUCKET` hold non-secret identifiers. The workflow receives short-lived credentials through OIDC; no AWS access key is stored in GitHub.
 3. Pushes to `develop` run the mocked tests, Terraform checks, ECR build/push, app Terraform apply, `/health` smoke check, and Pages publish.
 4. The account budget sends alerts at 80% and 100% actual spend and 100% forecast spend. The DynamoDB chat quota is the hard request-count guardrail; the budget is not a hard dollar cap.
-5. Keep the existing legacy chatbot live until the replacement passes the real `/chat` smoke check through the published site. Then follow `legacy-chatbot-cutover.md` to remove old resources and credentials after checking dependencies. The user has authorized retirement of testing/POC resources.
+5. The replacement passed a real `/chat` smoke check through the published site. The authorized POC cleanup completed on 2026-11-14; see `legacy-chatbot-cutover.md` for the disposition. The optional IAM identity cleanup remains an owner decision because it can affect account access.
 6. S3 ingestion and RAG remain future work in `future-rag-plan.md`; V0 creates no document bucket or index.
 
 ### Local static development and tests
@@ -70,7 +70,7 @@ Cost Explorer for August–October 2026 showed an average account total of about
 | Tax | `$0.050` | Historical tax line. |
 | **Total** | **`$1.075`** | Rounded to `$1.08/month`; a historical sample, not a forecast. |
 
-This bill does not identify the old chatbot's exact API, Lambda, ECR, or model cost individually. The currently observed ECR amount is shared across repositories. The `legacy-chatbot-cutover.md` inventory identifies unrelated SageMaker items separately so chatbot cleanup does not accidentally remove them.
+This bill does not identify the old chatbot's exact API, Lambda, ECR, or model cost individually. The currently observed ECR amount is shared across repositories. This `$1.08/month` sample is a historical pre-cleanup baseline, not a forecast: the old repositories, SageMaker storage, and EFS resources were removed on 2026-11-14. Cost Explorer can continue to show charges accrued before deletion; compare a complete subsequent billing cycle to measure the reduced baseline.
 
 ### New stack: recurring and per-use charges
 
@@ -82,7 +82,7 @@ Rates below are list-price references for `us-east-1` as of this document date. 
 | Bedrock `InvokeGuardrailChecks` | `$0.07/1,000` text units for content filters and `$0.08/1,000` text units for prompt-attack checks. One unit covers up to 1,000 characters. | The current system prompt is 1,076 characters, so it is 2 units. The maximum bounded input is conservatively 7 units (system prompt + four history messages + current input); the response limit is 2,000 characters. The conservative maximum is `(7 × $0.15) + (2 × $0.07) = $1.19/1,000 chats`. A short first turn is about 3 input + 1 output unit, or `$0.52/1,000 chats`. AWS's public description does not fully clarify whether separate message blocks are rounded independently, so actual `usage.textUnits` returned by the API should replace this upper-bound assumption after the first live call. |
 | API Gateway HTTP API | `$1.00/million` requests for the initial US East tier; no minimum fee. One million monthly API calls are free only for eligible new AWS customers for up to 12 months. | About `$0.001/1,000` requests at list price. Small request/response payloads keep transfer cost low. |
 | Lambda | `$0.20/million` requests plus `$0.0000166667/GB-second` at the x86 on-demand rate in the first usage tier. Published monthly free allowances are 1 million requests and 400,000 GB-seconds, where applicable. | No charge while idle and no provisioned concurrency. At 512 MB and an illustrative 3-second execution, compute is `$0.000025/request` before free allowances; the actual time is measured by request logs and will mostly be remote model wait. |
-| ECR | `$0.10/GB-month` private image storage; new ECR customers currently have 500 MB/month free for one year. | The Terraform lifecycle rule retains only the newest tagged image and expires untagged images after one day. At 326 MB, one wholly unique image is about `$0.03/month`; actual image bytes determine the bill. |
+| ECR | `$0.10/GB-month` private image storage; new ECR customers currently have 500 MB/month free for one year. | The Terraform lifecycle rule retains only the newest tagged image and expires untagged images after one day. The active image is about 227 MB, or roughly `$0.02/month` if it is wholly unique and no free allowance applies; actual image bytes determine the bill. |
 | CloudWatch Logs | Pay for ingested, retained, and query-scanned data. The published US East ingestion example is `$0.50/GB`; the current CloudWatch free-tier page includes 5 GB/month across logs ingestion, archive storage, and Logs Insights scans. | One Lambda log group retains metadata for 14 days. The app never logs prompts or replies, so expected log volume is small; no paid dashboard, alarm, custom metric, or tracing service is created. |
 | S3 Terraform state | Standard storage, requests, and versioned objects. No always-on charge; old state versions expire after 90 days. | Expected to be a small fraction of a cent monthly at this repository's state size, subject to request volume and AWS minimum billing granularity. |
 | GitHub Pages / CI | Pages is available for this public repository; GitHub-hosted standard runner usage is free for public repositories. | No separate hosting service or AWS static-site bucket/CDN is required. A custom domain/registrar, if used, is separate. |
@@ -99,12 +99,18 @@ This table assumes 600 input and 60 output Nova Micro tokens per chat, a 512 MB 
 
 *CloudWatch ingestion assumes roughly 1.35 KB of metadata per chat at `$0.50/GB`; actual record sizes and the shared free allowance change the bill. The 100,000-request Lambda example uses 150,000 GB-seconds and 100,000 requests; if the account's Lambda free allowances remain available and are not consumed by other functions, that line could be `$0`. Model usage assumes 600 input and 60 output tokens; adaptive thinking and actual conversation history can change the measured counts. The 300-token output ceiling still bounds the generated output budget. `guardrail_text_units` records usage totals without chat text.
 
-The shared DynamoDB counter stops valid chat requests at 1,000 per UTC month. At that limit, the conservative model/Guardrails/API/Lambda estimate is about `$1.25` in variable charges. Adding the sampled historical account baseline of `$1.08` gives roughly `$2.33/month` before the new state/image/log storage, tax, and usage variation. That estimate should stay below the `$5` alert threshold after POC resources are retired, but neither a request cap nor a budget alert is a hard dollar spending guarantee. API Gateway throttling is a secondary best-effort limit. A public unauthenticated endpoint can still be called outside browser CORS; requests stop at the monthly quota.
+The shared DynamoDB counter stops valid chat requests at 1,000 per UTC month. At that limit, the conservative model/Guardrails/API/Lambda estimate is about `$1.25` in variable charges, before the active image, state/log storage, tax, and usage variation. Do not add the historical `$1.08` POC baseline to the post-cleanup forecast. The design is expected to stay below the `$5` alert threshold at the quota, but neither a request limit nor a budget alert is a hard dollar spending guarantee. API Gateway throttling is a secondary best-effort limit. A public unauthenticated endpoint can still be called outside browser CORS; requests stop at the monthly quota.
+
+### Deployed account snapshot (2026-11-14)
+
+- The active stack is the portfolio HTTP API, Lambda, one ECR image, on-demand monthly quota table, and 14-day sanitized Lambda log group. The only S3 bucket is the private versioned Terraform state bucket.
+- The account-wide `$5/month` budget sends alerts at 80% and 100% actual spend and 100% forecast spend to the owner's configured email. Alerts notify; they do not shut services off.
+- The confirmed POC APIs, old Lambda/image repositories, SageMaker domains/endpoints/EFS/notebook, CDK and other POC stacks, POC S3 buckets, old logs, Glue crawler/catalog, and test table were removed. No document bucket or RAG index is configured.
+- Dormant POC IAM identities/roles were left unchanged after automatic approval review blocked bulk account-access changes. They do not serve the chatbot and their removal is a separate owner decision.
 
 ### Billing outside the new chatbot stack
 
-- Old chatbot ECR, Lambda, API Gateway, and any model charges continue until retired. The shared historical service totals above do not isolate those costs.
-- Existing SageMaker Studio storage, EFS, and Titanic async test endpoints are separate POC costs. They remain until the new public assistant is verified, then the user-authorized cleanup can retire those resources after dependency checks.
+- The old chatbot deployments and unrelated POC AWS resources listed in `legacy-chatbot-cutover.md` were retired on 2026-11-14 after the replacement passed its live inference check. November Cost Explorer totals may still include charges accrued before removal.
 - The existing Web3Forms contact form is a separate provider and requires `WEB3FORMS_KEY`; its plan/usage is outside AWS chatbot costs.
 - Local unit and browser tests mock the model and incur no Bedrock charge. The current `scripts/dev.sh` serves the static site; a local backend run with live Bedrock credentials incurs model and Guardrails charges.
 
