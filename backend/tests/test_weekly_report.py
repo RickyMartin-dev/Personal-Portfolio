@@ -23,6 +23,8 @@ def test_weekly_email_is_plain_text_and_labels_account_wide_cost():
         "average_latency_ms": 810,
         "p95_latency_ms": 1200,
         "guardrail_text_units": 20,
+        "rag_searches": 2,
+        "rag_results_count": 5,
     }
 
     subject, body = render_email(start, end, metrics, Decimal("0.1234"), [("Amazon Bedrock", Decimal("0.1234"))])
@@ -32,4 +34,5 @@ def test_weekly_email_is_plain_text_and_labels_account_wide_cost():
     assert "120 input / 60 output" in body
     assert "${account_cost" not in body
     assert "Costs are account-wide" in body
+    assert "RAG searches: 2 (5 retrieved passages)" in body
     assert "<html>" not in body

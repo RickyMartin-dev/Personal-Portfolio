@@ -14,7 +14,7 @@ An update merged to `develop` may automatically build and publish the Lambda con
 - The deployment role trust is restricted by both the GitHub OIDC audience and exact repository/branch subject. Repository variables contain only the role ARN and state bucket name.
 - Workflow actions are pinned to immutable commit SHAs. Job permissions are minimal; only backend deployment receives OIDC token-write permission, and only Pages publication receives Pages write permission.
 - Terraform state is private, encrypted, versioned, and limited to this app's key prefix. The deployment role cannot change the account budget, state bucket, or its own OIDC trust.
-- API Gateway applies a best-effort 0.25 requests/second throttle with burst 1, and an atomic DynamoDB counter limits accepted model requests to 1,000 per UTC month. Lambda uses the shared account concurrency pool because the account quota is 10 and AWS requires at least 10 to remain unreserved. The account-wide $5 AWS budget sends notifications; it does not automatically stop spend.
+- API Gateway throttling and an atomic DynamoDB counter bound request volume. The Lambda uses on-demand concurrency. An account budget sends notifications but does not automatically stop spend.
 - Prompts, answers, visitor identifiers, and IP addresses are not persisted. Runtime logs contain request metadata only.
 - AWS resource deletion is not part of the deploy workflow. The owner separately authorized retirement of confirmed test/POC resources after the new public assistant is live and dependency checks pass.
 

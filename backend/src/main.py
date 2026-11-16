@@ -132,6 +132,8 @@ def chat(payload: ChatRequest, request: Request) -> ChatResponse:
                 "input_tokens": result["input_tokens"],
                 "output_tokens": result["output_tokens"],
                 "guardrail_text_units": result["guardrail_text_units"],
+                "rag_searches": result.get("rag_searches", 0),
+                "rag_results_count": result.get("rag_results_count", 0),
             },
         )
         return ChatResponse(message=result["message"])

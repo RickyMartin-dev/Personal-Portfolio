@@ -150,6 +150,7 @@ resource "aws_lambda_function" "chatbot" {
     variables = {
       BEDROCK_REGION            = var.aws_region
       BEDROCK_MODEL_ID          = var.bedrock_model_id
+      BEDROCK_KNOWLEDGE_BASE_ID = aws_bedrockagent_knowledge_base.portfolio.id
       MAX_OUTPUT_TOKENS         = tostring(var.max_output_tokens)
       GUARDRAIL_BLOCK_THRESHOLD = tostring(var.guardrail_block_threshold)
       ALLOWED_ORIGINS           = local.allowed_origin_string

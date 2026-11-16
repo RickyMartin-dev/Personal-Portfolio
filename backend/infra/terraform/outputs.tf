@@ -27,3 +27,23 @@ output "monthly_usage_table_name" {
   description = "Aggregate monthly request counter; contains no prompts or visitor data."
   value       = aws_dynamodb_table.monthly_usage.name
 }
+
+output "rag_documents_bucket_name" {
+  description = "Private S3 bucket for approved portfolio documents; upload only to the documents/ prefix."
+  value       = aws_s3_bucket.rag_documents.bucket
+}
+
+output "rag_documents_s3_uri" {
+  description = "Owner upload location monitored for create, replace, and delete events."
+  value       = "s3://${aws_s3_bucket.rag_documents.bucket}/documents/"
+}
+
+output "rag_knowledge_base_id" {
+  description = "Amazon Bedrock Knowledge Base queried by the chatbot's document search tool."
+  value       = aws_bedrockagent_knowledge_base.portfolio.id
+}
+
+output "rag_vector_index_arn" {
+  description = "Low-cost S3 Vectors index storing Bedrock document embeddings."
+  value       = aws_s3vectors_index.portfolio.index_arn
+}

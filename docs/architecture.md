@@ -1,51 +1,45 @@
 # Architecture
 
-## Active product path
+## Product path
 
 ```text
 Visitor browser
-  └── Static portfolio pages, styles, and scripts
-        └── GitHub Pages
+  ├── Static portfolio pages → GitHub Pages
+  └── Chat panel → HTTPS API → serverless backend → language model
+                                      ├── temporary browser history
+                                      ├── bounded safety checks
+                                      ├── aggregate usage guard
+                                      └── optional document retrieval
 
-  └── Public HTTPS /chat endpoint
-        └── API Gateway HTTP API
-              └── Lambda container
-                    ├── FastAPI + stateless LangGraph turn
-                    ├── DynamoDB aggregate monthly request cap
-                    └── Bedrock model + inline safety checks
+Approved portfolio documents
+  └── private S3 documents/ prefix
+        └── notification → queue → indexing worker
+              └── managed knowledge base → S3 Vectors
+
+Weekly owner report
+  └── schedule → report worker → usage metrics and account-wide cost summary → email
 ```
 
-Weekly usage email
-  └── EventBridge Scheduler (Monday 8 AM America/New_York)
-        └── Report Lambda → sanitized CloudWatch metrics + Cost Explorer → SNS email
+The site source, browser tests, and static build live in `frontend/`. Without a validated API endpoint, the build shows an under-construction notice and omits the chat client. With a validated HTTPS endpoint, it enables the accessible compact chat panel and mobile sheet. Backend source, infrastructure, tests, and project tooling are excluded from the Pages artifact.
 
-The site source, browser tests, and static build live in `frontend/`. The site is the v0 "Aurora Lines" design (home, About, Games; plain HTML/CSS/JS, fonts from Google Fonts, theme follows the OS); `design-showcase/aurora-final/` and `studio/` are its design source. Without `CHATBOT_API_ENDPOINT`, `frontend/build.py` publishes the accessible under-construction notice and omits the chatbot client/config. With a validated HTTPS `/chat` endpoint, the build enables the compact desktop panel/mobile sheet and injects that public endpoint into the CSP and config. Backend source, Terraform, tests, and Project Starter files are excluded from Pages.
+## Chat and privacy
 
-## Chat request and privacy boundaries
+`backend/` owns the API and stateless agent flow. Each request may include a small recent history held in browser memory; closing or reloading the page clears it. The server validates message and history sizes, enforces an aggregate request cap, and logs only request outcomes, model usage, latency, and bounded retrieval counts. It does not log prompts, replies, visitor identifiers, document names, or document text.
 
-`backend/` owns the FastAPI API, stateless LangGraph flow, Lambda image, and Terraform. Each request includes up to two recent exchanges stored only in browser page memory. The server validates message and history sizes and stores only the UTC month and aggregate request count in DynamoDB. A conditional update enforces the 1,000-request monthly cap across Lambda instances. If the counter cannot be reached, the API fails closed with 503. Lambda logs keep request IDs, outcome, model, latency, token counts, and safety-check units; request/response text is not logged. CloudWatch API Gateway metrics provide request, error, latency, and throttle visibility without a log delivery configuration.
+The agent uses curated profile facts in `backend/src/config.py`. It receives a document search tool only when the knowledge base is configured. The prompt summarizes the index categories so the model can decide when search is useful. Retrieval is bounded to a small number of short passages; source text is treated as untrusted evidence, never instructions.
 
-Bedrock receives the bounded turn and calls inline safety checks before and after generation. Output is limited to 300 model tokens. The API is public and unauthenticated; CORS only limits browser origins. API Gateway applies a best-effort 0.25 requests/second throttle with burst 1, and the shared monthly cap stops accepted model requests at 1,000. This account currently has a 10-concurrent-execution Lambda quota, and AWS requires at least 10 to remain unreserved, so the function uses the shared account pool. The $5 account budget sends alerts at 80% and 100% actual spend and 100% forecast; it is not an automatic service shutoff.
+The knowledge base indexes only the S3 `documents/` prefix. Uploads, replacements, and deletions enqueue a sync; the worker starts an incremental Bedrock Knowledge Base ingestion job and retries failures through the queue and dead-letter queue. The public upload location is exposed as a Terraform output after deployment. Upload only material appropriate for portfolio visitors. See [`future-rag-plan.md`](future-rag-plan.md) for upload and recovery instructions.
 
-## GitHub Actions and branch flow
+## Delivery and monitoring
 
-- Feature branches open pull requests to `develop`.
-- Pull requests run Project Starter/security checks, mocked backend and artifact tests, Playwright browser tests, and Terraform format/validation. These checks use no AWS credentials or remote Terraform state.
-- Pull requests to `develop` run mocked API/UI tests and Terraform validation without AWS credentials. The required `Quality checks / merge-gate` status fails if any quality job fails or is cancelled.
-- The GitHub `develop` branch rule must require pull requests and `Quality checks / merge-gate`, and block force pushes and deletion. These controls live in repository settings and must be verified separately from workflow YAML; see [`CONTRIBUTING.md`](CONTRIBUTING.md).
-- Pushes to `develop` run verification, wait for owner approval in `aws-production`, assume the environment-restricted deployment role through GitHub OIDC, build and push the Lambda image, apply the app Terraform root, smoke-check `/health`, then build Pages with the resulting public endpoint.
-- The bootstrap root creates the private versioned state bucket, `aws-production`-only OIDC role, and account-wide $5 budget. The deploy role does not receive account-wide CloudWatch Logs delivery permissions. GitHub repository variables `AWS_ROLE_ARN` and `TF_STATE_BUCKET` contain non-secret resource identifiers.
+Feature branches target `develop`. Pull requests run starter/security checks, mocked backend tests, browser tests, static artifact validation, and Terraform formatting/validation without AWS credentials. A required merge gate combines the quality checks. Changes merged to the deployment branch trigger backend infrastructure and frontend publication from the same commit; the production job uses short-lived GitHub OIDC credentials and a protected deployment environment. Repository branch rules and environment reviewers are maintained in GitHub settings.
 
-## Weekly snapshot and RAG status
-
-The weekly report runs Monday at 8 AM America/New_York and covers the prior Monday through Sunday. It reads request outcomes, token counts, latency, and safety-check units from sanitized logs. Cost Explorer data is account-wide and can lag. The SNS email subscription must be confirmed from the inbox. Prompts and replies are never collected.
-
-There is no RAG document bucket or index in V0. The only current S3 bucket is for Terraform state. The agent uses a curated fact set in `backend/src/config.py`; it does not know the entire website or automatically refresh when page text changes. S3-triggered reindexing is future work in `docs/future-rag-plan.md`.
+The weekly report runs Monday at 8 AM New York time and summarizes the previous week. It includes request outcomes, token totals, latency, safety-check usage, retrieval counts, and account-wide costs. Cost Explorer data can lag and is not attributed solely to the chatbot. Prompts, replies, and document content are excluded. The destination inbox must confirm the SNS subscription after the first deployment.
 
 ## Trust and cost boundaries
 
-- Published JavaScript and HTML are public. Never put AI provider credentials in them.
-- Chat requests are sent directly from the browser to the configured public endpoint. The site does not store them beyond the page lifetime.
-- The contact form uses Web3Forms. Its access key is a public client-side form identifier built into `frontend/build.py` (overridable with `WEB3FORMS_KEY`), not an AI secret.
-- The prior POC resources remain outside new Terraform state until cutover and dependency checks complete. The replacement deployment never imports or deletes them. After live smoke verification, follow [`legacy-chatbot-cutover.md`](legacy-chatbot-cutover.md) and the owner-authorized cleanup scope.
-- S3 document ingestion and RAG are future work; the planned event-driven full reindex is in [`future-rag-plan.md`](future-rag-plan.md).
+- Published JavaScript and HTML are public. Never place AI provider credentials in them.
+- The browser calls the configured public endpoint; its history exists only for the page lifetime.
+- Contact-form provider configuration is separate from the chatbot. Its public form identifier is not an AI credential.
+- Infrastructure deployment manages only resources declared by this repository. It does not import or remove unrelated services.
+- S3, vector storage, embeddings, retrieval, model inference, logging, and reporting are usage-based. Cost details are estimates and vary with traffic, data, and account free-tier use.

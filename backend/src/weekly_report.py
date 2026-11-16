@@ -36,6 +36,8 @@ def collect_logs(start: datetime, end: datetime) -> dict[str, int | float]:
         "input_tokens": 0,
         "output_tokens": 0,
         "guardrail_text_units": 0,
+        "rag_searches": 0,
+        "rag_results_count": 0,
     }
     latencies: list[int] = []
     for page in paginator.paginate(
@@ -63,7 +65,13 @@ def collect_logs(start: datetime, end: datetime) -> dict[str, int | float]:
                 totals["successful"] += 1
             else:
                 totals["failed"] += 1
-            for name in ("input_tokens", "output_tokens", "guardrail_text_units"):
+            for name in (
+                "input_tokens",
+                "output_tokens",
+                "guardrail_text_units",
+                "rag_searches",
+                "rag_results_count",
+            ):
                 try:
                     totals[name] += int(item.get(name) or 0)
                 except (TypeError, ValueError):
@@ -116,6 +124,7 @@ Requests: {metrics['requests']} ({metrics['successful']} successful, {metrics['f
 Tokens: {metrics['input_tokens']:,} input / {metrics['output_tokens']:,} output
 Latency: {metrics['average_latency_ms']} ms average / {metrics['p95_latency_ms']} ms p95
 Guardrail text units: {metrics['guardrail_text_units']:,}
+RAG searches: {metrics['rag_searches']:,} ({metrics['rag_results_count']:,} retrieved passages)
 
 AWS ACCOUNT COST
 Total across services: ${account_cost:.4f}

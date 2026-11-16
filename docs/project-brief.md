@@ -3,46 +3,44 @@
 ## Identity
 
 - Project: Ricky Martin's personal portfolio and chatbot.
-- Outcome: publish a fast, accessible portfolio and a low-cost, secure Bedrock-backed assistant in one repo.
+- Outcome: publish a fast, accessible portfolio and a low-cost AI assistant in one repository.
 - Users: recruiters, collaborators, and visitors asking about Ricky's portfolio and current work.
-- Current phase: monorepo consolidation and automated deployment from `develop`.
+- Current phase: maintain the portfolio and deploy the assistant through reviewed changes.
 
 ## Scope
 
 ### In scope
 
-- Preserve the v0 "Aurora Lines" static portfolio design (source: `design-showcase/aurora-final/` and `studio/`; saved look: `v0-config.json`) and its Web3Forms contact flow.
-- Consolidate the FastAPI/LangGraph chatbot and Project Starter tools into this repository.
-- Manage the new API Gateway, Lambda, ECR, IAM, state storage, and logging with Terraform.
-- Use Amazon Bedrock with the same supported Amazon Nova Micro model locally and in production.
-- Enforce a best-effort aggregate API Gateway target of 15 messages per minute and Bedrock prompt/content checks.
-- Run browser, backend, starter, security, and Terraform checks in CI; deploy site and API from `develop`.
-- Track model, token, latency, status, and request ID metrics without persisting message content.
+- Preserve the v0 Aurora Lines static portfolio and its contact flow.
+- Keep the static frontend, chatbot backend, infrastructure definitions, and project tools in one reviewable repository.
+- Use a stateless backend agent with bounded temporary browser history.
+- Ground common answers in curated profile facts and retrieve approved documents when details are needed.
+- Monitor a dedicated S3 `documents/` prefix and sync additions, updates, and removals into the search index.
+- Keep conversation history in page memory and do not persist visitor transcripts.
+- Run backend, browser, security, artifact, and infrastructure checks before changes can be merged.
+- Track operational usage without storing message or document contents in logs.
 
 ### Deferred
 
-- S3 document upload and automatic RAG indexing.
 - Read-only GitHub activity tools.
-- Any model-initiated external actions or write access.
+- Model-initiated external actions or write access.
 
 ### Out of scope
 
 - Rebuilding the portfolio in a UI framework.
-- Persisting visitor chat transcripts or server-side conversation memory.
-- WAF, VPC/NAT, provisioned concurrency, or always-on compute in v1.
+- Persistent visitor transcripts or server-side conversation memory.
+- Always-on compute in the first release.
 
 ## Success signals
 
-- A clean checkout can run the site and chatbot locally using Bedrock with the production model ID.
-- CI checks accessible chat flows, mocked inference, Terraform, secrets, and Project Starter contracts.
-- A merge to `develop` deploys the API and frontend, then confirms a real model response.
-- No AI credential appears in published frontend files; application logs contain usage metadata only.
-- The old endpoint remains until the new endpoint is live and the owner approves specific resources for retirement.
+- A clean checkout can run the static site and execute mocked backend tests.
+- CI checks the chat flow, frontend artifact, browser behavior, and infrastructure configuration.
+- Reviewed changes deploy through the production workflow.
+- No AI provider credential appears in published frontend files; application logs contain usage metadata only.
+- The owner can upload approved documents and have changes indexed automatically.
 
 ## Constraints and risks
 
-- Bedrock inference and safety checks incur variable per-request charges; the 15/minute API Gateway throttle is best-effort, not a hard monthly spend cap.
-- Lambda uses the execution role in production. Local development uses a local AWS profile or an ignored Bedrock API key.
-- The replacement uses the active `us.amazon.nova-micro-v1:0` US inference profile in `us-east-1`; this was confirmed read-only. Keep model/profile support aligned between local `.env` and Terraform. Nova Micro is available in this account without a third-party marketplace agreement.
-- A read-only inventory was completed on 2026-11-08. The old chatbot chain and other account resources remain active until the new endpoint is live and cleanup is reviewed.
-- The app has public anonymous access. CORS is not authentication; safety depends on bounded requests, server-side checks, throttling, and least privilege.
+- Model inference, safety checks, retrieval, and document indexing have usage-based charges. Budget alerts notify but do not stop spending.
+- Production credentials are provided to the backend through its runtime role; the website receives no provider credential.
+- The assistant is publicly accessible. Browser origin checks alone are not authentication, so requests and retrieval are bounded and a usage guard is enforced server-side.

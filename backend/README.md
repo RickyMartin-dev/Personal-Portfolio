@@ -19,7 +19,9 @@ For live local inference, edit `.env` and choose one credential source:
 - Set `AWS_BEARER_TOKEN_BEDROCK` to a Bedrock API key with permissions for `bedrock:InvokeModel` and `bedrock:InvokeGuardrailChecks`; or
 - Set `AWS_PROFILE` in the shell to a configured AWS CLI/SSO profile and leave the bearer token empty.
 
-The default model is `us.amazon.nova-micro-v1:0` through the active US inference profile in `us-east-1`. Keep `BEDROCK_MODEL_ID` and `BEDROCK_REGION` the same locally and in Lambda to test the same model route. Real inference and guardrail checks incur Bedrock usage charges.
+The model route is configurable through `BEDROCK_MODEL_ID` and `BEDROCK_REGION`; keep those values aligned locally and in Lambda to test the same route. Real inference and guardrail checks incur Bedrock usage charges.
+
+`BEDROCK_KNOWLEDGE_BASE_ID` is optional for local runs. Set it to the deployed portfolio Knowledge Base ID to exercise document search; without it, the model uses curated profile facts only. The local credential must also allow `bedrock:Retrieve` on that Knowledge Base.
 
 Run the local API on port 8001 while serving the static site on port 8000:
 
@@ -48,13 +50,15 @@ curl -s http://127.0.0.1:8001/chat \
 }
 ```
 
-The `history` field is optional and may contain at most the latest 4 `user` or `assistant` messages (two exchanges). User messages are capped at 500 characters; each history item is capped at 2,000 characters and the total history at 2,000 characters. Responses are limited to 300 Bedrock output tokens and trimmed to at most 2,000 characters, including an ellipsis when trimming is needed. The response is `{"message":"..."}`. No API key is sent by the browser; CORS is a browser policy, while API Gateway throttling is the cost-abuse guard.
+The `history` field is optional and may contain at most the latest 4 `user` or `assistant` messages (two exchanges). The frontend retains this history in page memory and sends it with each turn; closing or reloading the page clears it. User messages are capped at 500 characters; each history item is capped at 2,000 characters and the total history at 2,000 characters. Responses are limited to 300 Bedrock output tokens and trimmed to at most 2,000 characters, including an ellipsis when trimming is needed. The response is `{"message":"..."}`. No API key is sent by the browser; CORS is a browser policy, while API Gateway throttling is the cost-abuse guard.
+
+When configured, the assistant can call `search_portfolio_documents` through Amazon Bedrock Knowledge Bases. It retrieves at most four 1,200-character excerpts from the private S3 `documents/` source and sends only excerpt text and the source filename to the model. See [`../docs/future-rag-plan.md`](../docs/future-rag-plan.md) for the bucket path and upload instructions. Only add documents appropriate for public visitor answers: the source bucket is private, but the chatbot's answers are public. S3 uploads and deletes automatically start an incremental Knowledge Base sync.
 
 ## Checks and logging
 
 Bedrock `InvokeGuardrailChecks` is detect-only. The application checks the returned severity scores against `GUARDRAIL_BLOCK_THRESHOLD` (default `0.5`) and returns a generic refusal when a score meets the threshold. It checks harmful content and prompt attacks before inference, then harmful content in the model output. A Bedrock guardrail-check failure fails closed and does not call the model.
 
-Application logs are JSON and contain only request ID, outcome, the configured Bedrock model ID, latency, token counts, guardrail text-unit counts, and error type. They never include chat input/output, session IDs, or raw provider errors. Conversation history exists only in the request and response; there is no S3 transcript logging or server-side persistence.
+Application logs are JSON and contain only request ID, outcome, the configured Bedrock model ID, latency, token counts, guardrail text-unit counts, RAG search/passage counts, and error type. They never include chat input/output, session IDs, document names, document text, or raw provider errors. Conversation history exists only in the request and response; there is no S3 transcript logging or server-side persistence.
 
 ## Tests
 

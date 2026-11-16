@@ -11,12 +11,18 @@ from langgraph.graph import END, START, StateGraph
 
 from src.bedrock import BedrockServiceError, get_bedrock_client
 from src.config import (
+    BEDROCK_KNOWLEDGE_BASE_ID,
     BEDROCK_MODEL_ID,
     BLOCKED_MESSAGE,
     GUARDRAIL_BLOCK_THRESHOLD,
     MAX_OUTPUT_CHARS,
     MAX_OUTPUT_TOKENS,
     SYSTEM_PROMPT,
+)
+from src.retrieval import (
+    RetrievalServiceError,
+    format_retrieval_results,
+    retrieve_portfolio_documents,
 )
 
 
@@ -36,6 +42,8 @@ class ChatState(TypedDict, total=False):
     output_tokens: int
     guardrail_text_units: int
     latency_ms: float
+    rag_searches: int
+    rag_results_count: int
 
 
 def _content_checks() -> dict[str, Any]:
@@ -119,9 +127,13 @@ class ChatAgent:
         self,
         client_provider: Callable[[], Any] | None = None,
         system_prompt: str = SYSTEM_PROMPT,
+        retrieval_provider: Callable[[str], list[dict[str, str]]] | None = None,
+        knowledge_base_id: str = BEDROCK_KNOWLEDGE_BASE_ID,
     ) -> None:
         self._client_provider = client_provider or get_bedrock_client
         self._system_prompt = system_prompt
+        self._retrieval_provider = retrieval_provider or retrieve_portfolio_documents
+        self._knowledge_base_id = knowledge_base_id.strip()
         builder = StateGraph(ChatState)
         builder.add_node("respond", self._respond)
         builder.add_edge(START, "respond")
@@ -174,17 +186,22 @@ class ChatAgent:
                     "latency_ms": (perf_counter() - started) * 1000,
                 }
 
-            model_response = _invoke_bedrock(
-                client,
-                "converse",
-                modelId=BEDROCK_MODEL_ID,
-                system=[{"text": self._system_prompt}],
-                messages=messages,
-                inferenceConfig={
-                    "maxTokens": MAX_OUTPUT_TOKENS,
-                    "temperature": 0.3,
-                },
-            )
+            model_response = self._converse(client, messages)
+            rag_searches = 0
+            rag_results_count = 0
+            if self._knowledge_base_id and model_response.get("stopReason") == "tool_use":
+                first_call_usage = model_response.get("usage", {})
+                model_response, rag_results_count = self._continue_after_retrieval(
+                    client, messages, model_response
+                )
+                final_call_usage = model_response.get("usage", {})
+                model_response["usage"] = {
+                    "inputTokens": int(first_call_usage.get("inputTokens", 0))
+                    + int(final_call_usage.get("inputTokens", 0)),
+                    "outputTokens": int(first_call_usage.get("outputTokens", 0))
+                    + int(final_call_usage.get("outputTokens", 0)),
+                }
+                rag_searches = 1
             content = model_response["output"]["message"]["content"]
             answer = "".join(
                 block["text"] for block in content if isinstance(block, dict) and "text" in block
@@ -218,8 +235,106 @@ class ChatAgent:
                 "output_tokens": int(usage.get("outputTokens", 0)),
                 "guardrail_text_units": safety_units,
                 "latency_ms": (perf_counter() - started) * 1000,
+                "rag_searches": rag_searches,
+                "rag_results_count": rag_results_count,
             }
         except BedrockServiceError:
             raise
         except Exception as error:
             raise BedrockServiceError(type(error).__name__, "agent_response") from error
+
+    def _converse(
+        self, client: Any, messages: list[dict[str, Any]], *, allow_retrieval: bool = True
+    ) -> dict[str, Any]:
+        request: dict[str, Any] = {
+            "modelId": BEDROCK_MODEL_ID,
+            "system": [{"text": self._system_prompt}],
+            "messages": messages,
+            "inferenceConfig": {
+                "maxTokens": MAX_OUTPUT_TOKENS,
+                "temperature": 0.0 if self._knowledge_base_id and allow_retrieval else 0.3,
+            },
+        }
+        if self._knowledge_base_id and allow_retrieval:
+            request["toolConfig"] = {
+                "tools": [
+                    {
+                        "toolSpec": {
+                            "name": "search_portfolio_documents",
+                            "description": (
+                                "Search Ricky's approved resume, current-work notes, and research "
+                                "documents. Use for document-specific details not present in the "
+                                "curated profile facts."
+                            ),
+                            "inputSchema": {
+                                "json": {
+                                    "type": "object",
+                                    "properties": {
+                                        "query": {
+                                            "type": "string",
+                                            "description": "A concise search query for the portfolio documents.",
+                                        },
+                                    },
+                                    "required": ["query"],
+                                }
+                            },
+                        }
+                    }
+                ]
+            }
+        return _invoke_bedrock(client, "converse", **request)
+
+    def _continue_after_retrieval(
+        self,
+        client: Any,
+        messages: list[dict[str, Any]],
+        tool_response: dict[str, Any],
+    ) -> tuple[dict[str, Any], int]:
+        assistant_message = tool_response.get("output", {}).get("message", {})
+        content = assistant_message.get("content", [])
+        tool_calls = [
+            block["toolUse"]
+            for block in content
+            if isinstance(block, dict) and isinstance(block.get("toolUse"), dict)
+        ]
+        if len(tool_calls) != 1 or tool_calls[0].get("name") != "search_portfolio_documents":
+            raise ValueError("Bedrock returned an invalid portfolio search request")
+
+        tool_call = tool_calls[0]
+        tool_input = tool_call.get("input", {})
+        query = tool_input.get("query") if isinstance(tool_input, dict) else None
+        if not isinstance(query, str) or not query.strip() or len(query) > 500:
+            raise ValueError("Bedrock returned an invalid portfolio search query")
+
+        try:
+            results = self._retrieval_provider(query)
+            result_text = format_retrieval_results(results)
+            result_status = "success"
+            result_count = len(results)
+        except (RetrievalServiceError, ValueError):
+            logger.info("chat.document_search_unavailable")
+            result_text = (
+                "Document search is temporarily unavailable. Answer only from the curated "
+                "portfolio facts and say when you cannot verify a detail."
+            )
+            result_status = "error"
+            result_count = 0
+
+        messages.extend(
+            [
+                {"role": "assistant", "content": content},
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "toolResult": {
+                                "toolUseId": tool_call.get("toolUseId"),
+                                "content": [{"text": result_text}],
+                                "status": result_status,
+                            }
+                        }
+                    ],
+                },
+            ]
+        )
+        return self._converse(client, messages, allow_retrieval=False), result_count

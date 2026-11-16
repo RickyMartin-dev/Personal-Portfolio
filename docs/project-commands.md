@@ -44,7 +44,7 @@ The GitHub repository default is `develop`, and the `github-pages` environment p
 
 ## Backend and AWS infrastructure
 
-The `backend/` FastAPI/LangGraph code and Terraform roots deploy the V0 assistant. The stack uses a $5 account-wide budget alert, 1,000-request monthly quota, and limited logs. The website never receives provider credentials. See [`deployment-and-costs.md`](deployment-and-costs.md) for cost and cutover steps, and [`future-rag-plan.md`](future-rag-plan.md) for future S3 ingestion.
+The `backend/` FastAPI/LangGraph code and Terraform roots deploy the assistant, its private S3 document source, S3 Vectors-backed Bedrock Knowledge Base, and S3-triggered sync path. The stack uses a $5 account-wide budget alert, 1,000-request monthly quota, and limited logs. The website never receives provider credentials. See [`deployment-and-costs.md`](deployment-and-costs.md) for cost and cutover steps, and [`future-rag-plan.md`](future-rag-plan.md) for the upload and indexing guide.
 
 ## Project workflow
 
