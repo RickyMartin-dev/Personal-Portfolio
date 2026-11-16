@@ -74,6 +74,7 @@ jobs:
       AWS_REGION: us-east-1
       TF_STATE_BUCKET: ${{ vars.TF_STATE_BUCKET }}
       AWS_ROLE_ARN: ${{ vars.AWS_ROLE_ARN }}
+      WEEKLY_REPORT_EMAIL: ${{ secrets.WEEKLY_REPORT_EMAIL }}
     outputs:
       api_endpoint: ${{ steps.terraform.outputs.api_endpoint }}
       api_base_url: ${{ steps.terraform.outputs.api_base_url }}
@@ -86,6 +87,10 @@ jobs:
         run: |
           if [[ -z "$AWS_ROLE_ARN" || -z "$TF_STATE_BUCKET" ]]; then
             echo "::error::Complete backend/infra/bootstrap and set repository variables AWS_ROLE_ARN and TF_STATE_BUCKET."
+            exit 1
+          fi
+          if [[ -z "$WEEKLY_REPORT_EMAIL" ]]; then
+            echo "::error::Set the WEEKLY_REPORT_EMAIL Actions secret before deploying the weekly report."
             exit 1
           fi
       - name: Configure short-lived AWS credentials with GitHub OIDC
@@ -108,7 +113,7 @@ jobs:
           -backend-config="use_lockfile=true"
       - name: Ensure chatbot image repository exists
         working-directory: backend/infra/terraform
-        run: terraform apply -input=false -auto-approve -target=aws_ecr_repository.chatbot
+        run: terraform apply -input=false -auto-approve -var="weekly_report_email=$WEEKLY_REPORT_EMAIL" -target=aws_ecr_repository.chatbot
       - name: Build and publish the immutable Lambda image
         env:
           IMAGE_TAG: ${{ github.sha }}
@@ -143,7 +148,7 @@ jobs:
         env:
           IMAGE_TAG: ${{ github.sha }}
         run: |
-          terraform apply -input=false -auto-approve -var="image_tag=$IMAGE_TAG"
+          terraform apply -input=false -auto-approve -var="image_tag=$IMAGE_TAG" -var="weekly_report_email=$WEEKLY_REPORT_EMAIL"
           echo "api_endpoint=$(terraform output -raw api_endpoint)" >> "$GITHUB_OUTPUT"
           echo "api_base_url=$(terraform output -raw api_base_url)" >> "$GITHUB_OUTPUT"
       - name: Check the deployed API health route
