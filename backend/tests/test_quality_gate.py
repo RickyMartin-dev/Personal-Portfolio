@@ -13,7 +13,7 @@ import pytest
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 GATE_SCRIPT = PROJECT_ROOT / "scripts" / "require-quality-checks.sh"
 STATUS_CASES = json.loads(
-    (Path(__file__).parent / "fixtures" / "quality-gate-statuses.json").read_text(
+    (Path(__file__).parent / "fixtures" / "ci-failure-modes.json").read_text(
         encoding="utf-8"
     )
 )

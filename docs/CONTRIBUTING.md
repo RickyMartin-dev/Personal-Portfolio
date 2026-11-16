@@ -9,6 +9,8 @@ Contributions should improve the portfolio site, chatbot backend, deployment wor
 3. Wait for the required `Quality checks / merge-gate` check. It passes only when starter/security checks, backend tests, frontend browser tests, and both Terraform validations pass.
 4. Merge the pull request into `develop` after the gate passes. A push to `develop` starts the production workflow: it verifies the commit again, waits for the owner in the `aws-production` environment, deploys the Lambda/API with GitHub OIDC, checks the API health route, builds the Pages site with the deployed endpoint, and publishes Pages.
 
+If a required check is pending or fails, do not merge; use [CI failure modes](ci-failure-modes.md) to identify the relevant job and diagnostics.
+
 In GitHub settings, verify or update the existing `develop` branch rule to require pull requests and the `Quality checks / merge-gate` status, block force pushes and branch deletion, and apply the rules to repository administrators. Restrict branch updates to the owner through a ruleset bypass list. Configure `aws-production` to allow only `develop` and require Ricky Martin's approval; the AWS role trust also accepts only that protected environment. These repository settings cannot be enforced by workflow YAML alone.
 
 ## Before opening a change

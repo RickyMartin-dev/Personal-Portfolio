@@ -5,7 +5,7 @@
 - PR #31 (`codex/weekly-usage-report-owner-gate`) contains the S3-backed RAG index, curated agent facts, temporary browser history, S3 change-triggered reindexing, and Monday usage/cost report. It remains open and is not deployed.
 - The S3 document bucket and RAG index are created by the PR's Terraform apply. They remain empty until the deployment is approved and documents are uploaded.
 - The shared local checkout now tracks `codex/weekly-usage-report-owner-gate`; a stash preserves preexisting uncommitted notes and local state from the prior `develop` checkout.
-- ECC's latest PR audit passed its security-evidence, workflow-config, and harness checks. Bandit scans backend Python in CI and uploads a seven-day SARIF artifact, focused agent security/deployment regressions run explicitly, synthetic RAG retrieval reference cases cover ranked source behavior, and tests exercise fail-closed CI status handling.
+- ECC's latest PR audit passed its security-evidence, workflow-config, and harness checks. Bandit scans backend Python in CI and uploads a seven-day SARIF artifact, focused agent security/deployment regressions run explicitly, synthetic RAG retrieval reference cases cover ranked source behavior, and tests plus a runbook cover fail-closed CI status handling.
 
 ## Owner account settings completed
 
@@ -23,7 +23,7 @@
 
 ## Verification
 
-- Full backend/Python frontend suite: 56 passed. Bandit 1.9.4 scanned `backend/src` with no findings and generated SARIF; workflow validation and `git diff --check` passed.
+- Full backend/Python frontend suite: 56 passed. Bandit 1.9.4 scanned `backend/src` with no findings and generated SARIF; workflow validation and `git diff --check` passed. CI failure-mode runbook: [`ci-failure-modes.md`](../ci-failure-modes.md).
 - Bootstrap Terraform update applied: 0 added, 2 changed, 0 destroyed. The deploy role now trusts the protected `aws-production` environment and permits the narrowly scoped RAG/report deployment resources.
 - Latest GitHub CI passed all six required checks. ECC security-evidence, config, and harness audits passed; remaining readiness/taxonomy notes are neutral repository-wide recommendations.
 - No application AWS resources for the RAG index or weekly report have been deployed. The $5 account budget alert remains a notification, not a spend limit.
