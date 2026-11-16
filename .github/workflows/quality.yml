@@ -32,7 +32,7 @@ jobs:
         with:
           persist-credentials: false
       - name: Set up Python
-        uses: actions/setup-python@4267e283df95c05d9f16ece6624106f44613b489 # v6.0.0
+        uses: actions/setup-python@90485b7ad25ff6932f80015b8a56a6546cd816a7 # v6.0.0
         with:
           python-version: '3.12'
       - name: Install backend dependencies
@@ -51,7 +51,7 @@ jobs:
         with:
           persist-credentials: false
       - name: Set up Python for the static build
-        uses: actions/setup-python@4267e283df95c05d9f16ece6624106f44613b489 # v6.0.0
+        uses: actions/setup-python@90485b7ad25ff6932f80015b8a56a6546cd816a7 # v6.0.0
         with:
           python-version: '3.12'
       - name: Set up Node.js
