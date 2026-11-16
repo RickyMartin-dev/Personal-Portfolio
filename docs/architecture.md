@@ -15,6 +15,10 @@ Visitor browser
                     └── Bedrock model + inline safety checks
 ```
 
+Weekly usage email
+  └── EventBridge Scheduler (Monday 8 AM America/New_York)
+        └── Report Lambda → sanitized CloudWatch metrics + Cost Explorer → SNS email
+
 The site source, browser tests, and static build live in `frontend/`. The site is the v0 "Aurora Lines" design (home, About, Games; plain HTML/CSS/JS, fonts from Google Fonts, theme follows the OS); `design-showcase/aurora-final/` and `studio/` are its design source. Without `CHATBOT_API_ENDPOINT`, `frontend/build.py` publishes the accessible under-construction notice and omits the chatbot client/config. With a validated HTTPS `/chat` endpoint, the build enables the compact desktop panel/mobile sheet and injects that public endpoint into the CSP and config. Backend source, Terraform, tests, and Project Starter files are excluded from Pages.
 
 ## Chat request and privacy boundaries
@@ -29,8 +33,14 @@ Bedrock receives the bounded turn and calls inline safety checks before and afte
 - Pull requests run Project Starter/security checks, mocked backend and artifact tests, Playwright browser tests, and Terraform format/validation. These checks use no AWS credentials or remote Terraform state.
 - Pull requests to `develop` run mocked API/UI tests and Terraform validation without AWS credentials. The required `Quality checks / merge-gate` status fails if any quality job fails or is cancelled.
 - The GitHub `develop` branch rule must require pull requests and `Quality checks / merge-gate`, and block force pushes and deletion. These controls live in repository settings and must be verified separately from workflow YAML; see [`CONTRIBUTING.md`](CONTRIBUTING.md).
-- Pushes to `develop` run verification, assume the branch-restricted deployment role through GitHub OIDC, build and push the Lambda image, apply the app Terraform root, smoke-check `/health`, then build Pages with the resulting public endpoint.
-- The bootstrap root creates the private versioned state bucket, `develop`-only OIDC role, and account-wide $5 budget. The deploy role does not receive account-wide CloudWatch Logs delivery permissions. GitHub repository variables `AWS_ROLE_ARN` and `TF_STATE_BUCKET` contain non-secret resource identifiers.
+- Pushes to `develop` run verification, wait for owner approval in `aws-production`, assume the environment-restricted deployment role through GitHub OIDC, build and push the Lambda image, apply the app Terraform root, smoke-check `/health`, then build Pages with the resulting public endpoint.
+- The bootstrap root creates the private versioned state bucket, `aws-production`-only OIDC role, and account-wide $5 budget. The deploy role does not receive account-wide CloudWatch Logs delivery permissions. GitHub repository variables `AWS_ROLE_ARN` and `TF_STATE_BUCKET` contain non-secret resource identifiers.
+
+## Weekly snapshot and RAG status
+
+The weekly report runs Monday at 8 AM America/New_York and covers the prior Monday through Sunday. It reads request outcomes, token counts, latency, and safety-check units from sanitized logs. Cost Explorer data is account-wide and can lag. The SNS email subscription must be confirmed from the inbox. Prompts and replies are never collected.
+
+There is no RAG document bucket or index in V0. The only current S3 bucket is for Terraform state. The agent uses a curated fact set in `backend/src/config.py`; it does not know the entire website or automatically refresh when page text changes. S3-triggered reindexing is future work in `docs/future-rag-plan.md`.
 
 ## Trust and cost boundaries
 
