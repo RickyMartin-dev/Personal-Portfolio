@@ -85,10 +85,10 @@ jobs:
           terraform_version: '1.10.5'
       - name: Check formatting and validate configuration
         run: |
-          terraform -chdir=backend/infra/bootstrap fmt -check -recursive
+          terraform -chdir=backend/infra/bootstrap fmt -check -diff -recursive
           terraform -chdir=backend/infra/bootstrap init -backend=false -input=false
           terraform -chdir=backend/infra/bootstrap validate
-          terraform -chdir=backend/infra/terraform fmt -check -recursive
+          terraform -chdir=backend/infra/terraform fmt -check -diff -recursive
           terraform -chdir=backend/infra/terraform init -backend=false -input=false
           terraform -chdir=backend/infra/terraform validate
 
