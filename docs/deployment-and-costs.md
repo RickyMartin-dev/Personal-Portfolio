@@ -5,15 +5,21 @@
 ## Active GitHub Pages path
 
 ```text
-Push to develop
-  └─ Mocked API/UI tests and Terraform validation
-       └─ GitHub OIDC → Terraform app apply → Lambda image and HTTP API
-            └─ /health smoke check → build Pages with endpoint → publish
+Pull request to develop
+  └─ CI gates pass → merge
+       └─ Owner approves aws-production
+            └─ GitHub OIDC → backend deploy → health check → Pages publish
 ```
 
-GitHub Pages uses **GitHub Actions**. The repository default is `develop`, and the `github-pages` environment allows only `develop`. Pull requests to `develop` run checks without AWS credentials. A push to `develop` deploys the backend, smoke-checks `/health`, then publishes the active static chatbot. The historical `static.yml` on `main` is inactive.
+GitHub Pages uses **GitHub Actions**. The repository default is `develop`, and the `github-pages` environment allows only `develop`. Pull requests to `develop` run checks without AWS credentials. After merge, `aws-production` requires owner approval; then the workflow deploys the backend, smoke-checks `/health`, and publishes the frontend from the same commit. Configure it for only `develop` and Ricky Martin as reviewer. The historical `static.yml` on `main` is inactive.
 
 The contact form uses the site's public Web3Forms access key, built in as `PUBLIC_WEB3FORMS_KEY` in `frontend/build.py`. It is a public client-side form identifier (it ships in the page HTML and can only deliver to the owner's registered address), not an AI credential. A `WEB3FORMS_KEY` environment value or secret overrides it; `WEB3FORMS_KEY=off` replaces the form with a direct email link.
+
+## Weekly owner report
+
+A report Lambda runs every Monday at 8 AM America/New_York and summarizes the prior Monday through Sunday: requests/outcomes, tokens, latency, guardrail units, and AWS account-wide costs by service. It reads sanitized metadata only. Cost Explorer can lag and is not chatbot-only attribution. Confirm the SNS subscription from the destination inbox after deployment.
+
+The weekly Scheduler invocation is far below its published 14-million/month free tier. Cost Explorer API calls are $0.01 per paginated request; one page each week is about $0.52/year. Lambda and SNS remain low-volume usage-billed services and may add a small amount depending on free-tier eligibility. Pagination, retries, and region affect actual cost. See [EventBridge pricing](https://aws.amazon.com/eventbridge/pricing/), [Cost Explorer API costs](https://docs.aws.amazon.com/cost-management/latest/userguide/ce-what-is.html), and [Scheduler time-zone behavior](https://docs.aws.amazon.com/scheduler/latest/UserGuide/schedule-types.html).
 
 ## V0 stack and privacy
 
@@ -29,7 +35,7 @@ The browser receives only the public `/chat` URL. Conversation history is held i
 
 ### Bootstrap and deployments
 
-1. The one-time bootstrap is in `backend/infra/bootstrap`: it provisions the private versioned state bucket, `develop`-only OIDC trust, scoped GitHub deploy role, and $5 account budget.
+1. The one-time bootstrap is in `backend/infra/bootstrap`: it provisions the private versioned state bucket, environment-restricted OIDC trust, scoped GitHub deploy role, and $5 account budget.
 2. GitHub repository variables `AWS_ROLE_ARN` and `TF_STATE_BUCKET` hold non-secret identifiers. The workflow receives short-lived credentials through OIDC; no AWS access key is stored in GitHub.
 3. Pushes to `develop` run the mocked tests, Terraform checks, ECR build/push, app Terraform apply, `/health` smoke check, and Pages publish.
 4. The account budget sends alerts at 80% and 100% actual spend and 100% forecast spend. The DynamoDB chat quota is the hard request-count guardrail; the budget is not a hard dollar cap.
