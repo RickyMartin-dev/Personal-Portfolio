@@ -9,6 +9,11 @@ locals {
   lambda_arn           = "arn:${data.aws_partition.current.partition}:lambda:${var.aws_region}:${data.aws_caller_identity.current.account_id}:function:personal-portfolio-chatbot"
   usage_table_arn      = "arn:${data.aws_partition.current.partition}:dynamodb:${var.aws_region}:${data.aws_caller_identity.current.account_id}:table/personal-portfolio-chatbot-monthly-usage"
   lambda_role_arn      = "arn:${data.aws_partition.current.partition}:iam::${data.aws_caller_identity.current.account_id}:role/personal-portfolio-chatbot-lambda"
+  report_lambda_arn    = "arn:${data.aws_partition.current.partition}:lambda:${var.aws_region}:${data.aws_caller_identity.current.account_id}:function:personal-portfolio-chatbot-weekly-report"
+  report_lambda_role   = "arn:${data.aws_partition.current.partition}:iam::${data.aws_caller_identity.current.account_id}:role/personal-portfolio-chatbot-weekly-report"
+  scheduler_role_arn   = "arn:${data.aws_partition.current.partition}:iam::${data.aws_caller_identity.current.account_id}:role/personal-portfolio-chatbot-weekly-report-scheduler"
+  report_topic_arn     = "arn:${data.aws_partition.current.partition}:sns:${var.aws_region}:${data.aws_caller_identity.current.account_id}:personal-portfolio-chatbot-weekly-report"
+  report_schedule_arn  = "arn:${data.aws_partition.current.partition}:scheduler:${var.aws_region}:${data.aws_caller_identity.current.account_id}:schedule/default/personal-portfolio-chatbot-weekly-report"
   log_group_arn        = "arn:${data.aws_partition.current.partition}:logs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:log-group:/aws/lambda/personal-portfolio-chatbot*"
   api_gateway_tags_arn = "arn:${data.aws_partition.current.partition}:apigateway:${var.aws_region}::/tags/arn%3A${data.aws_partition.current.partition}%3Aapigateway%3A${var.aws_region}%3A%3A%2Fv2%2Fapis%2F*"
 }
@@ -123,7 +128,7 @@ data "aws_iam_policy_document" "github_assume_role" {
     condition {
       test     = "StringEquals"
       variable = "token.actions.githubusercontent.com:sub"
-      values   = ["repo:${var.github_repository}:ref:refs/heads/${var.deploy_branch}"]
+      values   = ["repo:${var.github_repository}:environment:aws-production"]
     }
   }
 }
@@ -237,12 +242,12 @@ data "aws_iam_policy_document" "github_deploy" {
       "iam:UntagRole",
       "iam:UpdateAssumeRolePolicy",
     ]
-    resources = [local.lambda_role_arn]
+    resources = [local.lambda_role_arn, local.report_lambda_role, local.scheduler_role_arn]
 
     condition {
       test     = "StringEqualsIfExists"
       variable = "iam:PassedToService"
-      values   = ["lambda.amazonaws.com"]
+      values   = ["lambda.amazonaws.com", "scheduler.amazonaws.com"]
     }
   }
 
@@ -286,6 +291,79 @@ data "aws_iam_policy_document" "github_deploy" {
     actions   = ["logs:DescribeLogGroups"]
     resources = ["*"]
   }
+
+      sid    = "ManageWeeklyReportLambda"
+    effect = "Allow"
+    actions = [
+      "lambda:CreateFunction",
+      "lambda:DeleteFunction",
+      "lambda:GetFunction",
+      "lambda:GetFunctionConfiguration",
+      "lambda:ListTags",
+      "lambda:TagResource",
+      "lambda:UntagResource",
+      "lambda:UpdateFunctionCode",
+      "lambda:UpdateFunctionConfiguration",
+    ]
+    resources = [local.report_lambda_arn]
+  }
+
+  statement {
+    sid    = "ManageWeeklyReportRoles"
+    effect = "Allow"
+    actions = [
+      "iam:CreateRole",
+      "iam:DeleteRole",
+      "iam:DeleteRolePolicy",
+      "iam:GetRole",
+      "iam:GetRolePolicy",
+      "iam:ListRolePolicies",
+      "iam:ListAttachedRolePolicies",
+      "iam:PutRolePolicy",
+      "iam:TagRole",
+      "iam:UntagRole",
+      "iam:UpdateAssumeRolePolicy",
+    ]
+    resources = [local.report_lambda_role, local.scheduler_role_arn]
+  }
+
+  statement {
+    sid       = "ManageWeeklyReportLogs"
+    effect    = "Allow"
+    actions   = ["logs:CreateLogGroup", "logs:DeleteLogGroup", "logs:DeleteRetentionPolicy", "logs:DescribeLogGroups", "logs:ListTagsForResource", "logs:PutRetentionPolicy", "logs:TagResource", "logs:UntagResource"]
+    resources = ["arn:${data.aws_partition.current.partition}:logs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:log-group:/aws/lambda/personal-portfolio-chatbot-weekly-report*"]
+  }
+
+  statement {
+    sid    = "ManageWeeklyReportTopic"
+    effect = "Allow"
+    actions = [
+      "sns:CreateTopic",
+      "sns:DeleteTopic",
+      "sns:GetTopicAttributes",
+      "sns:ListSubscriptionsByTopic",
+      "sns:SetTopicAttributes",
+      "sns:Subscribe",
+      "sns:TagResource",
+      "sns:Unsubscribe",
+      "sns:UntagResource",
+    ]
+    resources = [local.report_topic_arn]
+  }
+
+  statement {
+    sid    = "ManageWeeklyReportSchedule"
+    effect = "Allow"
+    actions = [
+      "scheduler:CreateSchedule",
+      "scheduler:DeleteSchedule",
+      "scheduler:GetSchedule",
+      "scheduler:UpdateSchedule",
+    ]
+    resources = [local.report_schedule_arn]
+  }
+
+  statement {
 
   statement {
     sid    = "ManageMonthlyUsageTable"
