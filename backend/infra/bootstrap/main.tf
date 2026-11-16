@@ -293,7 +293,8 @@ data "aws_iam_policy_document" "github_deploy" {
     resources = ["*"]
   }
 
-      sid    = "ManageWeeklyReportLambda"
+  statement {
+    sid    = "ManageWeeklyReportLambda"
     effect = "Allow"
     actions = [
       "lambda:CreateFunction",
