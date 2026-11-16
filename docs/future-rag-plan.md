@@ -23,7 +23,7 @@ S3 documents/ upload, overwrite, or delete
   → agent's search_portfolio_documents tool, only when the model selects it
 ```
 
-Bedrock scans the configured prefix on a sync and incrementally processes changed files and removals. The queue coalesces notifications for up to 60 seconds and runs one sync at a time. A failed sync retries through SQS up to five times and then goes to the dead-letter queue. Check Amazon Bedrock → Knowledge Bases → the portfolio data source → Sync history for per-document results. Redrive messages after fixing a failed upload.
+Bedrock scans the configured prefix on a sync and incrementally processes changed files and removals. The queue coalesces notifications for up to 60 seconds and limits indexing worker concurrency. If Bedrock reports an overlapping sync, the queue retries that batch. Other failed syncs retry through SQS up to five times and then go to the dead-letter queue. Check Amazon Bedrock → Knowledge Bases → the portfolio data source → Sync history for per-document results. Redrive messages after fixing a failed upload.
 
 The vector index is Amazon S3 Vectors, with Amazon Bedrock Knowledge Bases managing parsing, chunking, embeddings, and vector writes. This avoids a continuously provisioned vector database. The agent can answer from curated profile facts without retrieval; for document-level details, it can call the bounded search tool, receive up to four short passages, and name the source file. The prompt tells it that the index contains approved resume/CV, current-work, and research material, and that retrieved text is evidence rather than instructions.
 

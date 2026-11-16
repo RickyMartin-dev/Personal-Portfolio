@@ -324,7 +324,7 @@ resource "aws_lambda_event_source_mapping" "rag_ingestion" {
   function_response_types            = ["ReportBatchItemFailures"]
 
   scaling_config {
-    maximum_concurrency = 1
+    maximum_concurrency = 2
   }
 }
 
