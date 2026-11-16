@@ -13,6 +13,7 @@ locals {
   report_lambda_role   = "arn:${data.aws_partition.current.partition}:iam::${data.aws_caller_identity.current.account_id}:role/personal-portfolio-chatbot-weekly-report"
   scheduler_role_arn   = "arn:${data.aws_partition.current.partition}:iam::${data.aws_caller_identity.current.account_id}:role/personal-portfolio-chatbot-weekly-report-scheduler"
   report_topic_arn     = "arn:${data.aws_partition.current.partition}:sns:${var.aws_region}:${data.aws_caller_identity.current.account_id}:personal-portfolio-chatbot-weekly-report"
+  report_subscription_arn = "${local.report_topic_arn}:*"
   report_schedule_arn  = "arn:${data.aws_partition.current.partition}:scheduler:${var.aws_region}:${data.aws_caller_identity.current.account_id}:schedule/default/personal-portfolio-chatbot-weekly-report"
   log_group_arn        = "arn:${data.aws_partition.current.partition}:logs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:log-group:/aws/lambda/personal-portfolio-chatbot*"
   api_gateway_tags_arn = "arn:${data.aws_partition.current.partition}:apigateway:${var.aws_region}::/tags/arn%3A${data.aws_partition.current.partition}%3Aapigateway%3A${var.aws_region}%3A%3A%2Fv2%2Fapis%2F*"
@@ -341,14 +342,16 @@ data "aws_iam_policy_document" "github_deploy" {
       "sns:CreateTopic",
       "sns:DeleteTopic",
       "sns:GetTopicAttributes",
+      "sns:GetSubscriptionAttributes",
       "sns:ListSubscriptionsByTopic",
       "sns:SetTopicAttributes",
+      "sns:SetSubscriptionAttributes",
       "sns:Subscribe",
       "sns:TagResource",
       "sns:Unsubscribe",
       "sns:UntagResource",
     ]
-    resources = [local.report_topic_arn]
+    resources = [local.report_topic_arn, local.report_subscription_arn]
   }
 
   statement {
@@ -358,6 +361,9 @@ data "aws_iam_policy_document" "github_deploy" {
       "scheduler:CreateSchedule",
       "scheduler:DeleteSchedule",
       "scheduler:GetSchedule",
+      "scheduler:ListTagsForResource",
+      "scheduler:TagResource",
+      "scheduler:UntagResource",
       "scheduler:UpdateSchedule",
     ]
     resources = [local.report_schedule_arn]
