@@ -38,6 +38,9 @@ jobs:
       - name: Install backend dependencies
         working-directory: backend
         run: python -m pip install -r requirements-dev.txt
+      - name: Scan backend Python for security issues
+        working-directory: backend
+        run: python -m bandit -r src
       - name: Run focused chatbot and deployment security regressions
         working-directory: backend
         run: python -m pytest tests/test_agent_security.py tests/test_deployment_contract_security.py

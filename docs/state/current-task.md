@@ -5,7 +5,7 @@
 - PR #31 (`codex/weekly-usage-report-owner-gate`) contains the S3-backed RAG index, curated agent facts, temporary browser history, S3 change-triggered reindexing, and Monday usage/cost report. It remains open and is not deployed.
 - The S3 document bucket and RAG index are created by the PR's Terraform apply. They remain empty until the deployment is approved and documents are uploaded.
 - The shared local checkout now tracks `codex/weekly-usage-report-owner-gate`; a stash preserves preexisting uncommitted notes and local state from the prior `develop` checkout.
-- ECC's latest PR audit passed its workflow config and harness checks. Focused agent security regressions and deployment-contract checks now run explicitly in CI.
+- ECC's latest PR audit passed its workflow config and harness checks. Bandit scans backend Python in CI, focused agent security/deployment regressions run explicitly, and synthetic RAG retrieval reference cases cover ranked source behavior.
 
 ## Owner account settings completed
 
@@ -17,12 +17,13 @@
 
 ## Remaining owner setup
 
-1. Apply the bootstrap Terraform update from an authenticated AWS CLI session, then merge PR #31 after its checks pass and approve the `aws-production` deployment.
+1. Merge PR #31 after its checks pass and approve the `aws-production` deployment.
 2. Confirm the SNS email subscription from the inbox after first deployment.
 3. Upload approved portfolio documents to Terraform output `rag_documents_s3_uri`; creates, replacements, and deletions under the monitored `documents/` prefix trigger index sync.
 
 ## Verification
 
-- Full backend/Python frontend suite: 48 passed. Focused agent security and deployment contract tests are also an explicit CI step.
-- Current-commit GitHub CI remains to be checked after pushing the focused coverage changes.
-- No AWS resources for the RAG index or weekly report have been deployed in this task. The $5 account budget alert remains a notification, not a spend limit.
+- Full backend/Python frontend suite: 50 passed. Bandit 1.9.4 scanned `backend/src` with no findings; workflow validation and `git diff --check` passed.
+- Bootstrap Terraform update applied: 0 added, 2 changed, 0 destroyed. The deploy role now trusts the protected `aws-production` environment and permits the narrowly scoped RAG/report deployment resources.
+- Current-commit GitHub CI and ECC follow-up remain to be checked after pushing the latest scanner and retrieval-reference changes.
+- No application AWS resources for the RAG index or weekly report have been deployed. The $5 account budget alert remains a notification, not a spend limit.

@@ -1,11 +1,20 @@
 from __future__ import annotations
 
+import json
+from pathlib import Path
 from typing import Any
 
 import pytest
 
 from src import rag_reindex, retrieval
 from src.agent import ChatAgent
+
+
+RETRIEVAL_REFERENCE_SET = json.loads(
+    (Path(__file__).parent / "fixtures" / "rag-retrieval-reference.json").read_text(
+        encoding="utf-8"
+    )
+)
 
 
 class FakeKnowledgeBaseClient:
@@ -58,6 +67,20 @@ def test_retrieval_returns_bounded_text_and_only_source_filename() -> None:
 def test_retrieval_rejects_unbounded_queries() -> None:
     with pytest.raises(ValueError):
         retrieval.retrieve_portfolio_documents("x" * 501, knowledge_base_id="kb-test", client=FakeKnowledgeBaseClient())
+
+
+@pytest.mark.parametrize("scenario", RETRIEVAL_REFERENCE_SET, ids=lambda item: item["name"])
+def test_retrieval_reference_set_preserves_expected_ranked_sources(
+    scenario: dict[str, Any],
+) -> None:
+    client = FakeKnowledgeBaseClient(scenario["retrieval_results"])
+
+    chunks = retrieval.retrieve_portfolio_documents(
+        scenario["query"], knowledge_base_id="kb-test", client=client
+    )
+
+    assert [chunk["source"] for chunk in chunks] == scenario["expected_sources"]
+    assert client.calls[0]["retrievalQuery"]["text"] == scenario["query"]
 
 
 class ToolUsingBedrockClient:
