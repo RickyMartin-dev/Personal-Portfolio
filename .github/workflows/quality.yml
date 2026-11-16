@@ -113,6 +113,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 2
     steps:
+      - name: Check out repository for the gate script
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.0
+        with:
+          persist-credentials: false
       - name: Require every quality job to pass
         env:
           STARTER_SECURITY_RESULT: ${{ needs.starter-and-security.result }}

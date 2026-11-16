@@ -23,7 +23,7 @@
 
 ## Verification
 
-- Full backend/Python frontend suite: 56 passed. Bandit 1.9.4 scanned `backend/src` with no findings and generated SARIF; workflow validation and `git diff --check` passed. CI failure-mode runbook: [`ci-failure-modes.md`](../ci-failure-modes.md).
+- Full backend/Python frontend suite: 57 passed. Bandit 1.9.4 scanned `backend/src` with no findings and generated SARIF; workflow validation and `git diff --check` passed. CI failure-mode runbook: [`ci-failure-modes.md`](../ci-failure-modes.md).
 - Bootstrap Terraform update applied: 0 added, 2 changed, 0 destroyed. The deploy role now trusts the protected `aws-production` environment and permits the narrowly scoped RAG/report deployment resources.
-- Latest GitHub CI passed all six required checks. ECC security-evidence, config, and harness audits passed; remaining readiness/taxonomy notes are neutral repository-wide recommendations.
+- The most recent GitHub run exposed and was used to fix a missing checkout in the fail-closed merge gate; verification of the fix is pending. ECC security-evidence, config, and harness audits passed; remaining readiness/taxonomy notes are neutral repository-wide recommendations.
 - No application AWS resources for the RAG index or weekly report have been deployed. The $5 account budget alert remains a notification, not a spend limit.
