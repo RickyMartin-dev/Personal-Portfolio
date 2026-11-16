@@ -28,7 +28,7 @@ Bedrock receives the bounded turn and calls inline safety checks before and afte
 - Feature branches open pull requests to `develop`.
 - Pull requests run Project Starter/security checks, mocked backend and artifact tests, Playwright browser tests, and Terraform format/validation. These checks use no AWS credentials or remote Terraform state.
 - Pull requests to `develop` run mocked API/UI tests and Terraform validation without AWS credentials. The required `Quality checks / merge-gate` status fails if any quality job fails or is cancelled.
-- GitHub branch rules must require pull requests and `Quality checks / merge-gate` on `develop`, and block force pushes and deletion. These controls live in repository settings and must be applied separately from workflow YAML; see [`CONTRIBUTING.md`](CONTRIBUTING.md).
+- The GitHub `develop` branch rule must require pull requests and `Quality checks / merge-gate`, and block force pushes and deletion. These controls live in repository settings and must be verified separately from workflow YAML; see [`CONTRIBUTING.md`](CONTRIBUTING.md).
 - Pushes to `develop` run verification, assume the branch-restricted deployment role through GitHub OIDC, build and push the Lambda image, apply the app Terraform root, smoke-check `/health`, then build Pages with the resulting public endpoint.
 - The bootstrap root creates the private versioned state bucket, `develop`-only OIDC role, and account-wide $5 budget. The deploy role does not receive account-wide CloudWatch Logs delivery permissions. GitHub repository variables `AWS_ROLE_ARN` and `TF_STATE_BUCKET` contain non-secret resource identifiers.
 
