@@ -91,3 +91,26 @@ jobs:
           terraform -chdir=backend/infra/terraform fmt -check -recursive
           terraform -chdir=backend/infra/terraform init -backend=false -input=false
           terraform -chdir=backend/infra/terraform validate
+
+  merge-gate:
+    name: merge-gate
+    if: ${{ always() }}
+    needs: [starter-and-security, backend, frontend, terraform]
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Require every quality job to pass
+        env:
+          STARTER_SECURITY_RESULT: ${{ needs.starter-and-security.result }}
+          BACKEND_RESULT: ${{ needs.backend.result }}
+          FRONTEND_RESULT: ${{ needs.frontend.result }}
+          TERRAFORM_RESULT: ${{ needs.terraform.result }}
+        run: |
+          for job in STARTER_SECURITY BACKEND FRONTEND TERRAFORM; do
+            variable="${job}_RESULT"
+            result="${!variable}"
+            if [[ "$result" != "success" ]]; then
+              echo "::error::Required quality job $job finished with '$result'."
+              exit 1
+            fi
+          done
