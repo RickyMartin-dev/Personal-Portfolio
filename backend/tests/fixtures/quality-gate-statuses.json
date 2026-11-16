@@ -1,4 +1,0 @@
-{
-  "accepted_status": "success",
-  "rejected_statuses": ["failure", "cancelled", "skipped", "pending", "neutral"]
-}
