@@ -371,8 +371,6 @@ data "aws_iam_policy_document" "github_deploy" {
   }
 
   statement {
-
-  statement {
     sid    = "ManageMonthlyUsageTable"
     effect = "Allow"
     actions = [
