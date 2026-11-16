@@ -36,7 +36,7 @@ The static builder copies `frontend/index.html`, pages, styles, scripts, and sit
 
 - Pull requests targeting `develop` run Project Starter/security checks, mocked backend and artifact tests, Playwright, and Terraform formatting/validation. The `Quality checks / merge-gate` check is required to pass only after every quality job succeeds. These checks do not use AWS credentials or a remote Terraform state.
 - A push to `develop` runs the mocked API/UI tests and Terraform validation, then deploys the Lambda image and API with GitHub OIDC. The workflow checks `/health` and publishes Pages with the resulting endpoint.
-- Work on a short lived branch and open a pull request to `develop`; do not push directly to `develop`. GitHub must have a branch ruleset requiring pull requests and `Quality checks / merge-gate`, while blocking force pushes and deletion. See [`CONTRIBUTING.md`](CONTRIBUTING.md) for the policy setup and deployment sequence.
+- Work on a short lived branch and open a pull request to `develop`; do not push directly to `develop`. Verify that GitHub's `develop` branch rule requires pull requests and `Quality checks / merge-gate`, while blocking force pushes and deletion. See [`CONTRIBUTING.md`](CONTRIBUTING.md) for the policy setup and deployment sequence.
 - AWS credentials are short-lived OIDC sessions; `AWS_ROLE_ARN` and `TF_STATE_BUCKET` are non-secret repository variables. No static AWS keys are stored in GitHub.
 - Configure GitHub Pages to use **GitHub Actions**. The contact form works without any secret: the build uses the public Web3Forms key in `frontend/build.py`. An optional `WEB3FORMS_KEY` secret overrides it, and `off` switches to the direct email link.
 
