@@ -221,3 +221,143 @@ resource "aws_lambda_permission" "api_gateway" {
   principal     = "apigateway.amazonaws.com"
   source_arn    = "${aws_apigatewayv2_api.chatbot.execution_arn}/*/*"
 }
+
+data "archive_file" "weekly_report" {
+  type        = "zip"
+  source_file = "${path.module}/../../src/weekly_report.py"
+  output_path = "${path.module}/.terraform/weekly-report.zip"
+}
+
+resource "aws_sns_topic" "weekly_report" {
+  name = "${var.project_name}-weekly-report"
+}
+
+resource "aws_sns_topic_subscription" "weekly_report_email" {
+  topic_arn = aws_sns_topic.weekly_report.arn
+  protocol  = "email"
+  endpoint  = var.weekly_report_email
+}
+
+data "aws_iam_policy_document" "weekly_report_assume_role" {
+  statement {
+    actions = ["sts:AssumeRole"]
+    principals {
+      type        = "Service"
+      identifiers = ["lambda.amazonaws.com"]
+    }
+  }
+}
+
+resource "aws_iam_role" "weekly_report" {
+  name               = "${var.project_name}-weekly-report"
+  assume_role_policy = data.aws_iam_policy_document.weekly_report_assume_role.json
+}
+
+data "aws_iam_policy_document" "weekly_report" {
+  statement {
+    sid       = "ReadSanitizedChatMetrics"
+    actions   = ["logs:FilterLogEvents"]
+    resources = ["${aws_cloudwatch_log_group.lambda.arn}:*"]
+  }
+
+  statement {
+    sid       = "ReadAccountCostSummary"
+    actions   = ["ce:GetCostAndUsage"]
+    resources = ["*"]
+  }
+
+  statement {
+    sid       = "EmailWeeklySnapshot"
+    actions   = ["sns:Publish"]
+    resources = [aws_sns_topic.weekly_report.arn]
+  }
+
+  statement {
+    sid       = "WriteReportLogs"
+    actions   = ["logs:CreateLogStream", "logs:PutLogEvents"]
+    resources = ["${aws_cloudwatch_log_group.weekly_report.arn}:*"]
+  }
+}
+
+resource "aws_iam_role_policy" "weekly_report" {
+  name   = "${var.project_name}-weekly-report"
+  role   = aws_iam_role.weekly_report.id
+  policy = data.aws_iam_policy_document.weekly_report.json
+}
+
+resource "aws_cloudwatch_log_group" "weekly_report" {
+  name              = "/aws/lambda/${var.project_name}-weekly-report"
+  retention_in_days = var.log_retention_days
+}
+
+resource "aws_lambda_function" "weekly_report" {
+  function_name    = "${var.project_name}-weekly-report"
+  role             = aws_iam_role.weekly_report.arn
+  filename         = data.archive_file.weekly_report.output_path
+  source_code_hash = data.archive_file.weekly_report.output_base64sha256
+  runtime          = "python3.12"
+  handler          = "weekly_report.handler"
+  architectures    = ["x86_64"]
+  memory_size      = 128
+  timeout          = 60
+
+  environment {
+    variables = {
+      CHATBOT_LOG_GROUP = aws_cloudwatch_log_group.lambda.name
+      REPORT_TOPIC_ARN  = aws_sns_topic.weekly_report.arn
+    }
+  }
+
+  depends_on = [aws_iam_role_policy.weekly_report, aws_cloudwatch_log_group.weekly_report]
+}
+
+data "aws_iam_policy_document" "weekly_report_scheduler_assume_role" {
+  statement {
+    actions = ["sts:AssumeRole"]
+    principals {
+      type        = "Service"
+      identifiers = ["scheduler.amazonaws.com"]
+    }
+  }
+}
+
+resource "aws_iam_role" "weekly_report_scheduler" {
+  name               = "${var.project_name}-weekly-report-scheduler"
+  assume_role_policy = data.aws_iam_policy_document.weekly_report_scheduler_assume_role.json
+}
+
+data "aws_iam_policy_document" "weekly_report_scheduler" {
+  statement {
+    actions   = ["lambda:InvokeFunction"]
+    resources = [aws_lambda_function.weekly_report.arn]
+  }
+}
+
+resource "aws_iam_role_policy" "weekly_report_scheduler" {
+  name   = "${var.project_name}-weekly-report-invoke"
+  role   = aws_iam_role.weekly_report_scheduler.id
+  policy = data.aws_iam_policy_document.weekly_report_scheduler.json
+}
+
+resource "aws_scheduler_schedule" "weekly_report" {
+  name                         = "${var.project_name}-weekly-report"
+  schedule_expression          = "cron(0 8 ? * MON *)"
+  schedule_expression_timezone = "America/New_York"
+  state                        = "ENABLED"
+
+  flexible_time_window {
+    mode = "OFF"
+  }
+
+  target {
+    arn      = aws_lambda_function.weekly_report.arn
+    role_arn = aws_iam_role.weekly_report_scheduler.arn
+
+    retry_policy {
+      maximum_event_age_in_seconds = 3600
+      maximum_retry_attempts       = 2
+    }
+  }
+
+  depends_on = [aws_iam_role_policy.weekly_report_scheduler]
+}
