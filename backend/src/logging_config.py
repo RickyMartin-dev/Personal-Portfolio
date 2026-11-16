@@ -18,6 +18,8 @@ _SAFE_FIELDS = (
     "input_tokens",
     "output_tokens",
     "guardrail_text_units",
+    "rag_searches",
+    "rag_results_count",
     "error_type",
     "bedrock_operation",
 )

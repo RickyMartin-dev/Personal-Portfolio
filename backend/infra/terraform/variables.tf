@@ -120,3 +120,14 @@ variable "monthly_chat_limit" {
     error_message = "monthly_chat_limit must be a positive integer."
   }
 }
+
+variable "weekly_report_email" {
+  description = "Email address subscribed to the weekly portfolio assistant usage summary. SNS requires confirmation from the inbox."
+  type        = string
+  sensitive   = true
+
+  validation {
+    condition     = can(regex("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$", var.weekly_report_email))
+    error_message = "weekly_report_email must be an email address."
+  }
+}

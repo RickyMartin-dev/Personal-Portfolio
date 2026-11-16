@@ -2,15 +2,30 @@ data "aws_caller_identity" "current" {}
 data "aws_partition" "current" {}
 
 locals {
-  state_bucket_name    = var.state_bucket_name != "" ? var.state_bucket_name : "${var.project_name}-tfstate-${data.aws_caller_identity.current.account_id}"
-  oidc_provider_arn    = var.github_oidc_provider_arn != "" ? var.github_oidc_provider_arn : aws_iam_openid_connect_provider.github[0].arn
-  state_key_prefix     = "personal-portfolio/chatbot/"
-  repository_arn       = "arn:${data.aws_partition.current.partition}:ecr:${var.aws_region}:${data.aws_caller_identity.current.account_id}:repository/personal-portfolio-chatbot"
-  lambda_arn           = "arn:${data.aws_partition.current.partition}:lambda:${var.aws_region}:${data.aws_caller_identity.current.account_id}:function:personal-portfolio-chatbot"
-  usage_table_arn      = "arn:${data.aws_partition.current.partition}:dynamodb:${var.aws_region}:${data.aws_caller_identity.current.account_id}:table/personal-portfolio-chatbot-monthly-usage"
-  lambda_role_arn      = "arn:${data.aws_partition.current.partition}:iam::${data.aws_caller_identity.current.account_id}:role/personal-portfolio-chatbot-lambda"
-  log_group_arn        = "arn:${data.aws_partition.current.partition}:logs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:log-group:/aws/lambda/personal-portfolio-chatbot*"
-  api_gateway_tags_arn = "arn:${data.aws_partition.current.partition}:apigateway:${var.aws_region}::/tags/arn%3A${data.aws_partition.current.partition}%3Aapigateway%3A${var.aws_region}%3A%3A%2Fv2%2Fapis%2F*"
+  state_bucket_name       = var.state_bucket_name != "" ? var.state_bucket_name : "${var.project_name}-tfstate-${data.aws_caller_identity.current.account_id}"
+  oidc_provider_arn       = var.github_oidc_provider_arn != "" ? var.github_oidc_provider_arn : aws_iam_openid_connect_provider.github[0].arn
+  state_key_prefix        = "personal-portfolio/chatbot/"
+  repository_arn          = "arn:${data.aws_partition.current.partition}:ecr:${var.aws_region}:${data.aws_caller_identity.current.account_id}:repository/personal-portfolio-chatbot"
+  lambda_arn              = "arn:${data.aws_partition.current.partition}:lambda:${var.aws_region}:${data.aws_caller_identity.current.account_id}:function:personal-portfolio-chatbot"
+  usage_table_arn         = "arn:${data.aws_partition.current.partition}:dynamodb:${var.aws_region}:${data.aws_caller_identity.current.account_id}:table/personal-portfolio-chatbot-monthly-usage"
+  lambda_role_arn         = "arn:${data.aws_partition.current.partition}:iam::${data.aws_caller_identity.current.account_id}:role/personal-portfolio-chatbot-lambda"
+  report_lambda_arn       = "arn:${data.aws_partition.current.partition}:lambda:${var.aws_region}:${data.aws_caller_identity.current.account_id}:function:personal-portfolio-chatbot-weekly-report"
+  report_lambda_role      = "arn:${data.aws_partition.current.partition}:iam::${data.aws_caller_identity.current.account_id}:role/personal-portfolio-chatbot-weekly-report"
+  scheduler_role_arn      = "arn:${data.aws_partition.current.partition}:iam::${data.aws_caller_identity.current.account_id}:role/personal-portfolio-chatbot-weekly-report-scheduler"
+  report_topic_arn        = "arn:${data.aws_partition.current.partition}:sns:${var.aws_region}:${data.aws_caller_identity.current.account_id}:personal-portfolio-chatbot-weekly-report"
+  report_subscription_arn = "${local.report_topic_arn}:*"
+  report_schedule_arn     = "arn:${data.aws_partition.current.partition}:scheduler:${var.aws_region}:${data.aws_caller_identity.current.account_id}:schedule/default/personal-portfolio-chatbot-weekly-report"
+  rag_source_bucket_name  = "personal-portfolio-chatbot-rag-${data.aws_caller_identity.current.account_id}"
+  rag_source_bucket_arn   = "arn:${data.aws_partition.current.partition}:s3:::${local.rag_source_bucket_name}"
+  rag_vector_bucket_arn   = "arn:${data.aws_partition.current.partition}:s3vectors:${var.aws_region}:${data.aws_caller_identity.current.account_id}:bucket/personal-portfolio-chatbot-rag-vectors-${data.aws_caller_identity.current.account_id}"
+  rag_vector_index_arn    = "${local.rag_vector_bucket_arn}/index/portfolio-documents"
+  rag_knowledge_base_arn  = "arn:${data.aws_partition.current.partition}:bedrock:${var.aws_region}:${data.aws_caller_identity.current.account_id}:knowledge-base/*"
+  rag_kb_role_arn         = "arn:${data.aws_partition.current.partition}:iam::${data.aws_caller_identity.current.account_id}:role/personal-portfolio-chatbot-rag-knowledge-base"
+  rag_reindex_role_arn    = "arn:${data.aws_partition.current.partition}:iam::${data.aws_caller_identity.current.account_id}:role/personal-portfolio-chatbot-rag-reindex"
+  rag_reindex_lambda_arn  = "arn:${data.aws_partition.current.partition}:lambda:${var.aws_region}:${data.aws_caller_identity.current.account_id}:function:personal-portfolio-chatbot-rag-reindex"
+  rag_queue_arn           = "arn:${data.aws_partition.current.partition}:sqs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:personal-portfolio-chatbot-rag-ingestion"
+  log_group_arn           = "arn:${data.aws_partition.current.partition}:logs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:log-group:/aws/lambda/personal-portfolio-chatbot*"
+  api_gateway_tags_arn    = "arn:${data.aws_partition.current.partition}:apigateway:${var.aws_region}::/tags/arn%3A${data.aws_partition.current.partition}%3Aapigateway%3A${var.aws_region}%3A%3A%2Fv2%2Fapis%2F*"
 }
 
 resource "aws_s3_bucket" "terraform_state" {
@@ -123,7 +138,7 @@ data "aws_iam_policy_document" "github_assume_role" {
     condition {
       test     = "StringEquals"
       variable = "token.actions.githubusercontent.com:sub"
-      values   = ["repo:${var.github_repository}:ref:refs/heads/${var.deploy_branch}"]
+      values   = ["repo:${var.github_repository}:environment:aws-production"]
     }
   }
 }
@@ -237,12 +252,12 @@ data "aws_iam_policy_document" "github_deploy" {
       "iam:UntagRole",
       "iam:UpdateAssumeRolePolicy",
     ]
-    resources = [local.lambda_role_arn]
+    resources = [local.lambda_role_arn, local.report_lambda_role, local.scheduler_role_arn, local.rag_kb_role_arn, local.rag_reindex_role_arn]
 
     condition {
       test     = "StringEqualsIfExists"
       variable = "iam:PassedToService"
-      values   = ["lambda.amazonaws.com"]
+      values   = ["lambda.amazonaws.com", "scheduler.amazonaws.com", "bedrock.amazonaws.com"]
     }
   }
 
@@ -284,6 +299,221 @@ data "aws_iam_policy_document" "github_deploy" {
     sid       = "DescribeLogGroups"
     effect    = "Allow"
     actions   = ["logs:DescribeLogGroups"]
+    resources = ["*"]
+  }
+
+  statement {
+    sid    = "ManageWeeklyReportLambda"
+    effect = "Allow"
+    actions = [
+      "lambda:CreateFunction",
+      "lambda:DeleteFunction",
+      "lambda:GetFunction",
+      "lambda:GetFunctionConfiguration",
+      "lambda:ListTags",
+      "lambda:TagResource",
+      "lambda:UntagResource",
+      "lambda:UpdateFunctionCode",
+      "lambda:UpdateFunctionConfiguration",
+    ]
+    resources = [local.report_lambda_arn]
+  }
+
+  statement {
+    sid    = "ManageWeeklyReportRoles"
+    effect = "Allow"
+    actions = [
+      "iam:CreateRole",
+      "iam:DeleteRole",
+      "iam:DeleteRolePolicy",
+      "iam:GetRole",
+      "iam:GetRolePolicy",
+      "iam:ListRolePolicies",
+      "iam:ListAttachedRolePolicies",
+      "iam:PutRolePolicy",
+      "iam:TagRole",
+      "iam:UntagRole",
+      "iam:UpdateAssumeRolePolicy",
+    ]
+    resources = [local.report_lambda_role, local.scheduler_role_arn]
+  }
+
+  statement {
+    sid       = "ManageWeeklyReportLogs"
+    effect    = "Allow"
+    actions   = ["logs:CreateLogGroup", "logs:DeleteLogGroup", "logs:DeleteRetentionPolicy", "logs:DescribeLogGroups", "logs:ListTagsForResource", "logs:PutRetentionPolicy", "logs:TagResource", "logs:UntagResource"]
+    resources = ["arn:${data.aws_partition.current.partition}:logs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:log-group:/aws/lambda/personal-portfolio-chatbot-weekly-report*"]
+  }
+
+  statement {
+    sid    = "ManageWeeklyReportTopic"
+    effect = "Allow"
+    actions = [
+      "sns:CreateTopic",
+      "sns:DeleteTopic",
+      "sns:GetTopicAttributes",
+      "sns:GetSubscriptionAttributes",
+      "sns:ListSubscriptionsByTopic",
+      "sns:SetTopicAttributes",
+      "sns:SetSubscriptionAttributes",
+      "sns:Subscribe",
+      "sns:TagResource",
+      "sns:Unsubscribe",
+      "sns:UntagResource",
+    ]
+    resources = [local.report_topic_arn, local.report_subscription_arn]
+  }
+
+  statement {
+    sid    = "ManageWeeklyReportSchedule"
+    effect = "Allow"
+    actions = [
+      "scheduler:CreateSchedule",
+      "scheduler:DeleteSchedule",
+      "scheduler:GetSchedule",
+      "scheduler:ListTagsForResource",
+      "scheduler:TagResource",
+      "scheduler:UntagResource",
+      "scheduler:UpdateSchedule",
+    ]
+    resources = [local.report_schedule_arn]
+  }
+
+  statement {
+    sid    = "ManageRagSourceBucket"
+    effect = "Allow"
+    actions = [
+      "s3:CreateBucket",
+      "s3:DeleteBucket",
+      "s3:GetBucketLocation",
+      "s3:GetBucketNotification",
+      "s3:GetBucketOwnershipControls",
+      "s3:GetBucketPublicAccessBlock",
+      "s3:GetBucketServerSideEncryption",
+      "s3:GetLifecycleConfiguration",
+      "s3:ListBucket",
+      "s3:PutBucketNotification",
+      "s3:PutBucketOwnershipControls",
+      "s3:PutBucketPublicAccessBlock",
+      "s3:PutBucketServerSideEncryption",
+      "s3:PutLifecycleConfiguration",
+    ]
+    resources = [local.rag_source_bucket_arn]
+  }
+
+  statement {
+    sid    = "ManageRagQueues"
+    effect = "Allow"
+    actions = [
+      "sqs:CreateQueue",
+      "sqs:DeleteQueue",
+      "sqs:GetQueueAttributes",
+      "sqs:GetQueueUrl",
+      "sqs:ListQueueTags",
+      "sqs:SetQueueAttributes",
+      "sqs:TagQueue",
+      "sqs:UntagQueue",
+    ]
+    resources = [local.rag_queue_arn, "${local.rag_queue_arn}-dlq"]
+  }
+
+  statement {
+    sid    = "ManageRagReindexLambda"
+    effect = "Allow"
+    actions = [
+      "lambda:CreateFunction",
+      "lambda:DeleteFunction",
+      "lambda:GetFunction",
+      "lambda:GetFunctionConfiguration",
+      "lambda:ListTags",
+      "lambda:TagResource",
+      "lambda:UntagResource",
+      "lambda:UpdateFunctionCode",
+      "lambda:UpdateFunctionConfiguration",
+    ]
+    resources = [local.rag_reindex_lambda_arn]
+  }
+
+  statement {
+    sid    = "ManageRagEventSourceMapping"
+    effect = "Allow"
+    actions = [
+      "lambda:CreateEventSourceMapping",
+      "lambda:DeleteEventSourceMapping",
+      "lambda:GetEventSourceMapping",
+      "lambda:UpdateEventSourceMapping",
+    ]
+    resources = ["*"]
+  }
+
+  statement {
+    sid    = "ManageRagLogs"
+    effect = "Allow"
+    actions = [
+      "logs:CreateLogGroup",
+      "logs:DeleteLogGroup",
+      "logs:DeleteRetentionPolicy",
+      "logs:DescribeLogGroups",
+      "logs:ListTagsForResource",
+      "logs:PutRetentionPolicy",
+      "logs:TagResource",
+      "logs:UntagResource",
+    ]
+    resources = ["arn:${data.aws_partition.current.partition}:logs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:log-group:/aws/lambda/personal-portfolio-chatbot-rag-reindex*"]
+  }
+
+  statement {
+    sid       = "CreatePortfolioKnowledgeBase"
+    effect    = "Allow"
+    actions   = ["bedrock:CreateKnowledgeBase"]
+    resources = ["*"]
+  }
+
+  statement {
+    sid    = "ManagePortfolioKnowledgeBase"
+    effect = "Allow"
+    actions = [
+      "bedrock:CreateDataSource",
+      "bedrock:DeleteDataSource",
+      "bedrock:DeleteKnowledgeBase",
+      "bedrock:GetDataSource",
+      "bedrock:GetKnowledgeBase",
+      "bedrock:ListDataSources",
+      "bedrock:ListIngestionJobs",
+      "bedrock:ListKnowledgeBases",
+      "bedrock:StartIngestionJob",
+      "bedrock:StopIngestionJob",
+      "bedrock:TagResource",
+      "bedrock:UntagResource",
+      "bedrock:UpdateDataSource",
+      "bedrock:UpdateKnowledgeBase",
+    ]
+    resources = [local.rag_knowledge_base_arn]
+  }
+
+  statement {
+    sid    = "ManagePortfolioVectorStore"
+    effect = "Allow"
+    actions = [
+      "s3vectors:CreateVectorBucket",
+      "s3vectors:DeleteVectorBucket",
+      "s3vectors:GetVectorBucket",
+      "s3vectors:CreateIndex",
+      "s3vectors:DeleteIndex",
+      "s3vectors:GetIndex",
+      "s3vectors:ListIndexes",
+      "s3vectors:ListTagsForResource",
+      "s3vectors:TagResource",
+      "s3vectors:UntagResource",
+      "s3vectors:UpdateIndexMode",
+    ]
+    resources = [local.rag_vector_bucket_arn, local.rag_vector_index_arn]
+  }
+
+  statement {
+    sid       = "ListPortfolioVectorBuckets"
+    effect    = "Allow"
+    actions   = ["s3vectors:ListVectorBuckets"]
     resources = ["*"]
   }
 

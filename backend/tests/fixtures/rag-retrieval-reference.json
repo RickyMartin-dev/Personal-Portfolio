@@ -1,0 +1,36 @@
+[
+  {
+    "name": "resume project query keeps the most relevant sources first",
+    "query": "Which tools were used for Ricky's forecasting project?",
+    "retrieval_results": [
+      {
+        "content": {"text": "The forecasting project used Python and XGBoost."},
+        "location": {"s3Location": {"uri": "s3://portfolio-test/documents/resume-projects.pdf"}}
+      },
+      {
+        "content": {"text": "Current work uses Bedrock and LangGraph."},
+        "location": {"s3Location": {"uri": "s3://portfolio-test/documents/current-work.md"}}
+      },
+      {
+        "content": {"text": "A research paper studied tactile signals."},
+        "location": {"s3Location": {"uri": "s3://portfolio-test/documents/research.pdf"}}
+      }
+    ],
+    "expected_sources": ["resume-projects.pdf", "current-work.md", "research.pdf"]
+  },
+  {
+    "name": "research query preserves the research source ahead of general notes",
+    "query": "What methods were used in the affective touch research?",
+    "retrieval_results": [
+      {
+        "content": {"text": "The study classified affective touch using sensor features."},
+        "location": {"s3Location": {"uri": "s3://portfolio-test/documents/research.pdf"}}
+      },
+      {
+        "content": {"text": "The resume summarizes the research contribution."},
+        "location": {"s3Location": {"uri": "s3://portfolio-test/documents/resume.pdf"}}
+      }
+    ],
+    "expected_sources": ["research.pdf", "resume.pdf"]
+  }
+]
