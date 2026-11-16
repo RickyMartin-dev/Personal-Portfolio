@@ -5,7 +5,7 @@
 - PR #31 (`codex/weekly-usage-report-owner-gate`) contains the S3-backed RAG index, curated agent facts, temporary browser history, S3 change-triggered reindexing, and Monday usage/cost report. It remains open and is not deployed.
 - The S3 document bucket and RAG index are created by the PR's Terraform apply. They remain empty until the deployment is approved and documents are uploaded.
 - The shared local checkout now tracks `codex/weekly-usage-report-owner-gate`; a stash preserves preexisting uncommitted notes and local state from the prior `develop` checkout.
-- ECC's latest PR audit passed its workflow config and harness checks. Bandit scans backend Python in CI, focused agent security/deployment regressions run explicitly, and synthetic RAG retrieval reference cases cover ranked source behavior.
+- ECC's latest PR audit passed its workflow config and harness checks. Bandit scans backend Python in CI and uploads a seven-day SARIF artifact, focused agent security/deployment regressions run explicitly, and synthetic RAG retrieval reference cases cover ranked source behavior.
 
 ## Owner account settings completed
 
