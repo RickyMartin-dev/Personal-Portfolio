@@ -119,32 +119,52 @@ test('primary navigation links work across home, about, and games', async ({ pag
 });
 
 test('phone navigation opens as a keyboard-accessible menu on every page', async ({ page }) => {
-  await page.setViewportSize({ width: 390, height: 844 });
-  for (const target of pages) {
-    await page.goto(target.url);
-    const toggle = page.locator('[data-nav-toggle]');
-    const nav = page.getByRole('navigation', { name: 'Primary' });
-    await expect(toggle).toBeVisible();
-    await expect(nav).toBeHidden();
-    await toggle.click();
-    await expect(toggle).toHaveAttribute('aria-expanded', 'true');
-    await expect(toggle).toHaveAttribute('aria-label', 'Close site menu');
-    await expect(nav.getByRole('link', { name: 'Home' })).toBeVisible();
-    await expect(nav.getByRole('link', { name: 'About' })).toBeVisible();
-    await expect(nav.getByRole('link', { name: 'Games' })).toBeVisible();
-    const themeToggle = nav.locator('[data-theme-toggle]');
-    await expect(themeToggle).toBeVisible();
-    const beforeTheme = await page.locator('html').getAttribute('data-theme');
-    await themeToggle.click();
-    await expect(page.locator('html')).toHaveAttribute('data-theme', beforeTheme === 'dark' ? 'light' : 'dark');
-    await page.keyboard.press('Escape');
-    await expect(nav).toBeHidden();
-    await expect(toggle).toBeFocused();
-    await toggle.click();
-    await expect(toggle).toHaveAttribute('aria-label', 'Close site menu');
-    await nav.getByRole('link', { name: target.name === 'home' ? 'About' : 'Home' }).click();
-    await expect(nav).toBeHidden();
-    await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+  for (const width of [320, 390]) {
+    await page.setViewportSize({ width, height: 844 });
+    for (const target of pages) {
+      await page.goto(target.url);
+      const toggle = page.locator('[data-nav-toggle]');
+      const nav = page.getByRole('navigation', { name: 'Primary' });
+      await expect(toggle).toBeVisible();
+      await expect(nav).toBeHidden();
+      await toggle.click();
+      await expect(toggle).toHaveAttribute('aria-expanded', 'true');
+      await expect(toggle).toHaveAttribute('aria-label', 'Close site menu');
+      await expect(nav.getByRole('link', { name: 'Home' })).toBeVisible();
+      await expect(nav.getByRole('link', { name: 'About' })).toBeVisible();
+      await expect(nav.getByRole('link', { name: 'Games' })).toBeVisible();
+      const menuGeometry = await nav.evaluate((menu) => {
+        const panel = menu.getBoundingClientRect();
+        const trigger = document.querySelector('[data-nav-toggle]').getBoundingClientRect();
+        return {
+          left: panel.left,
+          right: panel.right,
+          top: panel.top,
+          bottom: panel.bottom,
+          triggerRight: trigger.right,
+          triggerBottom: trigger.bottom,
+          backdrop: getComputedStyle(document.body, '::before').content
+        };
+      });
+      expect(menuGeometry.left, `${width}px menu stays inside the viewport`).toBeGreaterThanOrEqual(12);
+      expect(menuGeometry.right, `${width}px menu stays inside the viewport`).toBeLessThanOrEqual(width - 12);
+      expect(Math.abs(menuGeometry.right - menuGeometry.triggerRight), `${width}px menu aligns to its trigger`).toBeLessThan(1);
+      expect(menuGeometry.top, `${width}px menu clears the trigger`).toBeGreaterThanOrEqual(menuGeometry.triggerBottom);
+      expect(menuGeometry.backdrop).not.toBe('none');
+      const themeToggle = nav.locator('[data-theme-toggle]');
+      await expect(themeToggle).toBeVisible();
+      const beforeTheme = await page.locator('html').getAttribute('data-theme');
+      await themeToggle.click();
+      await expect(page.locator('html')).toHaveAttribute('data-theme', beforeTheme === 'dark' ? 'light' : 'dark');
+      await page.keyboard.press('Escape');
+      await expect(nav).toBeHidden();
+      await expect(toggle).toBeFocused();
+      await toggle.click();
+      await expect(toggle).toHaveAttribute('aria-label', 'Close site menu');
+      await nav.getByRole('link', { name: target.name === 'home' ? 'About' : 'Home' }).click();
+      await expect(nav).toBeHidden();
+      await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    }
   }
 });
 
@@ -184,8 +204,20 @@ test('all experience labels stay on the mountain peaks and remain readable on ph
         const label = span.getBoundingClientRect();
         return { x: label.x, y: label.y, right: label.right, bottom: label.bottom };
       });
-      return { covered: labels.some((label) => label.x < button.right && label.right > button.left && label.y < button.bottom && label.bottom > button.top), labels, button: { x: button.x, y: button.y, right: button.right, bottom: button.bottom } };
+      return {
+        covered: labels.some((label) => label.x < button.right && label.right > button.left && label.y < button.bottom && label.bottom > button.top),
+        position: getComputedStyle(launcher).position,
+        rightGap: window.innerWidth - button.right,
+        bottomGap: window.innerHeight - button.bottom,
+        labels,
+        button: { x: button.x, y: button.y, right: button.right, bottom: button.bottom }
+      };
     });
+    expect(assistantClearance.position, `${width}px assistant launcher stays fixed`).toBe('fixed');
+    expect(assistantClearance.rightGap, `${width}px assistant launcher stays at the right edge`).toBeGreaterThanOrEqual(15);
+    expect(assistantClearance.rightGap, `${width}px assistant launcher stays at the right edge`).toBeLessThanOrEqual(40);
+    expect(assistantClearance.bottomGap, `${width}px assistant launcher stays at the bottom edge`).toBeGreaterThanOrEqual(15);
+    expect(assistantClearance.bottomGap, `${width}px assistant launcher stays at the bottom edge`).toBeLessThanOrEqual(40);
     expect(assistantClearance.covered, `${width}px mountain labels stay clear of the assistant button: ${JSON.stringify(assistantClearance)}`).toBe(false);
   }
 });
