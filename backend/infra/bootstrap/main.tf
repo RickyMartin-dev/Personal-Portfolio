@@ -460,6 +460,7 @@ data "aws_iam_policy_document" "github_deploy" {
       "lambda:CreateEventSourceMapping",
       "lambda:DeleteEventSourceMapping",
       "lambda:GetEventSourceMapping",
+      "lambda:ListTags",
       "lambda:TagResource",
       "lambda:UntagResource",
       "lambda:UpdateEventSourceMapping",

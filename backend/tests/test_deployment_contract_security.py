@@ -253,7 +253,10 @@ def test_lambda_code_signing_config_reads_are_scoped_to_managed_functions() -> N
     assert all(len(statement["resources"]) == 1 for statement in statements)
 
 
-@pytest.mark.parametrize("action", ["lambda:TagResource", "lambda:UntagResource"])
+@pytest.mark.parametrize(
+    "action",
+    ["lambda:ListTags", "lambda:TagResource", "lambda:UntagResource"],
+)
 def test_event_source_mapping_tag_permissions_are_scoped(
     action: str,
 ) -> None:
