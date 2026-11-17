@@ -214,6 +214,7 @@ data "aws_iam_policy_document" "github_deploy" {
       "lambda:AddPermission",
       "lambda:CreateFunction",
       "lambda:DeleteFunction",
+      "lambda:GetFunctionCodeSigningConfig",
       "lambda:GetFunction",
       "lambda:GetFunctionConfiguration",
       "lambda:GetPolicy",
@@ -308,6 +309,7 @@ data "aws_iam_policy_document" "github_deploy" {
     actions = [
       "lambda:CreateFunction",
       "lambda:DeleteFunction",
+      "lambda:GetFunctionCodeSigningConfig",
       "lambda:GetFunction",
       "lambda:GetFunctionConfiguration",
       "lambda:ListVersionsByFunction",
@@ -437,6 +439,7 @@ data "aws_iam_policy_document" "github_deploy" {
     actions = [
       "lambda:CreateFunction",
       "lambda:DeleteFunction",
+      "lambda:GetFunctionCodeSigningConfig",
       "lambda:GetFunction",
       "lambda:GetFunctionConfiguration",
       "lambda:ListVersionsByFunction",
@@ -493,6 +496,7 @@ data "aws_iam_policy_document" "github_deploy" {
       "bedrock:DeleteKnowledgeBase",
       "bedrock:GetDataSource",
       "bedrock:GetKnowledgeBase",
+      "bedrock:ListTagsForResource",
       "bedrock:ListDataSources",
       "bedrock:ListIngestionJobs",
       "bedrock:ListKnowledgeBases",

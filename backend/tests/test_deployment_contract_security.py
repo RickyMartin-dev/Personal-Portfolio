@@ -196,6 +196,10 @@ def test_deployment_rejects_a_reused_image_with_an_unsupported_manifest(
             "s3:PutEncryptionConfiguration",
             {"${local.rag_source_bucket_arn}"},
         ),
+        (
+            "bedrock:ListTagsForResource",
+            {"${local.rag_knowledge_base_arn}"},
+        ),
     ],
 )
 def test_deploy_role_resource_permissions_are_limited_to_managed_resources(
@@ -215,6 +219,25 @@ def test_deploy_role_uses_valid_s3_encryption_actions() -> None:
 
 def test_lambda_version_reads_are_scoped_to_managed_functions() -> None:
     statements = deploy_role_statements_granting("lambda:ListVersionsByFunction")
+
+    assert statements
+    resources = {
+        resource
+        for statement in statements
+        for resource in statement["resources"]
+    }
+    assert resources == {
+        "${local.lambda_arn}",
+        "${local.report_lambda_arn}",
+        "${local.rag_reindex_lambda_arn}",
+    }
+    assert all(len(statement["resources"]) == 1 for statement in statements)
+
+
+def test_lambda_code_signing_config_reads_are_scoped_to_managed_functions() -> None:
+    statements = deploy_role_statements_granting(
+        "lambda:GetFunctionCodeSigningConfig"
+    )
 
     assert statements
     resources = {

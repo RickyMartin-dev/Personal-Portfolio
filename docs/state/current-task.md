@@ -1,22 +1,22 @@
-# Current task: security update and mobile experience
+# Current task: restore the develop deployment
 
 ## Current checkout
 
-- Local branch: `feature/security_update`, based on `0b627020b9593c974d7c3b85d24386ed2ab312bd`.
-- The working tree includes a retry-safe ECR image publish fix and a narrow IAM tag permission fix (SNS tag reads for the report topic; tag read and write scoped to the RAG source bucket) from investigation of failed AWS workflow run `43968012495`.
-- The homepage now displays all four experience-in-numbers labels and descriptions at phone widths, and the three page headers use a compact accessible menu button at phone widths.
-- UI test run: `cd frontend && npm run test:e2e` — 9 passed; experience copy checked at 320px, 390px, 600px, and 640px; screenshot reviewed at 390px. `git diff --check` passed.
-- The requested changes are being prepared for a pull request; no changes have been merged or deployed.
+- Local branch: `fix/deploy-role-refresh-permissions`, based on the merged `develop` tip `95236d7`.
+- PR #34 repaired deployment-role permissions for Lambda version discovery and RAG bucket encryption; all six required checks passed and it was squash-merged.
+- Deployment run `43993760195` passed verification but failed Terraform refresh: the deploy role lacked Lambda code-signing-config reads and Bedrock KB tag reads. The existing AWS deployment role was updated to match merged PR #34 while preserving its other statements.
+- PR #35 adds those two missing grants, scoped to the three managed Lambda functions and the portfolio knowledge base, with semantic regression checks. Targeted tests (25), bootstrap Terraform validation, formatting, and local commit/release hooks passed. Five GitHub checks are pending.
 
 ## Remaining work
 
-1. Continue the previously requested security assessment on `feature/security_update`; the mobile UI implementation does not complete that broader review.
-2. Review all local changes together, including the inherited AWS workflow changes, through the no-mistakes review/test/CI gate before merge.
-3. Complete the earlier requested repository-wide security review; this mobile UI change does not complete that audit.
-4. Verify current GitHub/AWS state before relying on the older RAG deployment notes below.
+1. Wait for PR #35 required checks; fix any failure and merge only after all required gates pass.
+2. Update the live GitHub deploy role to match the merged bootstrap Terraform additions, preserving every unrelated statement.
+3. Monitor the next `develop` deployment. Review the failure details and repeat the PR-gated repair loop as needed.
+4. Confirm Terraform completion, API health, GitHub Pages publication, weekly scheduler, and RAG S3 event-to-index path.
+5. Report any remaining owner action, including confirmation of the SNS email subscription if it remains pending.
 
-The repository `start`/`finish` wrappers stalled during the full `scripts/check-starter.sh` credential scan; a sanitized task snapshot was saved directly to the archive. Investigate the scan runtime separately.
+## Governance and limits
 
-## Earlier RAG and weekly-report handoff (verify before acting)
-
-The prior handoff said PR #31 (`codex/weekly-usage-report-owner-gate`) held the S3-backed RAG index, curated agent facts, temporary browser history, S3 change-triggered reindexing, and Monday usage/cost report; it was open and not deployed at that handoff. It also said an account-wide $5 budget alert was configured as a notification, not a spend limit, `aws-production` required owner approval, and `develop` was protected. These are historical claims from the earlier task and must be checked against current GitHub/AWS state before use.
+- Deployments run only from `develop` and require the `aws-production` environment approval. The user explicitly authorized PR merges and deployment approvals; do not bypass checks or protections.
+- Earlier deployment attempts partially applied infrastructure. Inspect current state and planned changes before each approval; avoid replacing user documents or removing the existing RAG bucket/topic.
+- SNS weekly-report email subscription was last observed pending confirmation; confirm its status before calling reports active.
