@@ -6,6 +6,7 @@ locals {
   inference_profile_arn = "arn:${data.aws_partition.current.partition}:bedrock:${var.aws_region}:${data.aws_caller_identity.current.account_id}:inference-profile/${var.bedrock_model_id}"
   foundation_model_arns = [for region in distinct(concat(var.model_destination_regions, [var.aws_region])) : "arn:${data.aws_partition.current.partition}:bedrock:${region}::foundation-model/${local.model_name}"]
   lambda_role_name      = "${var.project_name}-lambda"
+  workload_boundary_arn = "arn:${data.aws_partition.current.partition}:iam::${data.aws_caller_identity.current.account_id}:policy/${var.project_name}-workload-boundary"
   usage_table_name      = "${var.project_name}-monthly-usage"
   rate_limit_table_name = "${var.project_name}-caller-rate-limit"
   lambda_log_group_name = "/aws/lambda/${var.project_name}"
@@ -72,7 +73,7 @@ data "aws_iam_policy_document" "lambda_assume_role" {
 resource "aws_iam_role" "lambda" {
   name               = local.lambda_role_name
   assume_role_policy = data.aws_iam_policy_document.lambda_assume_role.json
-  permissions_boundary = "arn:${data.aws_partition.current.partition}:iam::${data.aws_caller_identity.current.account_id}:policy/${var.project_name}-workload-boundary"
+  permissions_boundary = local.workload_boundary_arn
 }
 
 data "aws_iam_policy_document" "lambda_permissions" {
@@ -281,7 +282,7 @@ data "aws_iam_policy_document" "weekly_report_assume_role" {
 resource "aws_iam_role" "weekly_report" {
   name               = "${var.project_name}-weekly-report"
   assume_role_policy = data.aws_iam_policy_document.weekly_report_assume_role.json
-  permissions_boundary = "arn:${data.aws_partition.current.partition}:iam::${data.aws_caller_identity.current.account_id}:policy/${var.project_name}-workload-boundary"
+  permissions_boundary = local.workload_boundary_arn
 }
 
 data "aws_iam_policy_document" "weekly_report" {
@@ -355,7 +356,7 @@ data "aws_iam_policy_document" "weekly_report_scheduler_assume_role" {
 resource "aws_iam_role" "weekly_report_scheduler" {
   name               = "${var.project_name}-weekly-report-scheduler"
   assume_role_policy = data.aws_iam_policy_document.weekly_report_scheduler_assume_role.json
-  permissions_boundary = "arn:${data.aws_partition.current.partition}:iam::${data.aws_caller_identity.current.account_id}:policy/${var.project_name}-workload-boundary"
+  permissions_boundary = local.workload_boundary_arn
 }
 
 data "aws_iam_policy_document" "weekly_report_scheduler" {

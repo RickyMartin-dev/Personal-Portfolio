@@ -15,7 +15,7 @@ locals {
   scheduler_role_arn           = "arn:${data.aws_partition.current.partition}:iam::${data.aws_caller_identity.current.account_id}:role/personal-portfolio-chatbot-weekly-report-scheduler"
   report_topic_arn             = "arn:${data.aws_partition.current.partition}:sns:${var.aws_region}:${data.aws_caller_identity.current.account_id}:personal-portfolio-chatbot-weekly-report"
   report_subscription_arn      = "${local.report_topic_arn}:*"
-  workload_boundary_arn        = "arn:${data.aws_partition.current.partition}:iam::${data.aws_caller_identity.current.account_id}:policy/${var.project_name}-chatbot-workload-boundary"
+  workload_boundary_arn        = "arn:${data.aws_partition.current.partition}:iam::${data.aws_caller_identity.current.account_id}:policy/personal-portfolio-chatbot-workload-boundary"
   report_schedule_arn          = "arn:${data.aws_partition.current.partition}:scheduler:${var.aws_region}:${data.aws_caller_identity.current.account_id}:schedule/default/personal-portfolio-chatbot-weekly-report"
   rag_source_bucket_name       = "personal-portfolio-chatbot-rag-${data.aws_caller_identity.current.account_id}"
   rag_source_bucket_arn        = "arn:${data.aws_partition.current.partition}:s3:::${local.rag_source_bucket_name}"
@@ -29,7 +29,6 @@ locals {
   boundary_model_arns          = ["arn:${data.aws_partition.current.partition}:bedrock:${var.aws_region}:${data.aws_caller_identity.current.account_id}:inference-profile/us.amazon.nova-micro-v1:0", "arn:${data.aws_partition.current.partition}:bedrock:us-east-1::foundation-model/amazon.nova-micro-v1:0", "arn:${data.aws_partition.current.partition}:bedrock:us-east-2::foundation-model/amazon.nova-micro-v1:0", "arn:${data.aws_partition.current.partition}:bedrock:us-west-2::foundation-model/amazon.nova-micro-v1:0", "arn:${data.aws_partition.current.partition}:bedrock:${var.aws_region}::foundation-model/amazon.titan-embed-text-v2:0"]
   rag_queue_arn                = "arn:${data.aws_partition.current.partition}:sqs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:personal-portfolio-chatbot-rag-ingestion"
   log_group_arn                = "arn:${data.aws_partition.current.partition}:logs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:log-group:/aws/lambda/personal-portfolio-chatbot*"
-  api_gateway_tags_arn         = "arn:${data.aws_partition.current.partition}:apigateway:${var.aws_region}::/tags/arn%3A${data.aws_partition.current.partition}%3Aapigateway%3A${var.aws_region}%3A%3A%2Fv2%2Fapis%2F*"
 }
 
 resource "aws_s3_bucket" "terraform_state" {
@@ -215,7 +214,7 @@ data "aws_iam_policy_document" "workload_permissions_boundary" {
 }
 
 resource "aws_iam_policy" "workload_permissions_boundary" {
-  name        = "${var.project_name}-chatbot-workload-boundary"
+  name        = "personal-portfolio-chatbot-workload-boundary"
   description = "Maximum allowed permissions for portfolio application roles; blocks IAM and account privilege escalation."
   policy      = data.aws_iam_policy_document.workload_permissions_boundary.json
 }
@@ -346,8 +345,6 @@ data "aws_iam_policy_document" "github_deploy" {
       "iam:DeleteRolePolicy",
       "iam:PutRolePermissionsBoundary",
       "iam:PutRolePolicy",
-      "iam:TagRole",
-      "iam:UntagRole",
     ]
     resources = [local.lambda_role_arn, local.report_lambda_role, local.scheduler_role_arn, local.rag_kb_role_arn, local.rag_reindex_role_arn]
 
@@ -356,6 +353,13 @@ data "aws_iam_policy_document" "github_deploy" {
       variable = "iam:PermissionsBoundary"
       values   = [local.workload_boundary_arn]
     }
+  }
+
+  statement {
+    sid       = "TagManagedWorkloadRoles"
+    effect    = "Allow"
+    actions   = ["iam:TagRole", "iam:UntagRole"]
+    resources = [local.lambda_role_arn, local.report_lambda_role, local.scheduler_role_arn, local.rag_kb_role_arn, local.rag_reindex_role_arn]
   }
 
   statement {

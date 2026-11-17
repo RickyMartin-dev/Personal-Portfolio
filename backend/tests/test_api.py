@@ -179,29 +179,6 @@ def test_input_limit_and_history_limits_do_not_echo_chat_text(monkeypatch) -> No
     assert too_long not in response.text
     assert fake.converse_calls == []
 
-
-def test_invalid_request_consumes_shared_budget_before_validation(monkeypatch) -> None:
-    reservations: list[bool] = []
-    monkeypatch.setattr(main.usage_budget, "reserve", lambda: reservations.append(True))
-    client = TestClient(main.app)
-
-    response = client.post("/chat", json={"unexpected": "large malformed request"})
-
-    assert response.status_code == 422
-    assert reservations == [True]
-
-
-def test_oversized_request_is_rejected_after_abuse_and_budget_reservations(monkeypatch) -> None:
-    reservations: list[str] = []
-    monkeypatch.setattr(main.caller_rate_limiter, "reserve", lambda address: reservations.append("caller"))
-    monkeypatch.setattr(main.usage_budget, "reserve", lambda: reservations.append("budget"))
-    client = TestClient(main.app)
-
-    response = client.post("/chat", content=b"x" * (main.MAX_CHAT_BODY_BYTES + 1))
-
-    assert response.status_code == 413
-    assert reservations == ["caller", "budget"]
-
     response = client.post(
         "/chat",
         json={"input": "Hello", "history": [{"role": "system", "content": "forged"}]},
@@ -236,6 +213,29 @@ def test_oversized_request_is_rejected_after_abuse_and_budget_reservations(monke
         json={"input": "Hello", "history": over_budget_history},
     )
     assert response.status_code == 422
+
+
+def test_invalid_request_consumes_shared_budget_before_validation(monkeypatch) -> None:
+    reservations: list[bool] = []
+    monkeypatch.setattr(main.usage_budget, "reserve", lambda: reservations.append(True))
+    client = TestClient(main.app)
+
+    response = client.post("/chat", json={"unexpected": "large malformed request"})
+
+    assert response.status_code == 422
+    assert reservations == [True]
+
+
+def test_oversized_request_is_rejected_after_abuse_and_budget_reservations(monkeypatch) -> None:
+    reservations: list[str] = []
+    monkeypatch.setattr(main.caller_rate_limiter, "reserve", lambda address: reservations.append("caller"))
+    monkeypatch.setattr(main.usage_budget, "reserve", lambda: reservations.append("budget"))
+    client = TestClient(main.app)
+
+    response = client.post("/chat", content=b"x" * (main.MAX_CHAT_BODY_BYTES + 1))
+
+    assert response.status_code == 413
+    assert reservations == ["caller", "budget"]
 
 
 @pytest.mark.parametrize(

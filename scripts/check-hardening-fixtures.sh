@@ -7,13 +7,14 @@ trap 'rm -rf "$TEMP_DIR"' EXIT
 
 failures=0
 
-live_browser="$ROOT_DIR/.agents/skills/impeccable/scripts/live-browser.js"
-if grep -qF 'container.innerHTML = c.html' "$live_browser" || \
-   ! grep -qF "preview.setAttribute('sandbox', '')" "$live_browser" || \
-   ! grep -qF "default-src 'none'; script-src 'none'" "$live_browser"; then
-  printf 'design sidecar previews must run in a no-script, no-network sandbox.\n' >&2
-  failures=$((failures + 1))
-fi
+live_browser=".agents/skills/impeccable/scripts/live-browser.js"
+for provider in .claude .cursor; do
+  if ! cmp -s "$ROOT_DIR/$live_browser" "$ROOT_DIR/$provider/skills/impeccable/scripts/live-browser.js"; then
+    printf '%s copy of the design preview script differs from %s.\n' "$provider" "$live_browser" >&2
+    failures=$((failures + 1))
+  fi
+done
+
 copy_fixture() {
   mkdir -p "$TEMP_DIR/.github/workflows" "$TEMP_DIR/.agentic/fixtures" "$TEMP_DIR/.codex" "$TEMP_DIR/scripts" "$TEMP_DIR/.cursor/rules" "$TEMP_DIR/.cursor/commands" "$TEMP_DIR/.claude/rules" "$TEMP_DIR/.claude/commands" "$TEMP_DIR/.claude/skills/update-project-logic/references" "$TEMP_DIR/.claude/skills/update-project-logic/evals" "$TEMP_DIR/.agents/skills/update-project-logic/references" "$TEMP_DIR/.agents/skills/update-project-logic/evals" "$TEMP_DIR/prompts" "$TEMP_DIR/docs/state/proposals" "$TEMP_DIR/docs/compactions" "$TEMP_DIR/docs/research" "$TEMP_DIR/docs/upgrades" "$TEMP_DIR/agents/specialists" "$TEMP_DIR/.lavish" "$TEMP_DIR/.githooks"
   cp "$ROOT_DIR/scripts/check-secrets.sh" "$TEMP_DIR/scripts/"
@@ -77,7 +78,6 @@ expect_failure_with_message() {
 }
 
 copy_fixture
-printf '{"hooks": "safe fixture"}\n' > "$TEMP_DIR/.codex/hooks.json"
 printf 'chmod 777 /tmp/unsafe\n' > "$TEMP_DIR/.codex/hooks.json"
 expect_failure_with_message "active Codex instruction surface" "high-risk command pattern found" bash -c "cd '$TEMP_DIR' && bash scripts/check-instruction-surfaces.sh"
 printf '{"hooks": "safe fixture"}\n' > "$TEMP_DIR/.codex/hooks.json"
