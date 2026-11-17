@@ -326,7 +326,7 @@
 
   /* ---------- boot ---------- */
   var boot = clone(D), explicitTheme = false;
-  /* production: no ?config= URL overrides; the site always boots from RM_DEFAULTS (the saved v0 look) */
+  /* The site always boots from its production defaults; visual experiments are not loaded at runtime. */
   apply(boot, true);
   lastCfgTheme = explicitTheme ? null : boot.theme;
   if (!explicitTheme) lastCfgTheme = boot.theme;

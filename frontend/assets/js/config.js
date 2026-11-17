@@ -5,8 +5,7 @@
   window.RM_DEFAULTS = {
     v: 1,
     theme: 'dark',
-    /* v0 (2026-11-13): the owner's final Studio colours. The site follows the visitor's OS theme
-       (bridge.js: ?theme= > saved toggle > prefers-color-scheme). Record: aurora-final/v0-config.json */
+    /* The site's fixed palette. Theme selection follows the URL, saved preference, then OS setting. */
     colors: {
       dark: {
         bg: '#0d0f11', surface: '#1d2025', surface2: '#ffffff',

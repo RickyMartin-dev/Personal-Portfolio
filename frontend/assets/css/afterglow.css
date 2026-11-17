@@ -567,11 +567,6 @@ html[data-work="list"] .work-row, html:not([data-work]) .work-row { }
   html[data-work="feature"] .work-row:first-child > .diagram { margin-top: auto; }
 }
 
-/* studio pick mode */
-html[data-pick], html[data-pick] * { cursor: crosshair !important; }
-[data-rm-editing] { outline: 1px dashed #ffb562; outline-offset: 3px; cursor: text; }
-[data-rm-editing]:focus { outline: 2px solid #ffb562; }
-
 /* ---- Games page (final polish): two-up cards down to tablet, single column on phones ---- */
 @media (max-width: 900px) { .game .status { flex-direction: column; align-items: flex-start; } }
 @media (max-width: 640px) { .gallery { grid-template-columns: minmax(0, 1fr); } }
