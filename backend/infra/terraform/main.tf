@@ -71,8 +71,8 @@ data "aws_iam_policy_document" "lambda_assume_role" {
 }
 
 resource "aws_iam_role" "lambda" {
-  name               = local.lambda_role_name
-  assume_role_policy = data.aws_iam_policy_document.lambda_assume_role.json
+  name                 = local.lambda_role_name
+  assume_role_policy   = data.aws_iam_policy_document.lambda_assume_role.json
   permissions_boundary = local.workload_boundary_arn
 }
 
@@ -168,19 +168,19 @@ resource "aws_lambda_function" "chatbot" {
 
   environment {
     variables = {
-      BEDROCK_REGION            = var.aws_region
-      BEDROCK_MODEL_ID          = var.bedrock_model_id
-      BEDROCK_KNOWLEDGE_BASE_ID = aws_bedrockagent_knowledge_base.portfolio.id
-      MAX_OUTPUT_TOKENS         = tostring(var.max_output_tokens)
-      GUARDRAIL_BLOCK_THRESHOLD = tostring(var.guardrail_block_threshold)
-      ALLOWED_ORIGINS           = local.allowed_origin_string
-      MONTHLY_CHAT_LIMIT        = tostring(var.monthly_chat_limit)
-      USAGE_TABLE_NAME          = aws_dynamodb_table.monthly_usage.name
-      USAGE_BUDGET_REQUIRED     = "true"
-      CHAT_RATE_LIMIT           = tostring(var.chat_rate_limit)
-      CHAT_RATE_WINDOW_SECONDS  = "60"
+      BEDROCK_REGION             = var.aws_region
+      BEDROCK_MODEL_ID           = var.bedrock_model_id
+      BEDROCK_KNOWLEDGE_BASE_ID  = aws_bedrockagent_knowledge_base.portfolio.id
+      MAX_OUTPUT_TOKENS          = tostring(var.max_output_tokens)
+      GUARDRAIL_BLOCK_THRESHOLD  = tostring(var.guardrail_block_threshold)
+      ALLOWED_ORIGINS            = local.allowed_origin_string
+      MONTHLY_CHAT_LIMIT         = tostring(var.monthly_chat_limit)
+      USAGE_TABLE_NAME           = aws_dynamodb_table.monthly_usage.name
+      USAGE_BUDGET_REQUIRED      = "true"
+      CHAT_RATE_LIMIT            = tostring(var.chat_rate_limit)
+      CHAT_RATE_WINDOW_SECONDS   = "60"
       CHAT_RATE_LIMIT_TABLE_NAME = aws_dynamodb_table.caller_rate_limit.name
-      CHAT_RATE_LIMIT_REQUIRED  = "true"
+      CHAT_RATE_LIMIT_REQUIRED   = "true"
     }
   }
 
@@ -280,8 +280,8 @@ data "aws_iam_policy_document" "weekly_report_assume_role" {
 }
 
 resource "aws_iam_role" "weekly_report" {
-  name               = "${var.project_name}-weekly-report"
-  assume_role_policy = data.aws_iam_policy_document.weekly_report_assume_role.json
+  name                 = "${var.project_name}-weekly-report"
+  assume_role_policy   = data.aws_iam_policy_document.weekly_report_assume_role.json
   permissions_boundary = local.workload_boundary_arn
 }
 
@@ -354,8 +354,8 @@ data "aws_iam_policy_document" "weekly_report_scheduler_assume_role" {
 }
 
 resource "aws_iam_role" "weekly_report_scheduler" {
-  name               = "${var.project_name}-weekly-report-scheduler"
-  assume_role_policy = data.aws_iam_policy_document.weekly_report_scheduler_assume_role.json
+  name                 = "${var.project_name}-weekly-report-scheduler"
+  assume_role_policy   = data.aws_iam_policy_document.weekly_report_scheduler_assume_role.json
   permissions_boundary = local.workload_boundary_arn
 }
 

@@ -123,8 +123,8 @@ resource "aws_iam_openid_connect_provider" "github" {
 
 data "aws_iam_policy_document" "workload_permissions_boundary" {
   statement {
-    sid    = "AllowPortfolioBedrockOperations"
-    effect = "Allow"
+    sid       = "AllowPortfolioBedrockOperations"
+    effect    = "Allow"
     actions   = ["bedrock:InvokeGuardrailChecks"]
     resources = ["*"]
   }
