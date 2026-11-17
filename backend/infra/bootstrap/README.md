@@ -24,7 +24,7 @@ Copy the `deploy_role_arn` output into the GitHub repository variable `AWS_ROLE_
 
 The S3 bucket has public access blocked, SSE-S3 encryption, versioning, and a 90-day lifecycle for old state versions. It uses Terraform's S3 native lock file; there is no Terraform lock table. The budget notification is an alert, not a hard spend cutoff. The chatbot has a separate 1,000-request UTC-month hard cap.
 
-The GitHub deploy role's API Gateway tagging permission is limited to HTTP API stage resources. This is required because API Gateway authorizes stage tags against the stage collection when Terraform creates the `$default` stage.
+The GitHub deploy role only mutates API Gateway APIs and stages tagged `Project=personal-portfolio-chatbot`. When upgrading an existing untagged deployment, an owner must apply that tag to the HTTP API and its default stage before the next apply. The bootstrap also creates the workload permissions boundary. Apply bootstrap changes from an owner-controlled session before the application root; the normal deploy role cannot edit the boundary, delete workload roles, or change their trust, and it can update inline role policies only when the role has that boundary.
 
 ## App root remote state
 
@@ -39,4 +39,4 @@ terraform init \
   -backend-config="use_lockfile=true"
 ```
 
-The GitHub workflow passes the same backend settings from `TF_STATE_BUCKET` and `AWS_REGION` on every run. Do not upload or commit either root's local state, `.terraform/`, or variable files. Add no AWS access keys to GitHub; the deploy job assumes the OIDC role for the exact `develop` branch.
+The GitHub workflow passes the same backend settings from `TF_STATE_BUCKET` and `AWS_REGION` on every run. Do not upload or commit either root's local state, `.terraform/`, or variable files. Add no AWS access keys to GitHub; the deploy job assumes the OIDC role for the exact repository/environment subject. The workflow runs only from `develop`, and the GitHub `aws-production` environment must independently restrict deployments to `develop` and require owner approval. Apply bootstrap changes from an owner-controlled session before relying on new deploy-role permissions.

@@ -14,7 +14,7 @@ This command is idempotent and local-only. It:
 
 - detects common language, package, build, test, and source signals without installing anything;
 - refreshes `.agent-state/session-context.md`, which is ignored machine-local context;
-- installs the repository's project-local Git hooks;
+- reports whether local Git hooks are configured, without installing or changing them;
 - checks the starter contract;
 - surfaces deterministic upgrade suggestions.
 
@@ -33,6 +33,8 @@ This command:
 - leaves all policy, credential, permission, and external-side-effect decisions reviewable.
 
 Each start also creates `.agent-state/second-brain-checkpoint.md`, an ignored local note for the active task. Keep it current at meaningful milestones so a compaction hook can preserve the latest project context without reading or copying the agent transcript.
+
+Git hooks in `.githooks/` are branch-controlled executable code. `project start` never enables them automatically; install them only after reviewing the checked-out revision and explicitly configuring `core.hooksPath` yourself.
 
 Automatic snapshots use the checkpoint's `Open work and next action` entry. If it is missing or still a template placeholder, the snapshot points the next agent to review active plans and upgrade suggestions.
 

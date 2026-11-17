@@ -22,12 +22,6 @@ variable "github_repository" {
   default     = "RickyMartin-dev/Personal-Portfolio"
 }
 
-variable "deploy_branch" {
-  description = "Only this GitHub branch can assume the deploy role."
-  type        = string
-  default     = "develop"
-}
-
 variable "github_oidc_provider_arn" {
   description = "Set this when the account already has the GitHub OIDC provider; leave empty to create it."
   type        = string

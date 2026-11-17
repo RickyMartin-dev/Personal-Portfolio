@@ -97,6 +97,45 @@ def test_production_deployment_only_runs_from_develop_after_verification() -> No
     assert "on:\n  push:\n    branches: [develop]" in DEPLOY_WORKFLOW
     assert "deploy-backend:\n    needs: verify-and-build" in DEPLOY_WORKFLOW
     assert "publish-site:\n    needs: [verify-and-build, deploy-backend]" in DEPLOY_WORKFLOW
+    assert "aws-production" in DEPLOY_WORKFLOW
+
+
+def test_workload_roles_are_bound_and_deploy_role_cannot_rewrite_trust() -> None:
+    role_files = [
+        Path(__file__).resolve().parents[1] / "infra" / "terraform" / "main.tf",
+        Path(__file__).resolve().parents[1] / "infra" / "terraform" / "rag.tf",
+    ]
+    for path in role_files:
+        source = path.read_text(encoding="utf-8")
+        assert source.count("permissions_boundary =") >= (3 if path.name == "main.tf" else 2)
+
+    assert '"iam:UpdateAssumeRolePolicy"' not in BOOTSTRAP_TERRAFORM_PATH.read_text(encoding="utf-8")
+    assert '"iam:DeleteRole"' not in BOOTSTRAP_TERRAFORM_PATH.read_text(encoding="utf-8")
+    assert "local.workload_boundary_arn" in BOOTSTRAP_TERRAFORM_PATH.read_text(encoding="utf-8")
+
+
+def test_deploy_role_binds_api_mutations_and_event_mappings_to_portfolio() -> None:
+    api_statements = deploy_role_statements_granting("apigateway:DELETE")
+    assert len(api_statements) == 1
+    assert "aws:ResourceTag/Project" in str(api_statements[0])
+    assert "personal-portfolio-chatbot" in str(api_statements[0])
+
+    mapping_statements = deploy_role_statements_granting("lambda:CreateEventSourceMapping")
+    assert len(mapping_statements) == 1
+    assert "${local.rag_event_source_mapping_arn}" in mapping_statements[0]["resources"]
+    assert "lambda:FunctionArn" in str(mapping_statements[0])
+    assert "${local.rag_reindex_lambda_arn}" in str(mapping_statements[0])
+
+
+def test_chat_rate_controls_precede_schema_validation_and_have_ttl_storage() -> None:
+    api_source = (Path(__file__).resolve().parents[1] / "src" / "main.py").read_text(encoding="utf-8")
+    infra_source = (Path(__file__).resolve().parents[1] / "infra" / "terraform" / "main.tf").read_text(encoding="utf-8")
+
+    assert api_source.index("@app.middleware(\"http\")") < api_source.index("@app.exception_handler(RequestValidationError)")
+    assert "MAX_CHAT_BODY_BYTES" in api_source
+    assert "hash_key                    = \"callerWindow\"" in infra_source
+    assert "attribute_name = \"expiresAt\"" in infra_source
+    assert "CHAT_RATE_LIMIT_REQUIRED" in infra_source
 
 
 def test_deployment_checks_required_email_and_aws_bootstrap_before_oidc() -> None:

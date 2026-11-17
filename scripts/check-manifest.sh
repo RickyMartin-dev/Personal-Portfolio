@@ -10,7 +10,7 @@ if [[ ! -f "$manifest" ]]; then
 fi
 
 failures=0
-for key in schemaVersion templateVersion sourceOfTruth doctorCommand releaseCheckCommand startCommand finishCommand autopilotPrompt localContextDirectory automaticHandoff hooksDirectory learningProposalDirectory promotionPrompt compactionCommand compactionDirectory snapshotArchiveHelper snapshotArchiveDirectory snapshotArchiveEnvironmentVariable codexProjectSkill claudeProjectSkill researchCommand researchDirectory upgradeCommand upgradeSuggestionCommand upgradeDirectory specialistCommand specialistDirectory specialistFactoryPrompt presentationArtifact workflowIds hardeningChecks adapterSurfaces durableState mutableProjectFiles upgradePolicy; do
+for key in schemaVersion templateVersion sourceOfTruth doctorCommand releaseCheckCommand startCommand finishCommand autopilotPrompt localContextDirectory automaticHandoff hooksDirectory learningProposalDirectory promotionPrompt compactionCommand compactionDirectory snapshotArchiveHelper snapshotSecretRedactor snapshotArchiveDirectory snapshotArchiveEnvironmentVariable codexProjectSkill claudeProjectSkill researchCommand researchDirectory upgradeCommand upgradeSuggestionCommand upgradeDirectory specialistCommand specialistDirectory specialistFactoryPrompt presentationArtifact workflowIds hardeningChecks adapterSurfaces durableState mutableProjectFiles upgradePolicy; do
   if ! grep -qE "^[[:space:]]+\"$key\"[[:space:]]*:" "$manifest"; then
     printf 'manifest missing key: %s\n' "$key" >&2
     failures=$((failures + 1))
@@ -123,6 +123,7 @@ expected_values=(
   '"compactionCommand": "./scripts/project compact <slug>"'
   '"compactionDirectory": "docs/compactions/"'
   '"snapshotArchiveHelper": "scripts/archive_snapshot.py"'
+  '"snapshotSecretRedactor": "scripts/secret_redaction.py"'
   '"snapshotArchiveDirectory": "raw/project-snapshots/"'
   '"snapshotArchiveEnvironmentVariable": "PROJECT_SNAPSHOT_ARCHIVE_ROOT"'
   '"codexProjectSkill": ".agents/skills/update-project-logic/SKILL.md"'
@@ -146,7 +147,7 @@ for value in "${expected_values[@]}"; do
   fi
 done
 
-for path in AGENTS.md CLAUDE.md .agents/skills .claude/rules .claude/commands .claude/skills .cursor/rules .cursor/commands docs/state docs/state/proposals docs/compactions docs/research docs/upgrades agents agents/specialists .lavish .githooks prompts/promote.md prompts/factory.md prompts/autopilot.md docs/automation.md scripts/archive_snapshot.py; do
+for path in AGENTS.md CLAUDE.md .agents/skills .claude/rules .claude/commands .claude/skills .cursor/rules .cursor/commands docs/state docs/state/proposals docs/compactions docs/research docs/upgrades agents agents/specialists .lavish .githooks prompts/promote.md prompts/factory.md prompts/autopilot.md docs/automation.md scripts/archive_snapshot.py scripts/secret_redaction.py; do
   if [[ ! -e "$ROOT_DIR/$path" ]]; then
     printf 'manifest-referenced path is missing: %s\n' "$path" >&2
     failures=$((failures + 1))

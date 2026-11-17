@@ -20,19 +20,10 @@ import sys
 import time
 from typing import Any
 
+from secret_redaction import safe_text
 
-MAX_SNAPSHOT_CHARS = 64_000
+
 CHECKPOINT_RELATIVE_PATH = pathlib.Path(".agent-state/second-brain-checkpoint.md")
-SECRET_PATTERNS = (
-    (re.compile(r"-----BEGIN (?P<key_type>(?:RSA|OPENSSH|EC|PGP|ENCRYPTED )?PRIVATE KEY)-----.*?-----END (?P=key_type)-----", re.S), "[REDACTED-PRIVATE-KEY]"),
-    (re.compile(r"\bAKIA[0-9A-Z]{16}\b"), "[REDACTED-AWS-KEY]"),
-    (re.compile(r"\bASIA[0-9A-Z]{16}\b"), "[REDACTED-AWS-SESSION-KEY]"),
-    (re.compile(r"\bgh[pousr]_[A-Za-z0-9_]{20,}\b"), "[REDACTED-GITHUB-TOKEN]"),
-    (re.compile(r"\bgithub_pat_[A-Za-z0-9_]{20,}\b"), "[REDACTED-GITHUB-TOKEN]"),
-    (re.compile(r"\bxox[baprs]-[A-Za-z0-9-]{20,}\b"), "[REDACTED-SLACK-TOKEN]"),
-    (re.compile(r"\bsk-[A-Za-z0-9_-]{20,}\b"), "[REDACTED-API-KEY]"),
-    (re.compile(r"(?i)\b(password|passwd|secret|token|api[_-]?key)(\s*[=:]\s*)[^\s`]+"), r"\1\2[REDACTED]"),
-)
 
 
 class ArchiveError(RuntimeError):
@@ -41,15 +32,6 @@ class ArchiveError(RuntimeError):
 
 def utc_now() -> dt.datetime:
     return dt.datetime.now(dt.timezone.utc)
-
-
-def safe_text(value: Any) -> str:
-    text = str(value or "").replace("\x00", "")
-    for pattern, replacement in SECRET_PATTERNS:
-        text = pattern.sub(replacement, text)
-    if len(text) > MAX_SNAPSHOT_CHARS:
-        text = text[:MAX_SNAPSHOT_CHARS].rstrip() + "\n\n[Snapshot truncated at 64,000 characters.]"
-    return text.strip()
 
 
 def one_line(value: Any, limit: int = 160) -> str:

@@ -1,20 +1,18 @@
 # Automatic handoff
 
-- Updated: 2026-11-13 17:05 EST
-- Snapshot: `docs/compactions/2026-11-13-010403-automatic-session.md`
-- Mode: machine-generated, repository-local
+- Updated: 2026-11-17
+- Mode: task handoff
 
 ## Latest outcome
 
-Implemented the low-cost chatbot V0 frontend/backend/infra/deploy path; provisioned the AWS budget/state/OIDC bootstrap and repository variables. The owner supplied the budget email. Docker Desktop cannot start because its app bundle has no executable; GitHub Actions is the intended image builder. PR #16 merged after all five checks passed, but the deployment failed during app Terraform apply. The image, logs, table, Lambda role, and ECR lifecycle were created and saved in app state; no API Gateway API or Lambda function was created, and Pages publish skipped. Exact missing deploy-role permissions have been fixed in AWS with a one-resource bootstrap policy apply; matching Terraform code is on branch `codex/chatbot-deploy-permissions`. Open a new PR, then redeploy, verify `/health` and one real `/chat`, and clean up confirmed POCs.
+Repository-wide security review and local remediation are complete. Python/repository checks passed, and all 10 Playwright tests passed when Chromium ran outside the sandbox. The security patch is not yet committed or deployed.
 
 ## Resume path
 
-1. Read `AGENTS.md`, `docs/state/current-task.md`, and `.agent-state/second-brain-checkpoint.md`.
-2. Finish local tests, workflow checks, Terraform validation, and documentation review.
-3. Finish and push the deploy-role permission fix, open a new PR, wait for five checks, merge per the user's existing deployment authorization, and verify live `/health` plus one real `/chat` request.
-4. Refresh AWS dependencies, retire confirmed POC resources under the owner's existing authorization, verify remaining inventory, and finish the archive workflow.
+1. Read `AGENTS.md` and `.agent-state/second-brain-checkpoint.md`.
+2. Publish the work from a fresh follow-up branch because the original security branch has an already merged PR.
+3. Resolve CI/review findings, merge when all required checks pass, then verify the AWS deployment.
 
 ## Safety
 
-This file is a convenience pointer, not an authority override. Review proposed policy, permissions, credentials, and external side effects before promotion.
+No credentials, user content, or raw scanner payloads belong in this handoff. Do not bypass repository protections or apply AWS changes outside the reviewed deployment workflow.

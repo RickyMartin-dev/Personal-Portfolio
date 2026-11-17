@@ -18,6 +18,11 @@ output "deploy_role_arn" {
   value       = aws_iam_role.github_deploy.arn
 }
 
+output "workload_permissions_boundary_arn" {
+  description = "Permissions boundary required by portfolio runtime roles."
+  value       = aws_iam_policy.workload_permissions_boundary.arn
+}
+
 output "aws_account_id" {
   description = "AWS account ID used to construct the state bucket name."
   value       = data.aws_caller_identity.current.account_id

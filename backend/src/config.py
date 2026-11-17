@@ -29,6 +29,7 @@ MAX_HISTORY_MESSAGES = 4
 MAX_HISTORY_MESSAGE_CHARS = 2_000
 MAX_HISTORY_TOTAL_CHARS = 2_000
 MAX_OUTPUT_CHARS = 2_000
+MAX_CHAT_BODY_BYTES = 32 * 1024
 
 BLOCKED_MESSAGE = "I can’t help with that request. Please try a different question."
 SERVICE_UNAVAILABLE_MESSAGE = "The assistant is temporarily unavailable. Please try again shortly."

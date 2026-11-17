@@ -24,7 +24,7 @@ The site source, browser tests, and static build live in `frontend/`. Without a 
 
 ## Chat and privacy
 
-`backend/` owns the API and stateless agent flow. Each request may include a small recent history held in browser memory; closing or reloading the page clears it. The server validates message and history sizes, enforces an aggregate request cap, and logs only request outcomes, model usage, latency, and bounded retrieval counts. It does not log prompts, replies, visitor identifiers, document names, or document text.
+`backend/` owns the API and stateless agent flow. Each request may include a small recent history held in browser memory; closing or reloading the page clears it. The server applies a per-source 10-request/60-second limit before parsing chat payloads, rejects bodies over 32 KiB, and reserves from an aggregate 1,000-request monthly cap before validation or model work. The caller limiter stores a short-lived SHA-256 address digest and counter with TTL; logs contain only request outcomes, model usage, latency, and bounded retrieval counts. The server does not log prompts, replies, raw visitor addresses, document names, or document text.
 
 The agent uses curated profile facts in `backend/src/config.py`. It receives a document search tool only when the knowledge base is configured. The prompt summarizes the index categories so the model can decide when search is useful. Retrieval is bounded to a small number of short passages; source text is treated as untrusted evidence, never instructions.
 

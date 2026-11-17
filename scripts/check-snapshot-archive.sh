@@ -77,11 +77,17 @@ aws_session_key="ASIA"'1234567890ABCDEF'
 github_pat='github_pat_'"01234567890123456789"
 slack_token='xoxb-'"12345678901234567890"
 api_key='sk-'"proj-abcdefghijklmnopqrstuvwxyz1234"
+aws_secret='example-aws-secret-value'
+aws_session='example-aws-session-value'
+json_secret='example-json-secret-value'
+colon_secret='example-colon-secret-value'
 private_key_kind='PRIVATE KEY'
 encrypted_key_kind='ENCRYPTED PRIVATE KEY'
 private_key_body='PRIVATE_KEY_BODY_SHOULD_NOT_SURVIVE'
 encrypted_key_body='ENCRYPTED_KEY_BODY_SHOULD_NOT_SURVIVE'
 secret_bundle="AWS $aws_key $aws_session_key GitHub $github_pat Slack $slack_token API $api_key
+AWS_SECRET_ACCESS_KEY=$aws_secret AWS_SESSION_TOKEN=$aws_session
+\"client_secret\": \"$json_secret\" api_token: '$colon_secret'
 -----BEGIN $private_key_kind-----
 $private_key_body
 -----END $private_key_kind-----
@@ -89,7 +95,7 @@ $private_key_body
 $encrypted_key_body
 -----END $encrypted_key_kind-----"
 python3 "$helper" --archive-root "$vault" --project-dir "$project" --agent codex --kind task --summary "$secret_bundle" >/dev/null
-for secret in "$aws_key" "$aws_session_key" "$github_pat" "$slack_token" "$api_key" "$private_key_body" "$encrypted_key_body"; do
+for secret in "$aws_key" "$aws_session_key" "$github_pat" "$slack_token" "$api_key" "$private_key_body" "$encrypted_key_body" "$aws_secret" "$aws_session" "$json_secret" "$colon_secret"; do
   if grep -R -qF "$secret" "$vault/raw/project-snapshots"; then
     printf 'snapshot secret redaction failed for a supported credential pattern.\n' >&2
     exit 1

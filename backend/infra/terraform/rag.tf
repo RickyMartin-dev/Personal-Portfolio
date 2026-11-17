@@ -79,6 +79,7 @@ resource "aws_s3vectors_index" "portfolio" {
 resource "aws_iam_role" "rag_knowledge_base" {
   name               = "${var.project_name}-rag-knowledge-base"
   assume_role_policy = data.aws_iam_policy_document.rag_knowledge_base_assume_role.json
+  permissions_boundary = "arn:${data.aws_partition.current.partition}:iam::${data.aws_caller_identity.current.account_id}:policy/${var.project_name}-workload-boundary"
 }
 
 data "aws_iam_policy_document" "rag_knowledge_base" {
@@ -256,6 +257,7 @@ data "aws_iam_policy_document" "rag_reindex_assume_role" {
 resource "aws_iam_role" "rag_reindex" {
   name               = "${var.project_name}-rag-reindex"
   assume_role_policy = data.aws_iam_policy_document.rag_reindex_assume_role.json
+  permissions_boundary = "arn:${data.aws_partition.current.partition}:iam::${data.aws_caller_identity.current.account_id}:policy/${var.project_name}-workload-boundary"
 }
 
 data "aws_iam_policy_document" "rag_reindex" {
