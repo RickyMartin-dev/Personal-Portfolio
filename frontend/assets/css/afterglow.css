@@ -452,7 +452,7 @@ html[data-nav="minimal"] .site-header .wrap { padding-inline: var(--pad); }
   .nav a[aria-current="page"]::after { left: auto; right: 14px; bottom: 50%; width: 5px; height: 5px; transform: translateY(50%); border-radius: 50%; background: var(--accent-text); }
   .nav .icon-btn { align-self: flex-end; width: 44px; height: 44px; margin: 7px 2px 1px; border-radius: 9px; background: color-mix(in srgb, var(--ground) 60%, transparent); }
   .spots li { opacity: 1; animation: none; }
-  .spots span { top: var(--label-top, 0px); bottom: auto; left: 9px; width: var(--lw, 8em); white-space: normal; overflow-wrap: anywhere; }
+  .spots span, .spots .flip span { top: var(--label-top, 0px); bottom: auto; left: 50%; right: auto; width: min(var(--lw, 8em), 22vw); transform: translateX(-50%); text-align: center; white-space: normal; overflow-wrap: anywhere; }
   .spots b { font-size: clamp(1rem, 4.4vw, 1.2rem); line-height: 1.08; }
   .spots em { display: block; margin-top: 4px; font-size: 0.58rem; letter-spacing: 0.04em; line-height: 1.3; }
 }
