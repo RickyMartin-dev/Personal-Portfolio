@@ -2,21 +2,22 @@
 
 ## Current checkout
 
-- Local branch: `fix/deploy-role-refresh-permissions`, based on the merged `develop` tip `95236d7`.
-- PR #34 repaired deployment-role permissions for Lambda version discovery and RAG bucket encryption; all six required checks passed and it was squash-merged.
-- Deployment run `43993760195` passed verification but failed Terraform refresh: the deploy role lacked Lambda code-signing-config reads and Bedrock KB tag reads. The existing AWS deployment role was updated to match merged PR #34 while preserving its other statements.
-- PR #35 adds those two missing grants, scoped to the three managed Lambda functions and the portfolio knowledge base, with semantic regression checks. Targeted tests (25), bootstrap Terraform validation, formatting, and local commit/release hooks passed. Five GitHub checks are pending.
+- Local branch: `fix/deploy-role-event-source-tags`, based on merged `develop` commit `3d9a83b`.
+- PR #34 repaired Lambda version discovery and RAG bucket encryption permissions; all six required checks passed and it was squash-merged.
+- PR #35 repaired Lambda code-signing-config and Bedrock KB tag-read permissions; all six required checks passed and it was squash-merged.
+- Deployment run `43995899709` passed verification and its Terraform plan was reviewed (6 adds, 1 change, 2 tainted Lambda replacements). The protected stage was approved. Apply created the RAG encryption config and weekly report schedule, recreated weekly-report and reindex Lambdas, updated chatbot Lambda, then failed creating the SQS event source mapping because the deploy role lacked `lambda:TagResource`. Pages publish was skipped.
+- PR #36 adds tag/untag permissions for event-source mappings, scoped to the Lambda event-source-mapping ARN pattern. Regression tests cover exact resources. Targeted tests (27 passed), Terraform fmt/validation, and `git diff --check` passed locally.
 
 ## Remaining work
 
-1. Wait for PR #35 required checks; fix any failure and merge only after all required gates pass.
-2. Update the live GitHub deploy role to match the merged bootstrap Terraform additions, preserving every unrelated statement.
-3. Monitor the next `develop` deployment. Review the failure details and repeat the PR-gated repair loop as needed.
-4. Confirm Terraform completion, API health, GitHub Pages publication, weekly scheduler, and RAG S3 event-to-index path.
-5. Report any remaining owner action, including confirmation of the SNS email subscription if it remains pending.
+1. Open PR #36, wait for all required checks, and merge only when green.
+2. Update the live deploy role to match the merged mapping tag permissions, preserving unrelated statements.
+3. Generate a fresh Terraform plan from the partially applied remote state; review creates/replacements before the protected approval.
+4. Continue the deployment loop until Terraform apply, API health, and Pages publish succeed.
+5. Verify the weekly scheduler, RAG S3 event-to-index path, and SNS subscription confirmation. Report any remaining owner action.
 
 ## Governance and limits
 
-- Deployments run only from `develop` and require the `aws-production` environment approval. The user explicitly authorized PR merges and deployment approvals; do not bypass checks or protections.
-- Earlier deployment attempts partially applied infrastructure. Inspect current state and planned changes before each approval; avoid replacing user documents or removing the existing RAG bucket/topic.
-- SNS weekly-report email subscription was last observed pending confirmation; confirm its status before calling reports active.
+- Production deploys run only from `develop` and require `aws-production` approval. The user explicitly authorized normal PR merges and deployment approvals; do not bypass checks or protections.
+- Prior applies are partial. Preserve the existing RAG bucket and weekly-report topic; inspect every fresh plan before approval.
+- The weekly-report SNS subscription was last observed pending confirmation; do not call report delivery active until confirmed.
