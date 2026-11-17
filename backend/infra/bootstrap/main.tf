@@ -29,6 +29,50 @@ locals {
   boundary_model_arns          = ["arn:${data.aws_partition.current.partition}:bedrock:${var.aws_region}:${data.aws_caller_identity.current.account_id}:inference-profile/us.amazon.nova-micro-v1:0", "arn:${data.aws_partition.current.partition}:bedrock:us-east-1::foundation-model/amazon.nova-micro-v1:0", "arn:${data.aws_partition.current.partition}:bedrock:us-east-2::foundation-model/amazon.nova-micro-v1:0", "arn:${data.aws_partition.current.partition}:bedrock:us-west-2::foundation-model/amazon.nova-micro-v1:0", "arn:${data.aws_partition.current.partition}:bedrock:${var.aws_region}::foundation-model/amazon.titan-embed-text-v2:0"]
   rag_queue_arn                = "arn:${data.aws_partition.current.partition}:sqs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:personal-portfolio-chatbot-rag-ingestion"
   log_group_arn                = "arn:${data.aws_partition.current.partition}:logs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:log-group:/aws/lambda/personal-portfolio-chatbot*"
+  github_deploy_policy_groups = {
+    platform = [
+      "TerraformStateBucketList",
+      "TerraformStateObjectAccess",
+      "EcrAuthentication",
+      "PublishChatbotContainer",
+      "ManageChatbotLambda",
+      "ListLambdaFunctions",
+      "CreateAndUpdateBoundedWorkloadRoles",
+      "TagManagedWorkloadRoles",
+      "ReadManagedWorkloadRoles",
+      "PassChatbotRoleToLambda",
+      "PassReportRoleToLambda",
+      "PassSchedulerRoleToScheduler",
+      "PassKnowledgeBaseRoleToBedrock",
+    ]
+    api = [
+      "ReadRegionalApiGatewayMetadata",
+      "CreateTaggedPortfolioHttpApi",
+      "CreateTaggedStageOnPortfolioApi",
+      "ManageTaggedPortfolioHttpApi",
+      "TagChatbotHttpApiStages",
+      "ManageChatbotLogGroups",
+      "DescribeLogGroups",
+    ]
+    services = [
+      "ManageWeeklyReportLambda",
+      "ManageWeeklyReportLogs",
+      "ManageWeeklyReportTopic",
+      "ManageWeeklyReportSchedule",
+      "ManageRagSourceBucket",
+      "ManageRagQueues",
+      "ManageRagReindexLambda",
+      "ManageRagEventSourceMapping",
+      "ManageRagLogs",
+      "CreatePortfolioKnowledgeBase",
+    ]
+    data = [
+      "ManagePortfolioKnowledgeBase",
+      "ManagePortfolioVectorStore",
+      "ListPortfolioVectorBuckets",
+      "ManageMonthlyUsageTable",
+    ]
+  }
 }
 
 resource "aws_s3_bucket" "terraform_state" {
@@ -735,8 +779,23 @@ data "aws_iam_policy_document" "github_deploy" {
   }
 }
 
-resource "aws_iam_role_policy" "github_deploy" {
-  name   = "${var.project_name}-github-deploy"
-  role   = aws_iam_role.github_deploy.id
-  policy = data.aws_iam_policy_document.github_deploy.json
+resource "aws_iam_policy" "github_deploy" {
+  for_each = local.github_deploy_policy_groups
+
+  name        = "${var.project_name}-github-deploy-${each.key}"
+  description = "Scoped ${each.key} deployment permissions for the portfolio chatbot."
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      for statement in jsondecode(data.aws_iam_policy_document.github_deploy.json).Statement :
+      statement if contains(each.value, statement.Sid)
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "github_deploy" {
+  for_each = aws_iam_policy.github_deploy
+
+  role       = aws_iam_role.github_deploy.name
+  policy_arn = each.value.arn
 }

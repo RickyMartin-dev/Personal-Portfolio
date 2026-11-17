@@ -158,6 +158,36 @@ def test_deploy_role_cannot_rewrite_trust_or_escape_the_boundary(action: str) ->
     assert not deploy_role_statements_granting(action)
 
 
+def test_deploy_permissions_are_split_into_scoped_managed_policies() -> None:
+    with BOOTSTRAP_TERRAFORM_PATH.open(encoding="utf-8") as terraform:
+        root = hcl2.load(terraform)
+    groups = root["locals"][0]["github_deploy_policy_groups"]
+    grouped_sids = [sid.strip('"') for group in groups.values() for sid in group]
+    documents = {
+        name.strip('"'): body
+        for block in root["data"]
+        for kind, named in block.items()
+        if kind.strip('"') == "aws_iam_policy_document"
+        for name, body in named.items()
+    }
+    policy_sids = {
+        statement["sid"].strip('"')
+        for statement in documents["github_deploy"]["statement"]
+    }
+    resources = {
+        kind.strip('"'): {name.strip('"'): body for name, body in named.items()}
+        for block in root["resource"]
+        for kind, named in block.items()
+    }
+
+    assert len(groups) == 4
+    assert len(grouped_sids) == len(set(grouped_sids))
+    assert set(grouped_sids) == policy_sids
+    assert "github_deploy" in resources["aws_iam_policy"]
+    assert "github_deploy" in resources["aws_iam_role_policy_attachment"]
+    assert "github_deploy" not in resources.get("aws_iam_role_policy", {})
+
+
 @pytest.mark.parametrize(
     "action",
     [
