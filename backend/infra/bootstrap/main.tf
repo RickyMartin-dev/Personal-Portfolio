@@ -2,30 +2,31 @@ data "aws_caller_identity" "current" {}
 data "aws_partition" "current" {}
 
 locals {
-  state_bucket_name       = var.state_bucket_name != "" ? var.state_bucket_name : "${var.project_name}-tfstate-${data.aws_caller_identity.current.account_id}"
-  oidc_provider_arn       = var.github_oidc_provider_arn != "" ? var.github_oidc_provider_arn : aws_iam_openid_connect_provider.github[0].arn
-  state_key_prefix        = "personal-portfolio/chatbot/"
-  repository_arn          = "arn:${data.aws_partition.current.partition}:ecr:${var.aws_region}:${data.aws_caller_identity.current.account_id}:repository/personal-portfolio-chatbot"
-  lambda_arn              = "arn:${data.aws_partition.current.partition}:lambda:${var.aws_region}:${data.aws_caller_identity.current.account_id}:function:personal-portfolio-chatbot"
-  usage_table_arn         = "arn:${data.aws_partition.current.partition}:dynamodb:${var.aws_region}:${data.aws_caller_identity.current.account_id}:table/personal-portfolio-chatbot-monthly-usage"
-  lambda_role_arn         = "arn:${data.aws_partition.current.partition}:iam::${data.aws_caller_identity.current.account_id}:role/personal-portfolio-chatbot-lambda"
-  report_lambda_arn       = "arn:${data.aws_partition.current.partition}:lambda:${var.aws_region}:${data.aws_caller_identity.current.account_id}:function:personal-portfolio-chatbot-weekly-report"
-  report_lambda_role      = "arn:${data.aws_partition.current.partition}:iam::${data.aws_caller_identity.current.account_id}:role/personal-portfolio-chatbot-weekly-report"
-  scheduler_role_arn      = "arn:${data.aws_partition.current.partition}:iam::${data.aws_caller_identity.current.account_id}:role/personal-portfolio-chatbot-weekly-report-scheduler"
-  report_topic_arn        = "arn:${data.aws_partition.current.partition}:sns:${var.aws_region}:${data.aws_caller_identity.current.account_id}:personal-portfolio-chatbot-weekly-report"
-  report_subscription_arn = "${local.report_topic_arn}:*"
-  report_schedule_arn     = "arn:${data.aws_partition.current.partition}:scheduler:${var.aws_region}:${data.aws_caller_identity.current.account_id}:schedule/default/personal-portfolio-chatbot-weekly-report"
-  rag_source_bucket_name  = "personal-portfolio-chatbot-rag-${data.aws_caller_identity.current.account_id}"
-  rag_source_bucket_arn   = "arn:${data.aws_partition.current.partition}:s3:::${local.rag_source_bucket_name}"
-  rag_vector_bucket_arn   = "arn:${data.aws_partition.current.partition}:s3vectors:${var.aws_region}:${data.aws_caller_identity.current.account_id}:bucket/personal-portfolio-chatbot-rag-vectors-${data.aws_caller_identity.current.account_id}"
-  rag_vector_index_arn    = "${local.rag_vector_bucket_arn}/index/portfolio-documents"
-  rag_knowledge_base_arn  = "arn:${data.aws_partition.current.partition}:bedrock:${var.aws_region}:${data.aws_caller_identity.current.account_id}:knowledge-base/*"
-  rag_kb_role_arn         = "arn:${data.aws_partition.current.partition}:iam::${data.aws_caller_identity.current.account_id}:role/personal-portfolio-chatbot-rag-knowledge-base"
-  rag_reindex_role_arn    = "arn:${data.aws_partition.current.partition}:iam::${data.aws_caller_identity.current.account_id}:role/personal-portfolio-chatbot-rag-reindex"
-  rag_reindex_lambda_arn  = "arn:${data.aws_partition.current.partition}:lambda:${var.aws_region}:${data.aws_caller_identity.current.account_id}:function:personal-portfolio-chatbot-rag-reindex"
-  rag_queue_arn           = "arn:${data.aws_partition.current.partition}:sqs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:personal-portfolio-chatbot-rag-ingestion"
-  log_group_arn           = "arn:${data.aws_partition.current.partition}:logs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:log-group:/aws/lambda/personal-portfolio-chatbot*"
-  api_gateway_tags_arn    = "arn:${data.aws_partition.current.partition}:apigateway:${var.aws_region}::/tags/arn%3A${data.aws_partition.current.partition}%3Aapigateway%3A${var.aws_region}%3A%3A%2Fv2%2Fapis%2F*"
+  state_bucket_name            = var.state_bucket_name != "" ? var.state_bucket_name : "${var.project_name}-tfstate-${data.aws_caller_identity.current.account_id}"
+  oidc_provider_arn            = var.github_oidc_provider_arn != "" ? var.github_oidc_provider_arn : aws_iam_openid_connect_provider.github[0].arn
+  state_key_prefix             = "personal-portfolio/chatbot/"
+  repository_arn               = "arn:${data.aws_partition.current.partition}:ecr:${var.aws_region}:${data.aws_caller_identity.current.account_id}:repository/personal-portfolio-chatbot"
+  lambda_arn                   = "arn:${data.aws_partition.current.partition}:lambda:${var.aws_region}:${data.aws_caller_identity.current.account_id}:function:personal-portfolio-chatbot"
+  usage_table_arn              = "arn:${data.aws_partition.current.partition}:dynamodb:${var.aws_region}:${data.aws_caller_identity.current.account_id}:table/personal-portfolio-chatbot-monthly-usage"
+  lambda_role_arn              = "arn:${data.aws_partition.current.partition}:iam::${data.aws_caller_identity.current.account_id}:role/personal-portfolio-chatbot-lambda"
+  report_lambda_arn            = "arn:${data.aws_partition.current.partition}:lambda:${var.aws_region}:${data.aws_caller_identity.current.account_id}:function:personal-portfolio-chatbot-weekly-report"
+  report_lambda_role           = "arn:${data.aws_partition.current.partition}:iam::${data.aws_caller_identity.current.account_id}:role/personal-portfolio-chatbot-weekly-report"
+  scheduler_role_arn           = "arn:${data.aws_partition.current.partition}:iam::${data.aws_caller_identity.current.account_id}:role/personal-portfolio-chatbot-weekly-report-scheduler"
+  report_topic_arn             = "arn:${data.aws_partition.current.partition}:sns:${var.aws_region}:${data.aws_caller_identity.current.account_id}:personal-portfolio-chatbot-weekly-report"
+  report_subscription_arn      = "${local.report_topic_arn}:*"
+  report_schedule_arn          = "arn:${data.aws_partition.current.partition}:scheduler:${var.aws_region}:${data.aws_caller_identity.current.account_id}:schedule/default/personal-portfolio-chatbot-weekly-report"
+  rag_source_bucket_name       = "personal-portfolio-chatbot-rag-${data.aws_caller_identity.current.account_id}"
+  rag_source_bucket_arn        = "arn:${data.aws_partition.current.partition}:s3:::${local.rag_source_bucket_name}"
+  rag_vector_bucket_arn        = "arn:${data.aws_partition.current.partition}:s3vectors:${var.aws_region}:${data.aws_caller_identity.current.account_id}:bucket/personal-portfolio-chatbot-rag-vectors-${data.aws_caller_identity.current.account_id}"
+  rag_vector_index_arn         = "${local.rag_vector_bucket_arn}/index/portfolio-documents"
+  rag_knowledge_base_arn       = "arn:${data.aws_partition.current.partition}:bedrock:${var.aws_region}:${data.aws_caller_identity.current.account_id}:knowledge-base/*"
+  rag_kb_role_arn              = "arn:${data.aws_partition.current.partition}:iam::${data.aws_caller_identity.current.account_id}:role/personal-portfolio-chatbot-rag-knowledge-base"
+  rag_reindex_role_arn         = "arn:${data.aws_partition.current.partition}:iam::${data.aws_caller_identity.current.account_id}:role/personal-portfolio-chatbot-rag-reindex"
+  rag_reindex_lambda_arn       = "arn:${data.aws_partition.current.partition}:lambda:${var.aws_region}:${data.aws_caller_identity.current.account_id}:function:personal-portfolio-chatbot-rag-reindex"
+  rag_event_source_mapping_arn = "arn:${data.aws_partition.current.partition}:lambda:${var.aws_region}:${data.aws_caller_identity.current.account_id}:event-source-mapping:*"
+  rag_queue_arn                = "arn:${data.aws_partition.current.partition}:sqs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:personal-portfolio-chatbot-rag-ingestion"
+  log_group_arn                = "arn:${data.aws_partition.current.partition}:logs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:log-group:/aws/lambda/personal-portfolio-chatbot*"
+  api_gateway_tags_arn         = "arn:${data.aws_partition.current.partition}:apigateway:${var.aws_region}::/tags/arn%3A${data.aws_partition.current.partition}%3Aapigateway%3A${var.aws_region}%3A%3A%2Fv2%2Fapis%2F*"
 }
 
 resource "aws_s3_bucket" "terraform_state" {
@@ -459,9 +460,11 @@ data "aws_iam_policy_document" "github_deploy" {
       "lambda:CreateEventSourceMapping",
       "lambda:DeleteEventSourceMapping",
       "lambda:GetEventSourceMapping",
+      "lambda:TagResource",
+      "lambda:UntagResource",
       "lambda:UpdateEventSourceMapping",
     ]
-    resources = ["*"]
+    resources = [local.rag_event_source_mapping_arn]
   }
 
   statement {

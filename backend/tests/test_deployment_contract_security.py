@@ -251,3 +251,24 @@ def test_lambda_code_signing_config_reads_are_scoped_to_managed_functions() -> N
         "${local.rag_reindex_lambda_arn}",
     }
     assert all(len(statement["resources"]) == 1 for statement in statements)
+
+
+@pytest.mark.parametrize("action", ["lambda:TagResource", "lambda:UntagResource"])
+def test_event_source_mapping_tag_permissions_are_scoped(
+    action: str,
+) -> None:
+    statements = deploy_role_statements_granting(action)
+
+    assert statements
+    resources = {
+        resource
+        for statement in statements
+        for resource in statement["resources"]
+    }
+    assert resources == {
+        "${local.lambda_arn}",
+        "${local.report_lambda_arn}",
+        "${local.rag_reindex_lambda_arn}",
+        "${local.rag_event_source_mapping_arn}",
+    }
+    assert all(len(statement["resources"]) == 1 for statement in statements)
