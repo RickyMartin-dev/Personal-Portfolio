@@ -24,7 +24,7 @@ Copy the `deploy_role_arn` output into the GitHub repository variable `AWS_ROLE_
 
 The S3 bucket has public access blocked, SSE-S3 encryption, versioning, and a 90-day lifecycle for old state versions. It uses Terraform's S3 native lock file; there is no Terraform lock table. The budget notification is an alert, not a hard spend cutoff. The chatbot has a separate 1,000-request UTC-month hard cap.
 
-The GitHub deploy role only mutates API Gateway APIs and stages tagged `Project=personal-portfolio-chatbot`. When upgrading an existing untagged deployment, an owner must apply that tag to the HTTP API and its default stage before the next apply. The bootstrap also creates the workload permissions boundary. Apply bootstrap changes from an owner-controlled session before the application root; the normal deploy role cannot edit the boundary, delete workload roles, or change their trust, and it can update inline role policies only when the role has that boundary.
+The GitHub deploy role only mutates API Gateway APIs and stages tagged `Project=personal-portfolio-chatbot`. When upgrading an existing untagged deployment, an owner must apply that tag to the HTTP API and its default stage before the next apply. The bootstrap creates the workload permissions boundary and attaches four scoped customer-managed policies to the deploy role, split by platform, API, service, and data permissions to stay within AWS IAM policy size limits. Apply bootstrap changes from an owner-controlled session before the application root; the normal deploy role cannot edit the boundary, delete workload roles, or change their trust, and it can update workload role policies only when the boundary is present.
 
 ## App root remote state
 
