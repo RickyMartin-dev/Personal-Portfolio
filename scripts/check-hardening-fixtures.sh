@@ -6,8 +6,17 @@ TEMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/project-starter-hardening.XXXXXX")"
 trap 'rm -rf "$TEMP_DIR"' EXIT
 
 failures=0
+
+live_browser=".agents/skills/impeccable/scripts/live-browser.js"
+for provider in .claude .cursor; do
+  if ! cmp -s "$ROOT_DIR/$live_browser" "$ROOT_DIR/$provider/skills/impeccable/scripts/live-browser.js"; then
+    printf '%s copy of the design preview script differs from %s.\n' "$provider" "$live_browser" >&2
+    failures=$((failures + 1))
+  fi
+done
+
 copy_fixture() {
-  mkdir -p "$TEMP_DIR/.github/workflows" "$TEMP_DIR/.agentic/fixtures" "$TEMP_DIR/scripts" "$TEMP_DIR/.cursor/rules" "$TEMP_DIR/.cursor/commands" "$TEMP_DIR/.claude/rules" "$TEMP_DIR/.claude/commands" "$TEMP_DIR/.claude/skills/update-project-logic/references" "$TEMP_DIR/.claude/skills/update-project-logic/evals" "$TEMP_DIR/.agents/skills/update-project-logic/references" "$TEMP_DIR/.agents/skills/update-project-logic/evals" "$TEMP_DIR/prompts" "$TEMP_DIR/docs/state/proposals" "$TEMP_DIR/docs/compactions" "$TEMP_DIR/docs/research" "$TEMP_DIR/docs/upgrades" "$TEMP_DIR/agents/specialists" "$TEMP_DIR/.lavish" "$TEMP_DIR/.githooks"
+  mkdir -p "$TEMP_DIR/.github/workflows" "$TEMP_DIR/.agentic/fixtures" "$TEMP_DIR/.codex" "$TEMP_DIR/scripts" "$TEMP_DIR/.cursor/rules" "$TEMP_DIR/.cursor/commands" "$TEMP_DIR/.claude/rules" "$TEMP_DIR/.claude/commands" "$TEMP_DIR/.claude/skills/update-project-logic/references" "$TEMP_DIR/.claude/skills/update-project-logic/evals" "$TEMP_DIR/.agents/skills/update-project-logic/references" "$TEMP_DIR/.agents/skills/update-project-logic/evals" "$TEMP_DIR/prompts" "$TEMP_DIR/docs/state/proposals" "$TEMP_DIR/docs/compactions" "$TEMP_DIR/docs/research" "$TEMP_DIR/docs/upgrades" "$TEMP_DIR/agents/specialists" "$TEMP_DIR/.lavish" "$TEMP_DIR/.githooks"
   cp "$ROOT_DIR/scripts/check-secrets.sh" "$TEMP_DIR/scripts/"
   cp "$ROOT_DIR/scripts/check-workflows.sh" "$TEMP_DIR/scripts/"
   cp "$ROOT_DIR/scripts/check-instruction-surfaces.sh" "$TEMP_DIR/scripts/"
@@ -15,6 +24,7 @@ copy_fixture() {
   cp "$ROOT_DIR/scripts/check-snapshot-archive.sh" "$TEMP_DIR/scripts/"
   cp "$ROOT_DIR/scripts/check-project-logic-skill.sh" "$TEMP_DIR/scripts/"
   cp "$ROOT_DIR/scripts/archive_snapshot.py" "$TEMP_DIR/scripts/"
+  cp "$ROOT_DIR/scripts/secret_redaction.py" "$TEMP_DIR/scripts/"
   cp "$ROOT_DIR/.agentic/manifest.json" "$TEMP_DIR/.agentic/"
   cp "$ROOT_DIR/.agentic/secret-scan-ignore" "$TEMP_DIR/.agentic/"
   cp "$ROOT_DIR/.agentic/fixtures/untrusted-repo-note.md" "$TEMP_DIR/.agentic/fixtures/"
@@ -68,6 +78,9 @@ expect_failure_with_message() {
 }
 
 copy_fixture
+printf 'chmod 777 /tmp/unsafe\n' > "$TEMP_DIR/.codex/hooks.json"
+expect_failure_with_message "active Codex instruction surface" "high-risk command pattern found" bash -c "cd '$TEMP_DIR' && bash scripts/check-instruction-surfaces.sh"
+printf '{"hooks": "safe fixture"}\n' > "$TEMP_DIR/.codex/hooks.json"
 cat > "$TEMP_DIR/backend/.env.example" <<'EOF'
 AWS_BEARER_TOKEN_BEDROCK=
 AWS_PROFILE=default
@@ -87,6 +100,27 @@ fi
 printf 'AKIA%s\n' '1234567890ABCDEF' > "$TEMP_DIR/fake-leak.txt"
 expect_failure_with_message "credential pattern" "possible credential material" bash -c "cd '$TEMP_DIR' && bash scripts/check-secrets.sh"
 rm -f "$TEMP_DIR/fake-leak.txt"
+
+mkdir -p "$TEMP_DIR/resources"
+printf 'ASIA%s\n' '1234567890ABCDEF' > "$TEMP_DIR/resources/probe.txt"
+git -C "$TEMP_DIR" add -f resources/probe.txt
+expect_failure_with_message "tracked resource secret" "possible credential material" bash -c "cd '$TEMP_DIR' && bash scripts/check-secrets.sh"
+git -C "$TEMP_DIR" rm -q -f --cached resources/probe.txt
+rm -f "$TEMP_DIR/resources/probe.txt"
+
+printf 'AKIA%s\n' '1234567890ABCDEF' > "$TEMP_DIR/.codex/hooks.json"
+expect_failure_with_message "active codex hook secret" "possible credential material" bash -c "cd '$TEMP_DIR' && bash scripts/check-secrets.sh"
+printf '{"hooks": "safe fixture"}\n' > "$TEMP_DIR/.codex/hooks.json"
+
+printf 'AKIA%s\n' '1234567890ABCDEF' > "$TEMP_DIR/-q"
+expect_failure_with_message "option-like filename" "possible credential material" bash -c "cd '$TEMP_DIR' && bash scripts/check-secrets.sh"
+rm -f "$TEMP_DIR/-q"
+
+ln -s /dev/zero "$TEMP_DIR/zero-link"
+git -C "$TEMP_DIR" add -f zero-link
+expect_failure_with_message "tracked symlink" "secret scan refuses symlinked source" bash -c "cd '$TEMP_DIR' && bash scripts/check-secrets.sh"
+git -C "$TEMP_DIR" rm -q -f --cached zero-link
+rm -f "$TEMP_DIR/zero-link"
 
 printf 'AWS_BEARER_TOKEN_BEDROCK=placeholder-only\n' > "$TEMP_DIR/.env.local"
 expect_failure_with_message "local environment file" "sensitive-looking file found" bash -c "cd '$TEMP_DIR' && bash scripts/check-secrets.sh"

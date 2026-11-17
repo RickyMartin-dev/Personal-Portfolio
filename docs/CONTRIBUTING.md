@@ -11,7 +11,7 @@ Contributions should improve the portfolio site, chatbot backend, deployment wor
 
 If a required check is pending or fails, do not merge; use [CI failure modes](ci-failure-modes.md) to identify the relevant job and diagnostics.
 
-In GitHub settings, verify or update the existing `develop` branch rule to require pull requests and the `Quality checks / merge-gate` status, block force pushes and branch deletion, and apply the rules to repository administrators. Restrict branch updates to the owner through a ruleset bypass list. Configure `aws-production` to allow only `develop` and require Ricky Martin's approval; the AWS role trust also accepts only that protected environment. These repository settings cannot be enforced by workflow YAML alone.
+In GitHub settings, verify or update the existing `develop` branch rule to require pull requests and the `Quality checks / merge-gate` status, block force pushes and branch deletion, and apply the rules to repository administrators. Restrict branch updates to the owner through a ruleset bypass list. Configure `aws-production` to allow only `develop` and require Ricky Martin's approval. The AWS role trust accepts the exact repository/environment subject; the workflow itself deploys only from `develop`, so the environment branch restriction and reviewer are essential external controls. These repository settings cannot be enforced by workflow YAML alone.
 
 ## Before opening a change
 

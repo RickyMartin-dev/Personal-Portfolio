@@ -6,12 +6,12 @@ cd "$ROOT_DIR"
 
 failures=0
 
-if find . -type f ! -path './.git/*' ! -path './resources/*' ! -path './backend/.venv/*' ! -path './.venv/*' ! -path './.terraform/*' ! -path '*/.terraform/*' ! -path './scripts/check-secrets.sh' ! -path './.agentic/secret-scan-ignore' ! -path './backend/.env.example' \( \
+if find . -type f ! -path './.git/*' ! -path './backend/.venv/*' ! -path './.venv/*' ! -path './.terraform/*' ! -path '*/.terraform/*' ! -path '*/__pycache__/*' ! -name 'check-secrets.sh' ! -name 'secret_redaction.py' ! -name 'secret-scan-ignore' ! -name '.env.example' \( \
   -name '.env' -o -name '.env.*' -o -name '*.pem' -o -name '*.key' -o \
   -iname '*credentials*' -o -iname '*secret*' \
 \) -print -quit | grep -q .; then
   printf 'sensitive-looking file found; remove it or add a reviewed safe example: ' >&2
-  find . -type f ! -path './.git/*' ! -path './resources/*' ! -path './backend/.venv/*' ! -path './.venv/*' ! -path './.terraform/*' ! -path '*/.terraform/*' ! -path './scripts/check-secrets.sh' ! -path './.agentic/secret-scan-ignore' ! -path './backend/.env.example' \( \
+  find . -type f ! -path './.git/*' ! -path './backend/.venv/*' ! -path './.venv/*' ! -path './.terraform/*' ! -path '*/.terraform/*' ! -path '*/__pycache__/*' ! -name 'check-secrets.sh' ! -name 'secret_redaction.py' ! -name 'secret-scan-ignore' ! -name '.env.example' \( \
     -name '.env' -o -name '.env.*' -o -name '*.pem' -o -name '*.key' -o \
     -iname '*credentials*' -o -iname '*secret*' \
   \) -print >&2
@@ -60,10 +60,15 @@ scan_files=()
 if [[ -d .git ]]; then
   while IFS= read -r -d '' file; do
     case "$file" in
-      scripts/check-secrets.sh|.git/*|.codex/*|.agent-state/*|resources/*|node_modules/*|*/node_modules/*|.terraform/*|*/.terraform/*|.venv/*|*/.venv/*|dist/*|*/dist/*|build/*|coverage/*)
+      .git/*|node_modules/*|*/node_modules/*|.terraform/*|*/.terraform/*|.venv/*|*/.venv/*|dist/*|*/dist/*|build/*|coverage/*)
         continue
         ;;
       *)
+        if [[ -L "$file" ]]; then
+          printf 'secret scan refuses symlinked source: %s\n' "$file" >&2
+          failures=$((failures + 1))
+          continue
+        fi
         if is_allowlisted "$file"; then
           if git check-ignore -q -- "$file"; then
             continue
@@ -83,19 +88,24 @@ else
   while IFS= read -r -d '' file; do
     relative_file="${file#./}"
     case "$relative_file" in
-      scripts/check-secrets.sh|.git/*|.codex/*|.agent-state/*|resources/*|node_modules/*|*/node_modules/*|.terraform/*|*/.terraform/*|.venv/*|*/.venv/*|dist/*|*/dist/*|build/*|coverage/*)
+      .git/*|node_modules/*|*/node_modules/*|.terraform/*|*/.terraform/*|.venv/*|*/.venv/*|dist/*|*/dist/*|build/*|coverage/*)
         continue
         ;;
       *)
-        scan_files+=("$relative_file")
+        if [[ -L "$relative_file" ]]; then
+          printf 'secret scan refuses symlinked source: %s\n' "$relative_file" >&2
+          failures=$((failures + 1))
+        else
+          scan_files+=("$relative_file")
+        fi
         ;;
     esac
-  done < <(find . -type f ! -path './.git/*' -print0)
+  done < <(find . \( -type f -o -type l \) ! -path './.git/*' -print0)
 fi
 
 for pattern in "${credential_patterns[@]}"; do
   for file in "${scan_files[@]}"; do
-    if grep -aE "$pattern" "$file" >/dev/null 2>&1; then
+    if grep -aE -- "$pattern" "$file" >/dev/null 2>&1; then
       printf 'possible credential material matched in %s: %s\n' "$file" "$pattern" >&2
       failures=$((failures + 1))
       break

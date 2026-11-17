@@ -39,7 +39,7 @@ for workflow in plan verify review learn research promote specialist compact upg
   done
 done
 
-agent_surfaces=(AGENTS.md CLAUDE.md .cursor .claude prompts)
+agent_surfaces=(AGENTS.md CLAUDE.md .cursor .claude .codex .agents prompts)
 if grep -RInE \
   -e 'curl[[:space:]].*\|[[:space:]]*(sh|bash)' \
   -e 'rm[[:space:]]+-rf[[:space:]]+/' \

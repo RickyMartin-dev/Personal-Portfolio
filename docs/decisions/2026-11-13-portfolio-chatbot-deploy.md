@@ -6,12 +6,12 @@ Accepted for the V0 portfolio assistant at the owner's request to build and oper
 
 ## Decision
 
-An update merged to `develop` may automatically build and publish the Lambda container, apply the portfolio chatbot Terraform root, smoke-check the API, and publish the static site with that API endpoint. Pull request checks run before deployment and receive no AWS credentials. GitHub Actions assumes a short-lived AWS role through OIDC; its trust condition accepts only this repository's `develop` branch. The app role is scoped to the chatbot's Terraform state prefix and named ECR, Lambda, IAM, API Gateway, logs, and monthly usage table resources.
+An update merged to `develop` may automatically build and publish the Lambda container, apply the portfolio chatbot Terraform root, smoke-check the API, and publish the static site with that API endpoint. Pull request checks run before deployment and receive no AWS credentials. GitHub Actions assumes a short-lived AWS role through OIDC; its trust condition accepts only this repository's `aws-production` environment subject. The workflow runs only from `develop`; GitHub must restrict that environment to `develop` and require the owner's approval. The deploy role manages the chatbot's Terraform state prefix and named application resources; runtime roles are constrained by an IAM permissions boundary.
 
 ## Threat model and safeguards
 
 - A pull request can execute checked-in tests and build code, but it cannot assume the AWS deploy role or access the remote Terraform state.
-- The deployment role trust is restricted by both the GitHub OIDC audience and exact repository/branch subject. Repository variables contain only the role ARN and state bucket name.
+- The deployment role trust is restricted by the GitHub OIDC audience and exact repository/environment subject. Repository variables contain only the role ARN and state bucket name; branch restriction and owner approval are enforced by GitHub environment settings, not this OIDC subject.
 - Workflow actions are pinned to immutable commit SHAs. Job permissions are minimal; only backend deployment receives OIDC token-write permission, and only Pages publication receives Pages write permission.
 - Terraform state is private, encrypted, versioned, and limited to this app's key prefix. The deployment role cannot change the account budget, state bucket, or its own OIDC trust.
 - API Gateway throttling and an atomic DynamoDB counter bound request volume. The Lambda uses on-demand concurrency. An account budget sends notifications but does not automatically stop spend.

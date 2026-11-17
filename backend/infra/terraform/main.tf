@@ -6,7 +6,9 @@ locals {
   inference_profile_arn = "arn:${data.aws_partition.current.partition}:bedrock:${var.aws_region}:${data.aws_caller_identity.current.account_id}:inference-profile/${var.bedrock_model_id}"
   foundation_model_arns = [for region in distinct(concat(var.model_destination_regions, [var.aws_region])) : "arn:${data.aws_partition.current.partition}:bedrock:${region}::foundation-model/${local.model_name}"]
   lambda_role_name      = "${var.project_name}-lambda"
+  workload_boundary_arn = "arn:${data.aws_partition.current.partition}:iam::${data.aws_caller_identity.current.account_id}:policy/${var.project_name}-workload-boundary"
   usage_table_name      = "${var.project_name}-monthly-usage"
+  rate_limit_table_name = "${var.project_name}-caller-rate-limit"
   lambda_log_group_name = "/aws/lambda/${var.project_name}"
   image_uri             = "${aws_ecr_repository.chatbot.repository_url}:${var.image_tag}"
   allowed_origin_string = join(",", var.allowed_origins)
@@ -69,8 +71,9 @@ data "aws_iam_policy_document" "lambda_assume_role" {
 }
 
 resource "aws_iam_role" "lambda" {
-  name               = local.lambda_role_name
-  assume_role_policy = data.aws_iam_policy_document.lambda_assume_role.json
+  name                 = local.lambda_role_name
+  assume_role_policy   = data.aws_iam_policy_document.lambda_assume_role.json
+  permissions_boundary = local.workload_boundary_arn
 }
 
 data "aws_iam_policy_document" "lambda_permissions" {
@@ -115,7 +118,7 @@ data "aws_iam_policy_document" "lambda_permissions" {
     sid       = "ReserveMonthlyChatUsage"
     effect    = "Allow"
     actions   = ["dynamodb:UpdateItem"]
-    resources = [aws_dynamodb_table.monthly_usage.arn]
+    resources = [aws_dynamodb_table.monthly_usage.arn, aws_dynamodb_table.caller_rate_limit.arn]
   }
 }
 
@@ -137,6 +140,23 @@ resource "aws_dynamodb_table" "monthly_usage" {
   }
 }
 
+resource "aws_dynamodb_table" "caller_rate_limit" {
+  name                        = local.rate_limit_table_name
+  billing_mode                = "PAY_PER_REQUEST"
+  hash_key                    = "callerWindow"
+  deletion_protection_enabled = true
+
+  attribute {
+    name = "callerWindow"
+    type = "S"
+  }
+
+  ttl {
+    attribute_name = "expiresAt"
+    enabled        = true
+  }
+}
+
 resource "aws_lambda_function" "chatbot" {
   function_name = var.project_name
   role          = aws_iam_role.lambda.arn
@@ -148,15 +168,19 @@ resource "aws_lambda_function" "chatbot" {
 
   environment {
     variables = {
-      BEDROCK_REGION            = var.aws_region
-      BEDROCK_MODEL_ID          = var.bedrock_model_id
-      BEDROCK_KNOWLEDGE_BASE_ID = aws_bedrockagent_knowledge_base.portfolio.id
-      MAX_OUTPUT_TOKENS         = tostring(var.max_output_tokens)
-      GUARDRAIL_BLOCK_THRESHOLD = tostring(var.guardrail_block_threshold)
-      ALLOWED_ORIGINS           = local.allowed_origin_string
-      MONTHLY_CHAT_LIMIT        = tostring(var.monthly_chat_limit)
-      USAGE_TABLE_NAME          = aws_dynamodb_table.monthly_usage.name
-      USAGE_BUDGET_REQUIRED     = "true"
+      BEDROCK_REGION             = var.aws_region
+      BEDROCK_MODEL_ID           = var.bedrock_model_id
+      BEDROCK_KNOWLEDGE_BASE_ID  = aws_bedrockagent_knowledge_base.portfolio.id
+      MAX_OUTPUT_TOKENS          = tostring(var.max_output_tokens)
+      GUARDRAIL_BLOCK_THRESHOLD  = tostring(var.guardrail_block_threshold)
+      ALLOWED_ORIGINS            = local.allowed_origin_string
+      MONTHLY_CHAT_LIMIT         = tostring(var.monthly_chat_limit)
+      USAGE_TABLE_NAME           = aws_dynamodb_table.monthly_usage.name
+      USAGE_BUDGET_REQUIRED      = "true"
+      CHAT_RATE_LIMIT            = tostring(var.chat_rate_limit)
+      CHAT_RATE_WINDOW_SECONDS   = "60"
+      CHAT_RATE_LIMIT_TABLE_NAME = aws_dynamodb_table.caller_rate_limit.name
+      CHAT_RATE_LIMIT_REQUIRED   = "true"
     }
   }
 
@@ -169,6 +193,9 @@ resource "aws_lambda_function" "chatbot" {
 resource "aws_apigatewayv2_api" "chatbot" {
   name          = var.project_name
   protocol_type = "HTTP"
+  tags = {
+    Project = var.project_name
+  }
 
   cors_configuration {
     allow_origins = var.allowed_origins
@@ -203,6 +230,9 @@ resource "aws_apigatewayv2_stage" "default" {
   api_id      = aws_apigatewayv2_api.chatbot.id
   name        = "$default"
   auto_deploy = true
+  tags = {
+    Project = var.project_name
+  }
 
   default_route_settings {
     throttling_rate_limit  = var.api_throttle_rate
@@ -250,8 +280,9 @@ data "aws_iam_policy_document" "weekly_report_assume_role" {
 }
 
 resource "aws_iam_role" "weekly_report" {
-  name               = "${var.project_name}-weekly-report"
-  assume_role_policy = data.aws_iam_policy_document.weekly_report_assume_role.json
+  name                 = "${var.project_name}-weekly-report"
+  assume_role_policy   = data.aws_iam_policy_document.weekly_report_assume_role.json
+  permissions_boundary = local.workload_boundary_arn
 }
 
 data "aws_iam_policy_document" "weekly_report" {
@@ -323,8 +354,9 @@ data "aws_iam_policy_document" "weekly_report_scheduler_assume_role" {
 }
 
 resource "aws_iam_role" "weekly_report_scheduler" {
-  name               = "${var.project_name}-weekly-report-scheduler"
-  assume_role_policy = data.aws_iam_policy_document.weekly_report_scheduler_assume_role.json
+  name                 = "${var.project_name}-weekly-report-scheduler"
+  assume_role_policy   = data.aws_iam_policy_document.weekly_report_scheduler_assume_role.json
+  permissions_boundary = local.workload_boundary_arn
 }
 
 data "aws_iam_policy_document" "weekly_report_scheduler" {

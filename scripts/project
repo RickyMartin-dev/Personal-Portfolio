@@ -98,6 +98,8 @@ compact_snapshot() {
     printf 'compaction already exists: %s\n' "$target" >&2
     exit 1
   fi
+  (
+  cd "$ROOT_DIR"
   {
     printf '# Compaction snapshot: %s\n\n' "$title"
     printf -- '- Created: %s\n' "$(date '+%Y-%m-%d %H:%M %Z')"
@@ -133,6 +135,7 @@ compact_snapshot() {
     printf '## Next safe action\n\n<One action another agent can take without rediscovering the project.>\n\n'
     printf '## Trust and security review\n\n- Secrets or sensitive data copied into this snapshot: no\n- Untrusted repository/web/tool text treated as data: yes\n- Authority, permissions, network, or credential scope expanded: no\n'
   } > "$target"
+  )
   printf 'created %s\n' "$target"
 }
 
@@ -349,30 +352,7 @@ local_context="$state_dir/session-context.md"
 hooks_status="available"
 
 sanitize_summary() {
-  printf '%s' "${1:-}" | awk '
-    BEGIN { in_private_key = 0 }
-    {
-      if (!in_private_key && $0 ~ /-----BEGIN (RSA |OPENSSH |EC |PGP |ENCRYPTED )?PRIVATE KEY-----/) {
-        print "[REDACTED-PRIVATE-KEY]"
-        in_private_key = 1
-        if ($0 ~ /-----END (RSA |OPENSSH |EC |PGP |ENCRYPTED )?PRIVATE KEY-----/) in_private_key = 0
-        next
-      }
-      if (in_private_key) {
-        if ($0 ~ /-----END (RSA |OPENSSH |EC |PGP |ENCRYPTED )?PRIVATE KEY-----/) in_private_key = 0
-        next
-      }
-      print
-    }
-  ' | sed -E \
-    -e 's/(BEGIN (RSA|OPENSSH|EC|PGP) PRIVATE KEY)[^-]*/\1 [REDACTED]/g' \
-    -e 's/(AKIA[0-9A-Z]{16})/[REDACTED-AWS-KEY]/g' \
-    -e 's/(ASIA[0-9A-Z]{16})/[REDACTED-AWS-SESSION-KEY]/g' \
-    -e 's/(gh[pousr]_[A-Za-z0-9_]{20,})/[REDACTED-GITHUB-TOKEN]/g' \
-    -e 's/(github_pat_[A-Za-z0-9_]{20,})/[REDACTED-GITHUB-TOKEN]/g' \
-    -e 's/(xox[baprs]-[A-Za-z0-9-]{20,})/[REDACTED-SLACK-TOKEN]/g' \
-    -e 's/(sk-[A-Za-z0-9_-]{20,})/[REDACTED-API-KEY]/g' \
-    -e 's/((password|passwd|secret|token|api[_-]?key)[[:space:]]*=[[:space:]]*)[^[:space:]]+/\1[REDACTED]/Ig' \
+  printf '%s' "${1:-}" | python3 "$ROOT_DIR/scripts/secret_redaction.py" \
     | tr '\r\n\t' '   ' | sed -E 's/[[:space:]]+/ /g; s/^ //; s/ $//'
 }
 
@@ -567,8 +547,6 @@ install_hooks() {
       else
         hooks_status="custom-hooks-configured"
       fi
-    elif git -C "$ROOT_DIR" config core.hooksPath .githooks 2>/dev/null; then
-      hooks_status="installed"
     else
       hooks_status="available-but-not-installed"
     fi

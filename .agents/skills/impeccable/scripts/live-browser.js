@@ -13472,16 +13472,17 @@ void main() {
         const stage = document.createElement('div');
         stage.className = 'cmp-stage';
 
-        // Render the component in its own shadow root so its CSS can't bleed.
-        const host = document.createElement('div');
-        const sub = host.attachShadow({ mode: 'open' });
-        const style = document.createElement('style');
-        style.textContent = c.css || '';
-        sub.appendChild(style);
-        const container = document.createElement('div');
-        container.innerHTML = c.html || '';
-        sub.appendChild(container);
-        stage.appendChild(host);
+        // Sidecar HTML/CSS is repository-controlled input. Keep its preview in
+        // an opaque-origin sandbox with scripts, forms, and network access off.
+        const preview = document.createElement('iframe');
+        preview.setAttribute('sandbox', '');
+        preview.setAttribute('title', `${c.name || c.kind || 'Component'} preview`);
+        preview.setAttribute('referrerpolicy', 'no-referrer');
+        preview.style.width = '100%';
+        preview.style.height = '160px';
+        preview.style.border = '0';
+        preview.srcdoc = `<!doctype html><html><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'none'; style-src 'unsafe-inline'; img-src data:; font-src data:; media-src 'none'; object-src 'none'; connect-src 'none'; form-action 'none'; base-uri 'none'"><style>${c.css || ''}</style></head><body>${c.html || ''}</body></html>`;
+        stage.appendChild(preview);
 
         // Show component name as a sublabel only when the tile groups >1 item,
         // or when the component's display name differs from its kind.

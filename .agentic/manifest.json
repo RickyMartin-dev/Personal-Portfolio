@@ -20,6 +20,7 @@
   "compactionCommand": "./scripts/project compact <slug>",
   "compactionDirectory": "docs/compactions/",
   "snapshotArchiveHelper": "scripts/archive_snapshot.py",
+  "snapshotSecretRedactor": "scripts/secret_redaction.py",
   "snapshotArchiveDirectory": "raw/project-snapshots/",
   "snapshotArchiveEnvironmentVariable": "PROJECT_SNAPSHOT_ARCHIVE_ROOT",
   "secretScanAllowlist": ".agentic/secret-scan-ignore",

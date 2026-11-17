@@ -111,13 +111,24 @@ variable "log_retention_days" {
 }
 
 variable "monthly_chat_limit" {
-  description = "Hard aggregate cap on valid chat requests per UTC calendar month."
+  description = "Hard aggregate cap on chat requests, including invalid requests, per UTC calendar month."
   type        = number
   default     = 1000
 
   validation {
     condition     = var.monthly_chat_limit >= 1 && floor(var.monthly_chat_limit) == var.monthly_chat_limit
     error_message = "monthly_chat_limit must be a positive integer."
+  }
+}
+
+variable "chat_rate_limit" {
+  description = "Maximum chat requests per source per 60-second window, before request validation."
+  type        = number
+  default     = 10
+
+  validation {
+    condition     = var.chat_rate_limit >= 1 && floor(var.chat_rate_limit) == var.chat_rate_limit
+    error_message = "chat_rate_limit must be a positive integer."
   }
 }
 

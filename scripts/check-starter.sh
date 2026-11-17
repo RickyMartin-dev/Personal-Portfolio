@@ -145,6 +145,7 @@ required_files=(
   ".lavish/theme.js"
   "scripts/check-automation.sh"
   "scripts/archive_snapshot.py"
+  "scripts/secret_redaction.py"
   "scripts/check-snapshot-archive.sh"
   ".agents/skills/update-project-logic/SKILL.md"
   ".agents/skills/update-project-logic/references/research-method.md"

@@ -25,7 +25,7 @@ if [[ ! -x scripts/snapshot-next-action.sh ]]; then
   failures=$((failures + 1))
 fi
 
-for command in 'start)' 'finish)' 'archive-snapshot)' '--task' '--summary' 'PROJECT_SNAPSHOT_ARCHIVE_ROOT' 'second-brain-checkpoint.md' 'core.hooksPath'; do
+for command in 'start)' 'finish)' 'archive-snapshot)' '--task' '--summary' 'PROJECT_SNAPSHOT_ARCHIVE_ROOT' 'second-brain-checkpoint.md' 'available-but-not-installed'; do
   if ! grep -qF -- "$command" scripts/project; then
     printf 'automation check missing project interface: %s\n' "$command" >&2
     failures=$((failures + 1))
@@ -94,7 +94,7 @@ mkdir -p \
   "$project_fixture/docs/research" \
   "$project_fixture/agents/specialists" \
   "$project_fixture/.githooks"
-cp -p scripts/project scripts/snapshot-next-action.sh "$project_fixture/scripts/"
+cp -p scripts/project scripts/snapshot-next-action.sh scripts/secret_redaction.py "$project_fixture/scripts/"
 cp docs/templates/plan.md "$project_fixture/docs/templates/plan.md"
 cat > "$project_fixture/scripts/check-starter.sh" <<'EOF'
 #!/usr/bin/env bash
@@ -171,11 +171,13 @@ aws_session_key="ASIA"'1234567890ABCDEF'
 github_pat='github_pat_'"01234567890123456789"
 slack_token='xoxb-'"12345678901234567890"
 api_key='sk-'"proj-abcdefghijklmnopqrstuvwxyz1234"
+aws_secret='example-shell-secret-value'
+aws_session='example-shell-session-value'
 private_key_kind='PRIVATE KEY'
 encrypted_key_kind='ENCRYPTED PRIVATE KEY'
 private_key_body='PRIVATE_KEY_BODY_SHOULD_NOT_SURVIVE'
 encrypted_key_body='ENCRYPTED_KEY_BODY_SHOULD_NOT_SURVIVE'
-task_payload="AWS $aws_session_key GitHub $github_pat Slack $slack_token API $api_key
+task_payload="AWS $aws_session_key GitHub $github_pat Slack $slack_token API $api_key AWS_SECRET_ACCESS_KEY=$aws_secret AWS_SESSION_TOKEN=$aws_session
 -----BEGIN $private_key_kind-----
 $private_key_body
 -----END $private_key_kind-----
@@ -186,16 +188,16 @@ start_output="$(
   GIT_CONFIG_NOSYSTEM=1 GIT_CONFIG_GLOBAL="$test_git_config" \
     "$project_fixture/scripts/project" start --task "$task_payload" --json
 )"
-if ! grep -qF '"hooks":"installed"' <<<"$start_output"; then
-  printf 'CLI start did not install the project hooks in a clean fixture.\n' >&2
+if ! grep -qF '"hooks":"available-but-not-installed"' <<<"$start_output"; then
+  printf 'CLI start did not report that project hooks remain opt-in.\n' >&2
   failures=$((failures + 1))
 fi
-if [[ "$(git -C "$project_fixture" config --local --get core.hooksPath)" != '.githooks' ]]; then
-  printf 'CLI start did not set the default project hooks path.\n' >&2
+if git -C "$project_fixture" config --local --get core.hooksPath >/dev/null 2>&1; then
+  printf 'CLI start changed the local Git hook path without explicit opt-in.\n' >&2
   failures=$((failures + 1))
 fi
 for output_file in "$project_fixture/.agent-state/second-brain-checkpoint.md"; do
-  for secret in "$aws_session_key" "$github_pat" "$slack_token" "$api_key" "$private_key_body" "$encrypted_key_body"; do
+  for secret in "$aws_session_key" "$github_pat" "$slack_token" "$api_key" "$private_key_body" "$encrypted_key_body" "$aws_secret" "$aws_session"; do
     if grep -qF "$secret" "$output_file"; then
       printf 'CLI start snapshot redaction failed for a supported credential pattern.\n' >&2
       failures=$((failures + 1))
@@ -203,7 +205,7 @@ for output_file in "$project_fixture/.agent-state/second-brain-checkpoint.md"; d
     fi
   done
 done
-for secret in "$aws_session_key" "$github_pat" "$slack_token" "$api_key" "$private_key_body" "$encrypted_key_body"; do
+for secret in "$aws_session_key" "$github_pat" "$slack_token" "$api_key" "$private_key_body" "$encrypted_key_body" "$aws_secret" "$aws_session"; do
   if grep -qF "$secret" <<<"$start_output"; then
     printf 'CLI start JSON redaction failed for a supported credential pattern.\n' >&2
     failures=$((failures + 1))
@@ -233,23 +235,25 @@ if ! grep -qF '"hooks":"custom-hooks-configured"' <<<"$custom_hooks_output" || \
 fi
 
 git -C "$project_fixture" config --local --unset core.hooksPath
-real_git="$(command -v git)"
-fake_bin="$fixture_dir/fake-bin"
-mkdir -p "$fake_bin"
-cat > "$fake_bin/git" <<EOF
-#!/usr/bin/env bash
-if [[ "\${1:-}" == '-C' && "\${3:-}" == 'config' && "\${4:-}" == 'core.hooksPath' && "\${5:-}" == '.githooks' ]]; then
-  exit 1
-fi
-exec "$real_git" "\$@"
-EOF
-chmod +x "$fake_bin/git"
-failed_install_output="$(
-  PATH="$fake_bin:$PATH" GIT_CONFIG_NOSYSTEM=1 GIT_CONFIG_GLOBAL="$test_git_config" \
-    "$project_fixture/scripts/project" start --task 'hook setup failure' --json
+unset_git_hooks_output="$(
+  GIT_CONFIG_NOSYSTEM=1 GIT_CONFIG_GLOBAL="$test_git_config" \
+    "$project_fixture/scripts/project" start --task 'hooks stay opt-in' --json
 )"
-if ! grep -qF '"hooks":"available-but-not-installed"' <<<"$failed_install_output"; then
-  printf 'CLI start did not report a failed hook installation clearly.\n' >&2
+if ! grep -qF '"hooks":"available-but-not-installed"' <<<"$unset_git_hooks_output" || \
+   git -C "$project_fixture" config --local --get core.hooksPath >/dev/null 2>&1; then
+  printf 'CLI start enabled repository-controlled hooks without explicit opt-in.\n' >&2
+  failures=$((failures + 1))
+fi
+
+mkdir -p "$fixture_dir/caller/docs"
+printf '# Caller repository\n\nforeign-content\n' > "$fixture_dir/caller/docs/project-brief.md"
+(
+  cd "$fixture_dir/caller"
+  "$project_fixture/scripts/project" compact cwd-check 'Caller cwd isolation' >/dev/null
+)
+compact_file="$(find "$project_fixture/docs/compactions" -maxdepth 1 -type f -name '*-cwd-check.md' -print -quit)"
+if [[ -z "$compact_file" ]] || ! grep -qF 'Fixture project identity.' "$compact_file" || grep -qF 'foreign-content' "$compact_file"; then
+  printf 'compaction snapshot read content from the caller working directory.\n' >&2
   failures=$((failures + 1))
 fi
 
@@ -272,7 +276,7 @@ fi
 friction_fixture="$fixture_dir/friction-project"
 mkdir -p "$friction_fixture/docs/state/proposals" "$friction_fixture/docs/compactions" "$friction_fixture/prompts"
 mkdir -p "$friction_fixture/scripts"
-cp -p scripts/project scripts/snapshot-next-action.sh scripts/check-learning.sh "$friction_fixture/scripts/"
+cp -p scripts/project scripts/snapshot-next-action.sh scripts/secret_redaction.py scripts/check-learning.sh "$friction_fixture/scripts/"
 for stub in check-starter.sh check-release.sh; do
   printf '#!/usr/bin/env bash\nexit 0\n' > "$friction_fixture/scripts/$stub"
   chmod +x "$friction_fixture/scripts/$stub"
@@ -333,7 +337,7 @@ fi
 # Evidence-based suggest-upgrades and retro
 evidence_fixture="$fixture_dir/evidence-project"
 mkdir -p "$evidence_fixture/docs/state/proposals" "$evidence_fixture/docs/compactions" "$evidence_fixture/docs/research" "$evidence_fixture/docs/retrospectives" "$evidence_fixture/.lavish" "$evidence_fixture/scripts"
-cp -p scripts/project scripts/snapshot-next-action.sh "$evidence_fixture/scripts/"
+cp -p scripts/project scripts/snapshot-next-action.sh scripts/secret_redaction.py "$evidence_fixture/scripts/"
 printf '# Friction log\n\n## Log\n\n- 2026-11-01 | flaky-hook | s1 | c | f | open\n- 2026-11-02 | flaky-hook | s2 | c | f | open\n- 2026-11-03 | solo-area | s3 | c | f | open\n' > "$evidence_fixture/docs/state/friction.md"
 printf '# Lessons\n\n## Log\n\n- `2026-11-01 — has check — e — check: scripts/x.sh`\n- `2026-11-02 — no check — e`\n' > "$evidence_fixture/docs/lessons.md"
 printf '# Old research\n' > "$evidence_fixture/docs/research/2020-01-01-old.md"

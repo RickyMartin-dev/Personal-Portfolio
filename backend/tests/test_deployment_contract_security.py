@@ -19,6 +19,14 @@ DEPLOY_WORKFLOW = DEPLOY_WORKFLOW_PATH.read_text(encoding="utf-8")
 BOOTSTRAP_TERRAFORM_PATH = (
     Path(__file__).resolve().parents[1] / "infra" / "bootstrap" / "main.tf"
 )
+APP_TERRAFORM_DIR = Path(__file__).resolve().parents[1] / "infra" / "terraform"
+WORKLOAD_ROLES = {
+    "lambda",
+    "weekly_report",
+    "weekly_report_scheduler",
+    "rag_knowledge_base",
+    "rag_reindex",
+}
 IMAGE_STEP_NAME = "Build and publish the immutable Lambda image"
 IMAGE_TAG = "0123456789abcdef0123456789abcdef01234567"
 ECR_URL = "123456789012.dkr.ecr.us-east-1.amazonaws.com/portfolio-chatbot"
@@ -93,10 +101,122 @@ def deploy_role_statements_granting(action: str) -> list[dict]:
     ]
 
 
+def app_resources(resource_type: str) -> dict[str, dict]:
+    resources: dict[str, dict] = {}
+    for path in sorted(APP_TERRAFORM_DIR.glob("*.tf")):
+        with path.open(encoding="utf-8") as terraform:
+            root = hcl2.load(terraform)
+        for block in root.get("resource", []):
+            for kind, named in block.items():
+                if kind.strip('"') == resource_type:
+                    resources.update(
+                        {name.strip('"'): body for name, body in named.items()}
+                    )
+    return resources
+
+
+def statement_conditions(statement: dict) -> set[tuple[str, str, tuple[str, ...]]]:
+    return {
+        (
+            condition["test"].strip('"'),
+            condition["variable"].strip('"'),
+            tuple(value.strip('"') for value in condition["values"]),
+        )
+        for condition in statement.get("condition", [])
+    }
+
+
 def test_production_deployment_only_runs_from_develop_after_verification() -> None:
     assert "on:\n  push:\n    branches: [develop]" in DEPLOY_WORKFLOW
     assert "deploy-backend:\n    needs: verify-and-build" in DEPLOY_WORKFLOW
     assert "publish-site:\n    needs: [verify-and-build, deploy-backend]" in DEPLOY_WORKFLOW
+    workflow = yaml.safe_load(DEPLOY_WORKFLOW)
+    assert workflow["jobs"]["deploy-backend"]["environment"] == {
+        "name": "aws-production"
+    }
+
+
+def test_every_workload_role_carries_the_permissions_boundary() -> None:
+    roles = app_resources("aws_iam_role")
+
+    assert set(roles) == WORKLOAD_ROLES
+    for role in roles.values():
+        assert role["permissions_boundary"] == "${local.workload_boundary_arn}"
+
+
+@pytest.mark.parametrize(
+    "action",
+    [
+        "iam:AttachRolePolicy",
+        "iam:CreatePolicyVersion",
+        "iam:DeleteRole",
+        "iam:DeleteRolePermissionsBoundary",
+        "iam:UpdateAssumeRolePolicy",
+    ],
+)
+def test_deploy_role_cannot_rewrite_trust_or_escape_the_boundary(action: str) -> None:
+    assert not deploy_role_statements_granting(action)
+
+
+@pytest.mark.parametrize(
+    "action",
+    [
+        "iam:CreateRole",
+        "iam:DeleteRolePolicy",
+        "iam:PutRolePermissionsBoundary",
+        "iam:PutRolePolicy",
+    ],
+)
+def test_deploy_role_changes_roles_only_under_the_boundary(action: str) -> None:
+    statements = deploy_role_statements_granting(action)
+
+    assert statements
+    for statement in statements:
+        assert statement_conditions(statement) == {
+            (
+                "ArnEquals",
+                "iam:PermissionsBoundary",
+                ("${local.workload_boundary_arn}",),
+            )
+        }
+
+
+@pytest.mark.parametrize("action", ["iam:TagRole", "iam:UntagRole"])
+def test_deploy_role_can_tag_only_managed_workload_roles(action: str) -> None:
+    statements = deploy_role_statements_granting(action)
+
+    assert len(statements) == 1
+    assert not statement_conditions(statements[0])
+    assert set(statements[0]["resources"]) == {
+        "${local.lambda_role_arn}",
+        "${local.report_lambda_role}",
+        "${local.scheduler_role_arn}",
+        "${local.rag_kb_role_arn}",
+        "${local.rag_reindex_role_arn}",
+    }
+
+
+def test_deploy_role_binds_api_mutations_and_event_mappings_to_portfolio() -> None:
+    api_statements = deploy_role_statements_granting("apigateway:DELETE")
+    assert len(api_statements) == 1
+    assert statement_conditions(api_statements[0]) == {
+        ("StringEquals", "aws:ResourceTag/Project", ("personal-portfolio-chatbot",))
+    }
+
+    mapping_statements = deploy_role_statements_granting("lambda:CreateEventSourceMapping")
+    assert len(mapping_statements) == 1
+    assert mapping_statements[0]["resources"] == ["${local.rag_event_source_mapping_arn}"]
+    assert statement_conditions(mapping_statements[0]) == {
+        ("ArnEquals", "lambda:FunctionArn", ("${local.rag_reindex_lambda_arn}",))
+    }
+
+
+def test_caller_rate_limit_table_is_keyed_by_caller_window_and_expires() -> None:
+    table = app_resources("aws_dynamodb_table")["caller_rate_limit"]
+
+    assert table["hash_key"] == '"callerWindow"'
+    assert table["ttl"][0]["attribute_name"] == '"expiresAt"'
+    assert table["ttl"][0]["enabled"] is True
 
 
 def test_deployment_checks_required_email_and_aws_bootstrap_before_oidc() -> None:

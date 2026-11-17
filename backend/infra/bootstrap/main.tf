@@ -8,12 +8,14 @@ locals {
   repository_arn               = "arn:${data.aws_partition.current.partition}:ecr:${var.aws_region}:${data.aws_caller_identity.current.account_id}:repository/personal-portfolio-chatbot"
   lambda_arn                   = "arn:${data.aws_partition.current.partition}:lambda:${var.aws_region}:${data.aws_caller_identity.current.account_id}:function:personal-portfolio-chatbot"
   usage_table_arn              = "arn:${data.aws_partition.current.partition}:dynamodb:${var.aws_region}:${data.aws_caller_identity.current.account_id}:table/personal-portfolio-chatbot-monthly-usage"
+  rate_limit_table_arn         = "arn:${data.aws_partition.current.partition}:dynamodb:${var.aws_region}:${data.aws_caller_identity.current.account_id}:table/personal-portfolio-chatbot-caller-rate-limit"
   lambda_role_arn              = "arn:${data.aws_partition.current.partition}:iam::${data.aws_caller_identity.current.account_id}:role/personal-portfolio-chatbot-lambda"
   report_lambda_arn            = "arn:${data.aws_partition.current.partition}:lambda:${var.aws_region}:${data.aws_caller_identity.current.account_id}:function:personal-portfolio-chatbot-weekly-report"
   report_lambda_role           = "arn:${data.aws_partition.current.partition}:iam::${data.aws_caller_identity.current.account_id}:role/personal-portfolio-chatbot-weekly-report"
   scheduler_role_arn           = "arn:${data.aws_partition.current.partition}:iam::${data.aws_caller_identity.current.account_id}:role/personal-portfolio-chatbot-weekly-report-scheduler"
   report_topic_arn             = "arn:${data.aws_partition.current.partition}:sns:${var.aws_region}:${data.aws_caller_identity.current.account_id}:personal-portfolio-chatbot-weekly-report"
   report_subscription_arn      = "${local.report_topic_arn}:*"
+  workload_boundary_arn        = "arn:${data.aws_partition.current.partition}:iam::${data.aws_caller_identity.current.account_id}:policy/personal-portfolio-chatbot-workload-boundary"
   report_schedule_arn          = "arn:${data.aws_partition.current.partition}:scheduler:${var.aws_region}:${data.aws_caller_identity.current.account_id}:schedule/default/personal-portfolio-chatbot-weekly-report"
   rag_source_bucket_name       = "personal-portfolio-chatbot-rag-${data.aws_caller_identity.current.account_id}"
   rag_source_bucket_arn        = "arn:${data.aws_partition.current.partition}:s3:::${local.rag_source_bucket_name}"
@@ -24,9 +26,9 @@ locals {
   rag_reindex_role_arn         = "arn:${data.aws_partition.current.partition}:iam::${data.aws_caller_identity.current.account_id}:role/personal-portfolio-chatbot-rag-reindex"
   rag_reindex_lambda_arn       = "arn:${data.aws_partition.current.partition}:lambda:${var.aws_region}:${data.aws_caller_identity.current.account_id}:function:personal-portfolio-chatbot-rag-reindex"
   rag_event_source_mapping_arn = "arn:${data.aws_partition.current.partition}:lambda:${var.aws_region}:${data.aws_caller_identity.current.account_id}:event-source-mapping:*"
+  boundary_model_arns          = ["arn:${data.aws_partition.current.partition}:bedrock:${var.aws_region}:${data.aws_caller_identity.current.account_id}:inference-profile/us.amazon.nova-micro-v1:0", "arn:${data.aws_partition.current.partition}:bedrock:us-east-1::foundation-model/amazon.nova-micro-v1:0", "arn:${data.aws_partition.current.partition}:bedrock:us-east-2::foundation-model/amazon.nova-micro-v1:0", "arn:${data.aws_partition.current.partition}:bedrock:us-west-2::foundation-model/amazon.nova-micro-v1:0", "arn:${data.aws_partition.current.partition}:bedrock:${var.aws_region}::foundation-model/amazon.titan-embed-text-v2:0"]
   rag_queue_arn                = "arn:${data.aws_partition.current.partition}:sqs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:personal-portfolio-chatbot-rag-ingestion"
   log_group_arn                = "arn:${data.aws_partition.current.partition}:logs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:log-group:/aws/lambda/personal-portfolio-chatbot*"
-  api_gateway_tags_arn         = "arn:${data.aws_partition.current.partition}:apigateway:${var.aws_region}::/tags/arn%3A${data.aws_partition.current.partition}%3Aapigateway%3A${var.aws_region}%3A%3A%2Fv2%2Fapis%2F*"
 }
 
 resource "aws_s3_bucket" "terraform_state" {
@@ -117,6 +119,104 @@ resource "aws_iam_openid_connect_provider" "github" {
 
   url            = "https://token.actions.githubusercontent.com"
   client_id_list = ["sts.amazonaws.com"]
+}
+
+data "aws_iam_policy_document" "workload_permissions_boundary" {
+  statement {
+    sid       = "AllowPortfolioBedrockOperations"
+    effect    = "Allow"
+    actions   = ["bedrock:InvokeGuardrailChecks"]
+    resources = ["*"]
+  }
+
+  statement {
+    sid    = "InvokePortfolioModelsAndKnowledgeBase"
+    effect = "Allow"
+    actions = [
+      "bedrock:GetIngestionJob",
+      "bedrock:InvokeModel",
+      "bedrock:Retrieve",
+      "bedrock:StartIngestionJob",
+    ]
+    resources = concat(local.boundary_model_arns, [local.rag_knowledge_base_arn])
+  }
+
+  statement {
+    sid       = "ReadAndWritePortfolioDocuments"
+    effect    = "Allow"
+    actions   = ["s3:GetObject"]
+    resources = ["${local.rag_source_bucket_arn}/documents/*"]
+  }
+
+  statement {
+    sid       = "ListPortfolioDocumentPrefix"
+    effect    = "Allow"
+    actions   = ["s3:ListBucket"]
+    resources = [local.rag_source_bucket_arn]
+    condition {
+      test     = "StringLike"
+      variable = "s3:prefix"
+      values   = ["documents/", "documents/*"]
+    }
+  }
+
+  statement {
+    sid    = "AccessPortfolioVectorIndex"
+    effect = "Allow"
+    actions = [
+      "s3vectors:DeleteVectors",
+      "s3vectors:GetIndex",
+      "s3vectors:GetVectors",
+      "s3vectors:PutVectors",
+      "s3vectors:QueryVectors",
+    ]
+    resources = [local.rag_vector_index_arn]
+  }
+
+  statement {
+    sid    = "AccessPortfolioOperationalResources"
+    effect = "Allow"
+    actions = [
+      "dynamodb:UpdateItem",
+      "lambda:InvokeFunction",
+      "logs:CreateLogStream",
+      "logs:FilterLogEvents",
+      "logs:PutLogEvents",
+      "sns:Publish",
+      "sqs:ChangeMessageVisibility",
+      "sqs:DeleteMessage",
+      "sqs:GetQueueAttributes",
+      "sqs:ReceiveMessage",
+    ]
+    resources = [
+      local.usage_table_arn,
+      local.rate_limit_table_arn,
+      local.report_lambda_arn,
+      "${local.log_group_arn}:*",
+      local.report_topic_arn,
+      local.rag_queue_arn,
+    ]
+  }
+
+  statement {
+    sid       = "ReadPortfolioMetricsAndCostSummary"
+    effect    = "Allow"
+    actions   = ["ce:GetCostAndUsage", "cloudwatch:GetMetricData"]
+    resources = ["*"]
+  }
+
+  statement {
+    sid       = "DenyRuntimeRoleAdministration"
+    effect    = "Deny"
+    actions   = ["iam:*", "organizations:*", "account:*", "sts:AssumeRole", "sts:AssumeRoleWithWebIdentity", "sts:TagSession"]
+    resources = ["*"]
+  }
+}
+
+resource "aws_iam_policy" "workload_permissions_boundary" {
+  name        = "personal-portfolio-chatbot-workload-boundary"
+  description = "Maximum allowed permissions for portfolio application roles; blocks IAM and account privilege escalation."
+  policy      = data.aws_iam_policy_document.workload_permissions_boundary.json
 }
 
 data "aws_iam_policy_document" "github_assume_role" {
@@ -238,47 +338,138 @@ data "aws_iam_policy_document" "github_deploy" {
   }
 
   statement {
-    sid    = "ManageLambdaExecutionRole"
+    sid    = "CreateAndUpdateBoundedWorkloadRoles"
     effect = "Allow"
     actions = [
       "iam:CreateRole",
-      "iam:DeleteRole",
       "iam:DeleteRolePolicy",
-      "iam:GetRole",
-      "iam:GetRolePolicy",
-      "iam:ListRolePolicies",
-      "iam:ListAttachedRolePolicies",
-      "iam:PassRole",
+      "iam:PutRolePermissionsBoundary",
       "iam:PutRolePolicy",
-      "iam:TagRole",
-      "iam:UntagRole",
-      "iam:UpdateAssumeRolePolicy",
     ]
     resources = [local.lambda_role_arn, local.report_lambda_role, local.scheduler_role_arn, local.rag_kb_role_arn, local.rag_reindex_role_arn]
 
     condition {
-      test     = "StringEqualsIfExists"
-      variable = "iam:PassedToService"
-      values   = ["lambda.amazonaws.com", "scheduler.amazonaws.com", "bedrock.amazonaws.com"]
+      test     = "ArnEquals"
+      variable = "iam:PermissionsBoundary"
+      values   = [local.workload_boundary_arn]
     }
   }
 
   statement {
-    sid    = "ManageChatbotApi"
+    sid       = "TagManagedWorkloadRoles"
+    effect    = "Allow"
+    actions   = ["iam:TagRole", "iam:UntagRole"]
+    resources = [local.lambda_role_arn, local.report_lambda_role, local.scheduler_role_arn, local.rag_kb_role_arn, local.rag_reindex_role_arn]
+  }
+
+  statement {
+    sid       = "ReadManagedWorkloadRoles"
+    effect    = "Allow"
+    actions   = ["iam:GetRole", "iam:GetRolePolicy", "iam:ListRolePolicies", "iam:ListAttachedRolePolicies"]
+    resources = [local.lambda_role_arn, local.report_lambda_role, local.scheduler_role_arn, local.rag_kb_role_arn, local.rag_reindex_role_arn]
+  }
+
+  statement {
+    sid       = "PassChatbotRoleToLambda"
+    effect    = "Allow"
+    actions   = ["iam:PassRole"]
+    resources = [local.lambda_role_arn]
+    condition {
+      test     = "StringEquals"
+      variable = "iam:PassedToService"
+      values   = ["lambda.amazonaws.com"]
+    }
+  }
+
+  statement {
+    sid       = "PassReportRoleToLambda"
+    effect    = "Allow"
+    actions   = ["iam:PassRole"]
+    resources = [local.report_lambda_role, local.rag_reindex_role_arn]
+    condition {
+      test     = "StringEquals"
+      variable = "iam:PassedToService"
+      values   = ["lambda.amazonaws.com"]
+    }
+  }
+
+  statement {
+    sid       = "PassSchedulerRoleToScheduler"
+    effect    = "Allow"
+    actions   = ["iam:PassRole"]
+    resources = [local.scheduler_role_arn]
+    condition {
+      test     = "StringEquals"
+      variable = "iam:PassedToService"
+      values   = ["scheduler.amazonaws.com"]
+    }
+  }
+
+  statement {
+    sid       = "PassKnowledgeBaseRoleToBedrock"
+    effect    = "Allow"
+    actions   = ["iam:PassRole"]
+    resources = [local.rag_kb_role_arn]
+    condition {
+      test     = "StringEquals"
+      variable = "iam:PassedToService"
+      values   = ["bedrock.amazonaws.com"]
+    }
+  }
+
+  statement {
+    sid       = "ReadRegionalApiGatewayMetadata"
+    effect    = "Allow"
+    actions   = ["apigateway:GET"]
+    resources = ["arn:${data.aws_partition.current.partition}:apigateway:${var.aws_region}::/apis", "arn:${data.aws_partition.current.partition}:apigateway:${var.aws_region}::/apis/*"]
+  }
+
+  statement {
+    sid       = "CreateTaggedPortfolioHttpApi"
+    effect    = "Allow"
+    actions   = ["apigateway:POST"]
+    resources = ["arn:${data.aws_partition.current.partition}:apigateway:${var.aws_region}::/apis"]
+    condition {
+      test     = "StringEquals"
+      variable = "aws:RequestTag/Project"
+      values   = ["personal-portfolio-chatbot"]
+    }
+  }
+
+  statement {
+    sid       = "CreateTaggedStageOnPortfolioApi"
+    effect    = "Allow"
+    actions   = ["apigateway:POST"]
+    resources = ["arn:${data.aws_partition.current.partition}:apigateway:${var.aws_region}::/apis/*/stages"]
+    condition {
+      test     = "StringEquals"
+      variable = "aws:ResourceTag/Project"
+      values   = ["personal-portfolio-chatbot"]
+    }
+    condition {
+      test     = "StringEquals"
+      variable = "aws:RequestTag/Project"
+      values   = ["personal-portfolio-chatbot"]
+    }
+  }
+
+  statement {
+    sid    = "ManageTaggedPortfolioHttpApi"
     effect = "Allow"
     actions = [
-      "apigateway:GET",
+      "apigateway:DELETE",
+      "apigateway:PATCH",
       "apigateway:POST",
       "apigateway:PUT",
-      "apigateway:PATCH",
-      "apigateway:DELETE",
     ]
-    resources = [
-      "arn:${data.aws_partition.current.partition}:apigateway:${var.aws_region}::/apis",
-      "arn:${data.aws_partition.current.partition}:apigateway:${var.aws_region}::/apis/*",
-      local.api_gateway_tags_arn,
-    ]
+    resources = ["arn:${data.aws_partition.current.partition}:apigateway:${var.aws_region}::/apis/*"]
+    condition {
+      test     = "StringEquals"
+      variable = "aws:ResourceTag/Project"
+      values   = ["personal-portfolio-chatbot"]
+    }
   }
+
 
   statement {
     sid     = "TagChatbotHttpApiStages"
@@ -321,25 +512,6 @@ data "aws_iam_policy_document" "github_deploy" {
       "lambda:UpdateFunctionConfiguration",
     ]
     resources = [local.report_lambda_arn]
-  }
-
-  statement {
-    sid    = "ManageWeeklyReportRoles"
-    effect = "Allow"
-    actions = [
-      "iam:CreateRole",
-      "iam:DeleteRole",
-      "iam:DeleteRolePolicy",
-      "iam:GetRole",
-      "iam:GetRolePolicy",
-      "iam:ListRolePolicies",
-      "iam:ListAttachedRolePolicies",
-      "iam:PutRolePolicy",
-      "iam:TagRole",
-      "iam:UntagRole",
-      "iam:UpdateAssumeRolePolicy",
-    ]
-    resources = [local.report_lambda_role, local.scheduler_role_arn]
   }
 
   statement {
@@ -466,6 +638,11 @@ data "aws_iam_policy_document" "github_deploy" {
       "lambda:UpdateEventSourceMapping",
     ]
     resources = [local.rag_event_source_mapping_arn]
+    condition {
+      test     = "ArnEquals"
+      variable = "lambda:FunctionArn"
+      values   = [local.rag_reindex_lambda_arn]
+    }
   }
 
   statement {
@@ -554,7 +731,7 @@ data "aws_iam_policy_document" "github_deploy" {
       "dynamodb:UntagResource",
       "dynamodb:UpdateTable",
     ]
-    resources = [local.usage_table_arn]
+    resources = [local.usage_table_arn, local.rate_limit_table_arn]
   }
 }
 
