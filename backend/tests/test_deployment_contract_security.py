@@ -192,6 +192,10 @@ def test_deployment_rejects_a_reused_image_with_an_unsupported_manifest(
             "sns:ListTagsForResource",
             {"${local.report_topic_arn}", "${local.report_subscription_arn}"},
         ),
+        (
+            "s3:PutEncryptionConfiguration",
+            {"${local.rag_source_bucket_arn}"},
+        ),
     ],
 )
 def test_deploy_role_resource_permissions_are_limited_to_managed_resources(
@@ -202,3 +206,25 @@ def test_deploy_role_resource_permissions_are_limited_to_managed_resources(
     assert statements
     for statement in statements:
         assert set(statement["resources"]) == resources
+
+
+def test_deploy_role_uses_valid_s3_encryption_actions() -> None:
+    assert not deploy_role_statements_granting("s3:GetBucketServerSideEncryption")
+    assert not deploy_role_statements_granting("s3:PutBucketServerSideEncryption")
+
+
+def test_lambda_version_reads_are_scoped_to_managed_functions() -> None:
+    statements = deploy_role_statements_granting("lambda:ListVersionsByFunction")
+
+    assert statements
+    resources = {
+        resource
+        for statement in statements
+        for resource in statement["resources"]
+    }
+    assert resources == {
+        "${local.lambda_arn}",
+        "${local.report_lambda_arn}",
+        "${local.rag_reindex_lambda_arn}",
+    }
+    assert all(len(statement["resources"]) == 1 for statement in statements)
