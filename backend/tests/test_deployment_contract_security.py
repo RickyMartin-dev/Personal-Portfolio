@@ -163,7 +163,30 @@ def test_deployment_rejects_a_reused_image_with_an_unsupported_manifest(
 @pytest.mark.parametrize(
     ("action", "resources"),
     [
+        ("s3:GetAccelerateConfiguration", {"${local.rag_source_bucket_arn}"}),
+        ("s3:GetBucketAcl", {"${local.rag_source_bucket_arn}"}),
+        ("s3:GetBucketCORS", {"${local.rag_source_bucket_arn}"}),
+        ("s3:GetBucketLogging", {"${local.rag_source_bucket_arn}"}),
+        (
+            "s3:GetBucketObjectLockConfiguration",
+            {"${local.rag_source_bucket_arn}"},
+        ),
+        ("s3:GetBucketPolicy", {"${local.rag_source_bucket_arn}"}),
+        (
+            "s3:GetBucketRequestPayment",
+            {"${local.rag_source_bucket_arn}"},
+        ),
+        (
+            "s3:GetEncryptionConfiguration",
+            {"${local.rag_source_bucket_arn}"},
+        ),
         ("s3:GetBucketTagging", {"${local.rag_source_bucket_arn}"}),
+        ("s3:GetBucketVersioning", {"${local.rag_source_bucket_arn}"}),
+        ("s3:GetBucketWebsite", {"${local.rag_source_bucket_arn}"}),
+        (
+            "s3:GetReplicationConfiguration",
+            {"${local.rag_source_bucket_arn}"},
+        ),
         ("s3:PutBucketTagging", {"${local.rag_source_bucket_arn}"}),
         (
             "sns:ListTagsForResource",
@@ -171,7 +194,7 @@ def test_deployment_rejects_a_reused_image_with_an_unsupported_manifest(
         ),
     ],
 )
-def test_deploy_role_tag_access_is_limited_to_the_managed_resources(
+def test_deploy_role_resource_permissions_are_limited_to_managed_resources(
     action: str, resources: set[str]
 ) -> None:
     statements = deploy_role_statements_granting(action)
