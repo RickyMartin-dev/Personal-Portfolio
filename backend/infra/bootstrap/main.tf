@@ -65,6 +65,7 @@ locals {
       "ManageRagEventSourceMapping",
       "ManageRagLogs",
       "CreatePortfolioKnowledgeBase",
+      "ReadRagEventSourceMappingTags",
     ]
     data = [
       "ManagePortfolioKnowledgeBase",
@@ -676,9 +677,6 @@ data "aws_iam_policy_document" "github_deploy" {
       "lambda:CreateEventSourceMapping",
       "lambda:DeleteEventSourceMapping",
       "lambda:GetEventSourceMapping",
-      "lambda:ListTags",
-      "lambda:TagResource",
-      "lambda:UntagResource",
       "lambda:UpdateEventSourceMapping",
     ]
     resources = [local.rag_event_source_mapping_arn]
@@ -687,6 +685,13 @@ data "aws_iam_policy_document" "github_deploy" {
       variable = "lambda:FunctionArn"
       values   = [local.rag_reindex_lambda_arn]
     }
+  }
+
+  statement {
+    sid       = "ReadRagEventSourceMappingTags"
+    effect    = "Allow"
+    actions   = ["lambda:ListTags"]
+    resources = [local.rag_event_source_mapping_arn]
   }
 
   statement {

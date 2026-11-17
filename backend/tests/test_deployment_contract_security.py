@@ -240,6 +240,23 @@ def test_deploy_role_binds_api_mutations_and_event_mappings_to_portfolio() -> No
         ("ArnEquals", "lambda:FunctionArn", ("${local.rag_reindex_lambda_arn}",))
     }
 
+    mapping_tag_reads = [
+        statement
+        for statement in deploy_role_statements_granting("lambda:ListTags")
+        if statement["sid"] == '"ReadRagEventSourceMappingTags"'
+    ]
+    assert len(mapping_tag_reads) == 1
+    assert mapping_tag_reads[0]["sid"] == '"ReadRagEventSourceMappingTags"'
+    assert mapping_tag_reads[0]["resources"] == [
+        "${local.rag_event_source_mapping_arn}"
+    ]
+    assert not statement_conditions(mapping_tag_reads[0])
+    for action in ("lambda:TagResource", "lambda:UntagResource"):
+        assert all(
+            "${local.rag_event_source_mapping_arn}" not in statement["resources"]
+            for statement in deploy_role_statements_granting(action)
+        )
+
 
 def test_caller_rate_limit_table_is_keyed_by_caller_window_and_expires() -> None:
     table = app_resources("aws_dynamodb_table")["caller_rate_limit"]
@@ -418,10 +435,12 @@ def test_event_source_mapping_tag_permissions_are_scoped(
         for statement in statements
         for resource in statement["resources"]
     }
-    assert resources == {
+    expected_resources = {
         "${local.lambda_arn}",
         "${local.report_lambda_arn}",
         "${local.rag_reindex_lambda_arn}",
-        "${local.rag_event_source_mapping_arn}",
     }
+    if action == "lambda:ListTags":
+        expected_resources.add("${local.rag_event_source_mapping_arn}")
+    assert resources == expected_resources
     assert all(len(statement["resources"]) == 1 for statement in statements)
