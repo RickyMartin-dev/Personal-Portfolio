@@ -132,6 +132,11 @@ test('phone navigation opens as a keyboard-accessible menu on every page', async
     await expect(nav.getByRole('link', { name: 'Home' })).toBeVisible();
     await expect(nav.getByRole('link', { name: 'About' })).toBeVisible();
     await expect(nav.getByRole('link', { name: 'Games' })).toBeVisible();
+    const themeToggle = nav.locator('[data-theme-toggle]');
+    await expect(themeToggle).toBeVisible();
+    const beforeTheme = await page.locator('html').getAttribute('data-theme');
+    await themeToggle.click();
+    await expect(page.locator('html')).toHaveAttribute('data-theme', beforeTheme === 'dark' ? 'light' : 'dark');
     await page.keyboard.press('Escape');
     await expect(nav).toBeHidden();
     await expect(toggle).toBeFocused();
@@ -143,31 +148,57 @@ test('phone navigation opens as a keyboard-accessible menu on every page', async
   }
 });
 
-test('all experience labels and descriptions remain readable on phone widths', async ({ page }) => {
+test('all experience labels stay on the mountain peaks and remain readable on phone widths', async ({ page }) => {
   for (const width of [320, 390, 600, 640]) {
     await page.setViewportSize({ width, height: 844 });
     await page.goto(pages[0].url);
     const spots = page.locator('.spots');
-    await expect(spots).toHaveClass(/mobile-list/);
+    await expect(spots).not.toHaveClass(/mobile-list/);
     const labels = spots.locator('li');
     await expect(labels).toHaveCount(4);
     for (const label of await labels.all()) {
-      await expect(label).toBeVisible();
       const text = label.locator('span');
       await expect(text).toBeVisible();
-      const fits = await label.evaluate((li) => {
-        const span = li.querySelector('span');
-        const box = li.getBoundingClientRect();
+      await expect(text.locator('em')).toBeVisible();
+      const fits = await text.evaluate((span) => {
+        const li = span.closest('li');
         const copy = span.getBoundingClientRect();
-        return copy.left >= box.left && copy.right <= box.right && copy.top >= box.top && copy.bottom <= box.bottom;
+        return li.style.display !== 'none' && li.style.left !== '' && li.style.top !== '' && copy.left >= 0 && copy.right <= window.innerWidth && copy.top >= 0 && copy.bottom <= window.innerHeight;
       });
-      expect(fits, `${width}px experience label text fits its item`).toBe(true);
+      expect(fits, `${width}px experience label stays anchored and fully on screen`).toBe(true);
     }
     await expect(spots).toContainText('professional development');
     await expect(spots).toContainText('projects shipped or containerized');
     await expect(spots).toContainText('added to shareholder value');
     await expect(spots).toContainText('trained or fine-tuned');
+    const labelsOverlap = await spots.evaluate((root) => {
+      const boxes = [...root.querySelectorAll('li span')].map((span) => span.getBoundingClientRect());
+      return boxes.some((a, i) => boxes.slice(i + 1).some((b) => a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top));
+    });
+    expect(labelsOverlap, `${width}px mountain labels do not overlap`).toBe(false);
+    const assistantClearance = await spots.evaluate((root) => {
+      const launcher = document.querySelector('#assist-btn');
+      if (!launcher) return { covered: false };
+      const button = launcher.getBoundingClientRect();
+      const labels = [...root.querySelectorAll('li span')].map((span) => {
+        const label = span.getBoundingClientRect();
+        return { x: label.x, y: label.y, right: label.right, bottom: label.bottom };
+      });
+      return { covered: labels.some((label) => label.x < button.right && label.right > button.left && label.y < button.bottom && label.bottom > button.top), labels, button: { x: button.x, y: button.y, right: button.right, bottom: button.bottom } };
+    });
+    expect(assistantClearance.covered, `${width}px mountain labels stay clear of the assistant button: ${JSON.stringify(assistantClearance)}`).toBe(false);
   }
+});
+
+test('only the mobile menu button stays fixed while scrolling', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto(pages[0].url);
+  const menu = page.locator('[data-nav-toggle]');
+  await expect(menu).toHaveCSS('position', 'fixed');
+  await expect(page.locator('.site-header')).toHaveCSS('position', 'static');
+  await page.evaluate(() => window.scrollTo(0, 700));
+  await expect(menu).toBeInViewport();
+  await expect(page.locator('.site-header')).not.toBeInViewport();
 });
 
 test('theme toggle switches between light and dark and is remembered', async ({ page }) => {

@@ -186,19 +186,6 @@
     var all = [].slice.call(spots.children), n = xs.length, sm = [], i, j;
     spots.style.opacity = '';
     all.forEach(function (li) { li.style.transform = ""; });
-    if (window.matchMedia('(max-width: 640px)').matches) {
-      spots.classList.add('mobile-list');
-      all.forEach(function (li) {
-        li.style.display = '';
-        li.style.left = '';
-        li.style.top = '';
-        li.style.removeProperty('--h');
-        li.style.removeProperty('--lw');
-        li.classList.remove('flip');
-      });
-      lastSpots = null;
-      return;
-    }
     spots.classList.remove('mobile-list');
     for (i = 0; i < n; i++) {
       var a = 0, c = 0;
@@ -209,6 +196,7 @@
     for (i = 3; i < n - 3; i++) {
       if (sm[i] <= sm[i - 1] && sm[i] < sm[i + 1] && xs[i] > w * 0.08 && xs[i] < w * 0.95) cand.push(i);
     }
+    var allCand = cand.slice();
     var emin = 1e9, emax = -1e9;
     env.forEach(function (e) { if (e < emin) emin = e; if (e > emax) emax = e; });
     cand = cand.filter(function (ci) { return env[ci] < emin + (emax - emin) * 0.5; });
@@ -219,16 +207,31 @@
       for (var q = 0; q < pool.length; q++) if (Math.abs(xs[pool[q]] - xs[ci]) < w * 0.07) return;
       pool.push(ci);
     });
+    if (narrow) {
+      var anchors = [0.12, 0.37, 0.63, 0.88];
+      pool = anchors.slice(0, all.length).map(function (ratio) {
+        var target = w * ratio, best = 0;
+        for (var q = 1; q < xs.length; q++) if (Math.abs(xs[q] - target) < Math.abs(xs[best] - target)) best = q;
+        return best;
+      });
+    } else if (pool.length < all.length) {
+      allCand.sort(function (a, b) { return env[a] - env[b]; });
+      allCand.forEach(function (ci) {
+        if (pool.length >= all.length) return;
+        for (var q = 0; q < pool.length; q++) if (Math.abs(xs[pool[q]] - xs[ci]) < w * 0.07) return;
+        pool.push(ci);
+      });
+    }
     /* too few summits: drop labels by data-drop priority (lowest number first) */
     var items = all.slice(), dropOrder = all.filter(function (li) { return li.hasAttribute('data-drop'); })
       .sort(function (p1, p2) { return +p1.getAttribute('data-drop') - +p2.getAttribute('data-drop'); });
     all.forEach(function (li) { li.style.display = ''; });
-    var maxL = Math.min(pool.length, w < 600 ? 2 : w < 1000 ? 3 : 99);
+    var maxL = Math.min(pool.length, all.length);
     while (items.length > maxL && dropOrder.length) { var dl = dropOrder.shift(); dl.style.display = 'none'; items.splice(items.indexOf(dl), 1); }
     var cnt = Math.min(items.length, pool.length), picked = [];
     if (cnt === items.length && cnt >= 2) {
       /* best-spread k-subset of the pool (pool <= 8, so at most C(8,4) = 70 sets) */
-      var needTop = items.some(function (li) { return li.hasAttribute('data-main'); });
+      var needTop = !narrow && items.some(function (li) { return li.hasAttribute('data-main'); });
       var bestSet = null, bestScore = -1e9, cap = w * (cnt > 3 ? 0.22 : 0.3);
       (function walk(start, set) {
         if (set.length === cnt) {
@@ -247,7 +250,9 @@
     picked.sort(function (a, b) { return xs[a] - xs[b]; });
     /* the data-main label always takes the tallest summit; the rest fill the others left to right */
     var mainLi = items.filter(function (li) { return li.hasAttribute('data-main'); })[0], assign = new Map();
-    if (mainLi && top >= 0 && cnt === items.length) {
+    if (narrow) {
+      items.forEach(function (li, k) { assign.set(li, picked[k]); });
+    } else if (mainLi && top >= 0 && cnt === items.length) {
       var restP = picked.filter(function (ci) { return ci !== top; }), restL = items.filter(function (li) { return li !== mainLi; });
       assign.set(mainLi, top); restL.forEach(function (li, k) { assign.set(li, restP[k]); });
     } else items.forEach(function (li, k) { assign.set(li, picked[k]); });
@@ -277,6 +282,7 @@
   }
   function layoutSpots() {
     if (!lastSpots || !spots) return;
+    if (lastSpots.narrow) { layoutMobileSpots(); return; }
     var P = lastSpots.placed, narrow = lastSpots.narrow, artR = art.getBoundingClientRect();
     var obstacles = [];
     ['.hero-title', '.hero-statement', '.hero-support', '.hero-meta'].forEach(function (s) {
@@ -339,6 +345,22 @@
       o.li.classList.toggle('flip', op.fl);
       o.li.style.setProperty('--h', op.h + 'px');
       o.li.style.setProperty('--lw', op.lw + 'em');
+    });
+  }
+  function layoutMobileSpots() {
+    var artR = art.getBoundingClientRect(), metaR = textRect(hero.querySelector('.hero-meta'));
+    var scrollY = window.scrollY || window.pageYOffset || 0;
+    var floor = Math.min(scrollY + window.innerHeight - 10, scrollY + artR.bottom - 6);
+    var ceiling = metaR ? scrollY + metaR.b + 12 : scrollY + artR.top + 16;
+    var upper = Math.max(ceiling, floor - 235), lower = Math.min(upper + 90, floor - 72);
+    upper = Math.min(upper, lower - 90);
+    lastSpots.placed.forEach(function (o, k) {
+      var liR = o.li.getBoundingClientRect(), span = o.li.querySelector('span');
+      var rowTop = (k === 0 || k === 3) ? upper : lower;
+      o.li.classList.toggle('flip', k === 1 || k === 3);
+      o.li.style.setProperty('--h', '30px');
+      o.li.style.setProperty('--lw', (window.innerWidth < 380 ? 5.5 : 6.5) + 'em');
+      span.style.setProperty('--label-top', (rowTop - liR.top) + 'px');
     });
   }
 
