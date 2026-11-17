@@ -3,7 +3,7 @@
 ## Current checkout
 
 - Local branch: `feature/security_update`, based on `0b627020b9593c974d7c3b85d24386ed2ab312bd`.
-- The working tree includes a retry-safe ECR image publish fix and a narrow IAM tag-read permission fix from investigation of failed AWS workflow run `43968012495`.
+- The working tree includes a retry-safe ECR image publish fix and a narrow IAM tag permission fix (SNS tag reads for the report topic; tag read and write scoped to the RAG source bucket) from investigation of failed AWS workflow run `43968012495`.
 - The homepage now displays all four experience-in-numbers labels and descriptions at phone widths, and the three page headers use a compact accessible menu button at phone widths.
 - UI test run: `cd frontend && npm run test:e2e` — 9 passed; experience copy checked at 320px, 390px, 600px, and 640px; screenshot reviewed at 390px. `git diff --check` passed.
 - The requested changes are being prepared for a pull request; no changes have been merged or deployed.

@@ -186,7 +186,7 @@
     var all = [].slice.call(spots.children), n = xs.length, sm = [], i, j;
     spots.style.opacity = '';
     all.forEach(function (li) { li.style.transform = ""; });
-    if (w <= 640) {
+    if (window.matchMedia('(max-width: 640px)').matches) {
       spots.classList.add('mobile-list');
       all.forEach(function (li) {
         li.style.display = '';

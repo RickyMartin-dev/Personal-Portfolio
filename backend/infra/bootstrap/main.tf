@@ -398,6 +398,7 @@ data "aws_iam_policy_document" "github_deploy" {
       "s3:PutBucketOwnershipControls",
       "s3:PutBucketPublicAccessBlock",
       "s3:PutBucketServerSideEncryption",
+      "s3:PutBucketTagging",
       "s3:PutLifecycleConfiguration",
     ]
     resources = [local.rag_source_bucket_arn]
