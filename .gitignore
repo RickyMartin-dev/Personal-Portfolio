@@ -59,4 +59,5 @@ frontend/assets/js/chatbot.config.js
 chatbot.md
 
 # Local project resources; tracked app code lives outside this directory.
+/design-showcase/
 /resources/

@@ -1,14 +1,14 @@
 /*
- * Theme bridge (vendored from design-showcase/shared/bridge.js; hub messaging disabled in production).
+ * Theme preference and toggle bridge for the portfolio.
  * - Resolves theme: ?theme= param > saved choice > OS preference. Sets <html data-theme="light|dark">.
  * - Any element with [data-theme-toggle] toggles the theme (aria-pressed kept in sync).
  * - Fires `document` event "rm:themechange" with detail {theme} so canvases/WebGL can recolor.
- * - Talks to the showcase hub (parent window) via postMessage.
  * Include in <head> BEFORE stylesheets paint:  <script src="assets/js/bridge.js"></script>
- * Pages declare <meta name="rm-version" content="v1"> and <meta name="rm-page" content="home|about|games">.
+ * Pages declare <meta name="rm-page" content="home|about|games"> for runtime configuration.
  */
 (function () {
-  var KEY = 'rm-showcase-theme';
+  var KEY = 'rm-theme';
+  var LEGACY_KEY = 'rm-showcase-theme';
   var root = document.documentElement;
 
   function read() {
@@ -17,27 +17,10 @@
       if (p === 'light' || p === 'dark') return p;
     } catch (e) {}
     try {
-      var s = localStorage.getItem(KEY);
+      var s = localStorage.getItem(KEY) || localStorage.getItem(LEGACY_KEY);
       if (s === 'light' || s === 'dark') return s;
     } catch (e) {}
     return window.matchMedia && matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
-  }
-
-  function meta(name) {
-    var m = document.querySelector('meta[name="' + name + '"]');
-    return m ? m.content : null;
-  }
-
-  function post() {
-    return; /* production: no design-hub messaging */
-    if (window.parent === window) return;
-    try {
-      window.parent.postMessage({
-        source: 'rm-design', type: 'state',
-        version: meta('rm-version'), page: meta('rm-page'),
-        theme: root.dataset.theme, href: location.pathname
-      }, '*');
-    } catch (e) {}
   }
 
   function syncToggles() {
@@ -56,7 +39,6 @@
     if (!(opts && opts.silent)) { try { localStorage.setItem(KEY, theme); } catch (e) {} }
     syncToggles();
     if (changed) document.dispatchEvent(new CustomEvent('rm:themechange', { detail: { theme: theme } }));
-    if (!(opts && opts.fromHub)) post();
   }
 
   set(read(), { silent: true });
@@ -72,5 +54,5 @@
     if (t) { e.preventDefault(); window.RMTheme.toggle(); }
   });
 
-  document.addEventListener('DOMContentLoaded', function () { syncToggles(); post(); });
+  document.addEventListener('DOMContentLoaded', syncToggles);
 })();
