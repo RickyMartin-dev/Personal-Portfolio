@@ -354,6 +354,7 @@ data "aws_iam_policy_document" "github_deploy" {
       "sns:GetTopicAttributes",
       "sns:GetSubscriptionAttributes",
       "sns:ListSubscriptionsByTopic",
+      "sns:ListTagsForResource",
       "sns:SetTopicAttributes",
       "sns:SetSubscriptionAttributes",
       "sns:Subscribe",
@@ -390,12 +391,14 @@ data "aws_iam_policy_document" "github_deploy" {
       "s3:GetBucketOwnershipControls",
       "s3:GetBucketPublicAccessBlock",
       "s3:GetBucketServerSideEncryption",
+      "s3:GetBucketTagging",
       "s3:GetLifecycleConfiguration",
       "s3:ListBucket",
       "s3:PutBucketNotification",
       "s3:PutBucketOwnershipControls",
       "s3:PutBucketPublicAccessBlock",
       "s3:PutBucketServerSideEncryption",
+      "s3:PutBucketTagging",
       "s3:PutLifecycleConfiguration",
     ]
     resources = [local.rag_source_bucket_arn]

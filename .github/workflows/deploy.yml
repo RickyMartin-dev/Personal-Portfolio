@@ -123,13 +123,22 @@ jobs:
           repository="${ecr_url##*/}"
           aws ecr get-login-password --region "$AWS_REGION" \
             | docker login --username AWS --password-stdin "$registry"
-          docker buildx build \
-            --platform linux/amd64 \
-            --provenance=false \
-            --sbom=false \
-            --tag "$ecr_url:$IMAGE_TAG" \
-            --push \
-            backend
+          existing_tag="$(aws ecr list-images \
+            --repository-name "$repository" \
+            --filter tagStatus=TAGGED \
+            --query "imageIds[?imageTag=='${IMAGE_TAG}'].imageTag | [0]" \
+            --output text)"
+          if [[ "$existing_tag" == "$IMAGE_TAG" ]]; then
+            echo "Reusing the immutable image already published for $IMAGE_TAG."
+          else
+            docker buildx build \
+              --platform linux/amd64 \
+              --provenance=false \
+              --sbom=false \
+              --tag "$ecr_url:$IMAGE_TAG" \
+              --push \
+              backend
+          fi
           media_type="$(aws ecr batch-get-image \
             --repository-name "$repository" \
             --image-ids "imageTag=$IMAGE_TAG" \

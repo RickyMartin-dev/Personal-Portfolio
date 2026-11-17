@@ -10,7 +10,7 @@ The Lambda resource references an image that must already exist in ECR. The GitH
 
 1. `terraform init` with `-backend-config="bucket=$TF_STATE_BUCKET" -backend-config="region=$AWS_REGION" -backend-config="encrypt=true" -backend-config="use_lockfile=true"`.
 2. `terraform apply -target=aws_ecr_repository.chatbot` to create the repository before Lambda.
-3. Read `terraform output -raw ecr_repository_url`, build `backend/Dockerfile` for `linux/amd64`, and push the image tagged with the commit SHA.
+3. Read `terraform output -raw ecr_repository_url`, build `backend/Dockerfile` for `linux/amd64`, and push the image tagged with the commit SHA. Before building, the workflow checks whether the immutable tag already exists; a retry reuses that image and verifies its manifest instead of trying to overwrite it.
 4. Run a full `terraform apply -var="image_tag=$GITHUB_SHA"` to create/update Lambda, API Gateway, IAM, and logs.
 5. Read `terraform output -raw api_endpoint` and provide that exact `/chat` URL to the frontend build/deploy job. `terraform output -raw api_base_url` returns the base URL for `/health`.
 

@@ -100,6 +100,7 @@ test('primary navigation links work across home, about, and games', async ({ pag
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto(pages[0].url);
   const nav = page.getByRole('navigation', { name: 'Primary' });
+  await expect(page.locator('[data-nav-toggle]')).toBeHidden();
   await expect(nav.getByRole('link', { name: 'Home' })).toHaveAttribute('aria-current', 'page');
 
   await nav.getByRole('link', { name: 'About' }).click();
@@ -115,6 +116,58 @@ test('primary navigation links work across home, about, and games', async ({ pag
 
   await page.getByRole('link', { name: 'Ricky Martin, home' }).click();
   await expect(page).toHaveURL(`${base}/index.html`);
+});
+
+test('phone navigation opens as a keyboard-accessible menu on every page', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  for (const target of pages) {
+    await page.goto(target.url);
+    const toggle = page.locator('[data-nav-toggle]');
+    const nav = page.getByRole('navigation', { name: 'Primary' });
+    await expect(toggle).toBeVisible();
+    await expect(nav).toBeHidden();
+    await toggle.click();
+    await expect(toggle).toHaveAttribute('aria-expanded', 'true');
+    await expect(toggle).toHaveAttribute('aria-label', 'Close site menu');
+    await expect(nav.getByRole('link', { name: 'Home' })).toBeVisible();
+    await expect(nav.getByRole('link', { name: 'About' })).toBeVisible();
+    await expect(nav.getByRole('link', { name: 'Games' })).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(nav).toBeHidden();
+    await expect(toggle).toBeFocused();
+    await toggle.click();
+    await expect(toggle).toHaveAttribute('aria-label', 'Close site menu');
+    await nav.getByRole('link', { name: target.name === 'home' ? 'About' : 'Home' }).click();
+    await expect(nav).toBeHidden();
+    await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+  }
+});
+
+test('all experience labels and descriptions remain readable on phone widths', async ({ page }) => {
+  for (const width of [320, 390, 600, 640]) {
+    await page.setViewportSize({ width, height: 844 });
+    await page.goto(pages[0].url);
+    const spots = page.locator('.spots');
+    await expect(spots).toHaveClass(/mobile-list/);
+    const labels = spots.locator('li');
+    await expect(labels).toHaveCount(4);
+    for (const label of await labels.all()) {
+      await expect(label).toBeVisible();
+      const text = label.locator('span');
+      await expect(text).toBeVisible();
+      const fits = await label.evaluate((li) => {
+        const span = li.querySelector('span');
+        const box = li.getBoundingClientRect();
+        const copy = span.getBoundingClientRect();
+        return copy.left >= box.left && copy.right <= box.right && copy.top >= box.top && copy.bottom <= box.bottom;
+      });
+      expect(fits, `${width}px experience label text fits its item`).toBe(true);
+    }
+    await expect(spots).toContainText('professional development');
+    await expect(spots).toContainText('projects shipped or containerized');
+    await expect(spots).toContainText('added to shareholder value');
+    await expect(spots).toContainText('trained or fine-tuned');
+  }
 });
 
 test('theme toggle switches between light and dark and is remembered', async ({ page }) => {

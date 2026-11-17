@@ -186,6 +186,20 @@
     var all = [].slice.call(spots.children), n = xs.length, sm = [], i, j;
     spots.style.opacity = '';
     all.forEach(function (li) { li.style.transform = ""; });
+    if (window.matchMedia('(max-width: 640px)').matches) {
+      spots.classList.add('mobile-list');
+      all.forEach(function (li) {
+        li.style.display = '';
+        li.style.left = '';
+        li.style.top = '';
+        li.style.removeProperty('--h');
+        li.style.removeProperty('--lw');
+        li.classList.remove('flip');
+      });
+      lastSpots = null;
+      return;
+    }
+    spots.classList.remove('mobile-list');
     for (i = 0; i < n; i++) {
       var a = 0, c = 0;
       for (j = -4; j <= 4; j++) { if (env[i + j] !== undefined) { a += env[i + j]; c++; } }
