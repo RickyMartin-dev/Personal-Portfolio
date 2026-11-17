@@ -266,6 +266,16 @@ def test_caller_rate_limit_table_is_keyed_by_caller_window_and_expires() -> None
     assert table["ttl"][0]["enabled"] is True
 
 
+def test_deploy_role_can_configure_ttl_only_on_usage_tables() -> None:
+    statements = deploy_role_statements_granting("dynamodb:UpdateTimeToLive")
+
+    assert len(statements) == 1
+    assert set(statements[0]["resources"]) == {
+        "${local.usage_table_arn}",
+        "${local.rate_limit_table_arn}",
+    }
+
+
 def test_deployment_checks_required_email_and_aws_bootstrap_before_oidc() -> None:
     secret_check = DEPLOY_WORKFLOW.index('echo "::error::Set the WEEKLY_REPORT_EMAIL')
     oidc_credentials = DEPLOY_WORKFLOW.index(
