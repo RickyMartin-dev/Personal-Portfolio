@@ -351,6 +351,12 @@
     var artR = art.getBoundingClientRect(), metaR = textRect(hero.querySelector('.hero-meta'));
     var scrollY = window.scrollY || window.pageYOffset || 0;
     var floor = Math.min(scrollY + window.innerHeight - 10, scrollY + artR.bottom - 6);
+    var assistant = document.querySelector('.assist-btn');
+    if (window.innerWidth <= 640 && assistant && getComputedStyle(assistant).display !== 'none') {
+      var assistantR = assistant.getBoundingClientRect();
+      /* Reserve a clear phone-only band above the fixed launcher for the longest wrapped metric label. */
+      floor = Math.min(floor, scrollY + assistantR.top - 32);
+    }
     var ceiling = metaR ? scrollY + metaR.b + 12 : scrollY + artR.top + 16;
     var upper = Math.max(ceiling, floor - 235), lower = Math.min(upper + 90, floor - 72);
     upper = Math.min(upper, lower - 90);
