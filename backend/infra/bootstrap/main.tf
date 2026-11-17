@@ -778,6 +778,7 @@ data "aws_iam_policy_document" "github_deploy" {
       "dynamodb:ListTagsOfResource",
       "dynamodb:TagResource",
       "dynamodb:UntagResource",
+      "dynamodb:UpdateTimeToLive",
       "dynamodb:UpdateTable",
     ]
     resources = [local.usage_table_arn, local.rate_limit_table_arn]
