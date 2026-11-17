@@ -2,29 +2,24 @@
 
 ## Current checkout
 
-- Started from `develop` at `3870c7f` and created `feature/security_update` as requested.
-- The remote `feature/security_update` already belongs to merged PR #32. Preserve that history; publish this follow-up from a fresh branch.
-- A full multi-pass review completed. Findings were validated against this checkout because the archived scanner report recorded a source-revision mismatch.
+- `develop` is at `678b8c7` after security PR #42 and deployment fixes in PRs #43–#45.
 
-## Implemented
+## Completed
 
-- Expanded secret scanning to project guidance, local state, and reference files; reject symlinks and unsafe active Codex hooks.
-- Made local Git hooks opt-in and isolated/sanitized project snapshots.
-- Isolated conditional Impeccable component previews in a sandboxed iframe with restrictive CSP.
-- Added a per-source chatbot rate limit before request validation and included rejected requests in the monthly quota.
-- Added an IAM permissions boundary to application roles and narrowed deploy-role permissions for roles, API Gateway, and Lambda event mappings.
-- Updated backend, infrastructure, governance, and security tests/docs.
+- Completed the multi-pass security review and merged the validated hardening in [PR #42](https://github.com/RickyMartin-dev/Personal-Portfolio/pull/42).
+- Split the GitHub deployment role into four scoped IAM managed policies to stay within AWS size limits ([PR #43](https://github.com/RickyMartin-dev/Personal-Portfolio/pull/43)).
+- Corrected Lambda event-source-mapping tag-read authorization ([PR #44](https://github.com/RickyMartin-dev/Personal-Portfolio/pull/44)).
+- Added the table-scoped DynamoDB TTL permission needed by the caller rate-limit table ([PR #45](https://github.com/RickyMartin-dev/Personal-Portfolio/pull/45)).
+- Applied the owner-controlled bootstrap policy updates. Preserved table deletion protection; cleared only the Terraform taint left by the interrupted table creation after verifying the table was active.
+- Deployment workflow run [#37, attempt 2](https://github.com/RickyMartin-dev/Personal-Portfolio/actions/runs/44033961192) succeeded: preflight, Terraform apply, API health check, and Pages publish.
+- Verified the live API health route returns `{"status":"ok"}` and GitHub Pages returns HTTP 200.
 
 ## Verification
 
-- `./scripts/test.sh`: repository checks and 90 Python tests passed; Chromium could not launch in the default sandbox.
-- Unsandboxed `npm run test:e2e` from `frontend/`: all 10 Playwright tests passed.
-- `git diff --check` passed. Terraform CLI is unavailable locally; pull-request CI must validate both Terraform roots.
-- No AWS resources or GitHub settings have been changed by this audit.
+- Local full suite: 102 Python tests and 10 Playwright tests passed.
+- Terraform bootstrap formatting and validation passed.
+- PR #42–#45 required checks and merge gates passed before merge.
 
-## Remaining work
+## Open work
 
-1. Commit and push the security changes on a fresh follow-up branch; open a PR to `develop`.
-2. Resolve review findings and wait for every required check to pass.
-3. Merge under branch protections, approve the AWS deployment gate as authorized, and verify the deployment health checks.
-4. Save the sanitized task archive and update the handoff.
+- No deployment or security fix remains open for this task. Continue future chatbot or portfolio work from `develop` and use the required PR gates.
