@@ -196,6 +196,12 @@ test('all experience labels stay on the mountain peaks and remain readable on ph
       return boxes.some((a, i) => boxes.slice(i + 1).some((b) => a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top));
     });
     expect(labelsOverlap, `${width}px mountain labels do not overlap`).toBe(false);
+    const peakAlignment = await spots.evaluate((root) => [...root.querySelectorAll('li span')].map((span) => {
+      const label = span.getBoundingClientRect();
+      const markerX = span.closest('li').getBoundingClientRect().left;
+      return Math.abs((label.left + label.right) / 2 - markerX);
+    }));
+    expect(peakAlignment.every((offset) => offset <= 1), `${width}px each label is centered over its peak marker: ${peakAlignment}`).toBe(true);
     const assistantClearance = await spots.evaluate((root) => {
       const launcher = document.querySelector('#assist-btn');
       if (!launcher) return { covered: false };
