@@ -193,6 +193,11 @@ resource "aws_lambda_function" "chatbot" {
 resource "aws_apigatewayv2_api" "chatbot" {
   name          = var.project_name
   protocol_type = "HTTP"
+
+  lifecycle {
+    prevent_destroy = true
+  }
+
   tags = {
     Project = var.project_name
   }

@@ -2,10 +2,14 @@
 
 from __future__ import annotations
 
+import ast
 import os
+import re
+import shutil
 import subprocess
 from fnmatch import fnmatchcase
 from pathlib import Path
+from urllib.parse import urlsplit
 
 import hcl2
 import pytest
@@ -14,6 +18,13 @@ import yaml
 
 DEPLOY_WORKFLOW_PATH = (
     Path(__file__).resolve().parents[2] / ".github" / "workflows" / "deploy.yml"
+)
+FRONTEND_DIR = Path(__file__).resolve().parents[2] / "frontend"
+CLASSIFY_DEPLOY_SCRIPT = (
+    Path(__file__).resolve().parents[2] / "scripts" / "classify-deploy-changes.sh"
+)
+PRODUCTION_API_ENDPOINT_PATH = (
+    Path(__file__).resolve().parents[2] / "frontend" / "production-api-endpoint.txt"
 )
 DEPLOY_WORKFLOW = DEPLOY_WORKFLOW_PATH.read_text(encoding="utf-8")
 BOOTSTRAP_TERRAFORM_PATH = (
@@ -126,14 +137,367 @@ def statement_conditions(statement: dict) -> set[tuple[str, str, tuple[str, ...]
     }
 
 
-def test_production_deployment_only_runs_from_develop_after_verification() -> None:
-    assert "on:\n  push:\n    branches: [develop]" in DEPLOY_WORKFLOW
-    assert "deploy-backend:\n    needs: verify-and-build" in DEPLOY_WORKFLOW
-    assert "publish-site:\n    needs: [verify-and-build, deploy-backend]" in DEPLOY_WORKFLOW
-    workflow = yaml.safe_load(DEPLOY_WORKFLOW)
-    assert workflow["jobs"]["deploy-backend"]["environment"] == {
-        "name": "aws-production"
+def test_production_workflow_routes_develop_changes_through_the_right_jobs() -> None:
+    workflow = yaml.load(DEPLOY_WORKFLOW, Loader=yaml.BaseLoader)
+    jobs = workflow["jobs"]
+
+    assert workflow["on"]["push"]["branches"] == ["develop"]
+    assert workflow["permissions"] == {"actions": "read", "contents": "read"}
+    assert jobs["deploy-backend"]["needs"] == "verify-and-build"
+    assert jobs["deploy-backend"]["if"] == (
+        "${{ needs.verify-and-build.outputs.backend == 'true' }}"
+    )
+    assert jobs["deploy-backend"]["environment"] == {"name": "aws-production"}
+    assert jobs["deploy-backend"]["permissions"] == {
+        "contents": "read",
+        "id-token": "write",
     }
+    assert set(jobs["publish-site"]["needs"]) == {
+        "verify-and-build",
+        "deploy-backend",
+    }
+    assert jobs["publish-site"]["permissions"] == {
+        "contents": "read",
+        "id-token": "write",
+        "pages": "write",
+    }
+    assert jobs["publish-site"]["environment"] == {"name": "github-pages"}
+
+    deploy_steps = jobs["deploy-backend"]["steps"]
+    oidc_step = next(
+        step for step in deploy_steps
+        if step.get("uses", "").startswith("aws-actions/configure-aws-credentials@")
+    )
+    assert oidc_step["with"]["role-to-assume"] == "${{ vars.AWS_ROLE_ARN }}"
+    assert jobs["deploy-backend"]["env"]["TF_STATE_BUCKET"] == (
+        "${{ vars.TF_STATE_BUCKET }}"
+    )
+
+    verify_steps = jobs["verify-and-build"]["steps"]
+    production_build = next(
+        step for step in verify_steps
+        if step.get("name") == "Build and validate the production Pages artifact"
+    )
+    assert production_build["env"] == {
+        "WEB3FORMS_KEY": "${{ secrets.WEB3FORMS_KEY }}"
+    }
+    assert "CHATBOT_API_ENDPOINT" not in jobs["verify-and-build"].get("env", {})
+
+    upload_site = next(
+        step for step in verify_steps
+        if step.get("uses", "").startswith("actions/upload-artifact@")
+    )
+    publish_steps = jobs["publish-site"]["steps"]
+    download_site = next(
+        step for step in publish_steps
+        if step.get("uses", "").startswith("actions/download-artifact@")
+    )
+    upload_pages = next(
+        step for step in publish_steps
+        if step.get("uses", "").startswith("actions/upload-pages-artifact@")
+    )
+    deploy_pages = next(
+        step for step in publish_steps
+        if step.get("uses", "").startswith("actions/deploy-pages@")
+    )
+    assert upload_site["with"]["name"] == download_site["with"]["name"]
+    assert upload_pages["with"]["name"] == deploy_pages["with"]["artifact_name"]
+    assert all(
+        not step.get("uses", "").startswith("aws-actions/")
+        for step in publish_steps
+    )
+
+
+def evaluate_workflow_condition(
+    expression: str, context: dict[str, str | bool]
+) -> bool:
+    expression = expression.strip()
+    if expression.startswith("${{") and expression.endswith("}}"):
+        expression = expression[3:-2].strip()
+
+    def context_value(match: re.Match[str]) -> str:
+        key = match.group(0)
+        return repr(context[key])
+
+    expression = re.sub(
+        r"needs\.(?:verify-and-build|deploy-backend)\.(?:result|outputs\.(?:backend|frontend))",
+        context_value,
+        expression,
+    )
+    expression = expression.replace("cancelled()", repr(context["cancelled"]))
+    expression = expression.replace("&&", " and ").replace("||", " or ")
+    expression = re.sub(r"!(?!=)", " not ", expression)
+    tree = ast.parse(expression.strip(), mode="eval")
+
+    def evaluate(node: ast.AST) -> bool | str:
+        if isinstance(node, ast.Expression):
+            return evaluate(node.body)
+        if isinstance(node, ast.Constant) and isinstance(node.value, (str, bool)):
+            return node.value
+        if isinstance(node, ast.BoolOp):
+            values = [bool(evaluate(value)) for value in node.values]
+            if isinstance(node.op, ast.And):
+                return all(values)
+            if isinstance(node.op, ast.Or):
+                return any(values)
+        if isinstance(node, ast.UnaryOp) and isinstance(node.op, ast.Not):
+            return not bool(evaluate(node.operand))
+        if isinstance(node, ast.Compare) and len(node.ops) == 1:
+            left = evaluate(node.left)
+            right = evaluate(node.comparators[0])
+            if isinstance(node.ops[0], ast.Eq):
+                return left == right
+            if isinstance(node.ops[0], ast.NotEq):
+                return left != right
+        raise AssertionError(
+            f"Unsupported workflow condition expression: {ast.dump(node)}"
+        )
+
+    return bool(evaluate(tree))
+
+
+@pytest.mark.parametrize(
+    (
+        "backend",
+        "frontend",
+        "verify_result",
+        "deploy_result",
+        "cancelled",
+        "expected",
+    ),
+    [
+        ("false", "true", "success", "skipped", False, True),
+        ("true", "true", "success", "success", False, True),
+        ("true", "true", "success", "failure", False, False),
+        ("true", "true", "success", "skipped", False, False),
+        ("false", "false", "success", "skipped", False, False),
+        ("false", "true", "failure", "skipped", False, False),
+        ("false", "true", "success", "skipped", True, False),
+    ],
+)
+def test_publish_condition_matches_representative_job_outcomes(
+    backend: str,
+    frontend: str,
+    verify_result: str,
+    deploy_result: str,
+    cancelled: bool,
+    expected: bool,
+) -> None:
+    workflow = yaml.load(DEPLOY_WORKFLOW, Loader=yaml.BaseLoader)
+    condition = workflow["jobs"]["publish-site"]["if"]
+    context = {
+        "needs.verify-and-build.outputs.backend": backend,
+        "needs.verify-and-build.outputs.frontend": frontend,
+        "needs.verify-and-build.result": verify_result,
+        "needs.deploy-backend.result": deploy_result,
+        "cancelled": cancelled,
+    }
+
+    assert evaluate_workflow_condition(condition, context) is expected
+
+
+@pytest.mark.parametrize("web3forms_key", ["", "custom-public-key", "off"])
+def test_production_build_step_publishes_disabled_chat_and_honors_web3forms(
+    tmp_path: Path, web3forms_key: str
+) -> None:
+    workflow = yaml.load(DEPLOY_WORKFLOW, Loader=yaml.BaseLoader)
+    build_job = workflow["jobs"]["verify-and-build"]
+    step = next(
+        candidate
+        for candidate in build_job["steps"]
+        if candidate.get("name") == "Build and validate the production Pages artifact"
+    )
+    step_environment = step.get("env", {})
+    assert "CHATBOT_API_ENDPOINT" not in workflow.get("env", {})
+    assert "CHATBOT_API_ENDPOINT" not in build_job.get("env", {})
+    assert "CHATBOT_API_ENDPOINT" not in step_environment
+    frontend = tmp_path / "frontend"
+    shutil.copytree(
+        FRONTEND_DIR,
+        frontend,
+        ignore=shutil.ignore_patterns("dist", "node_modules", "__pycache__"),
+    )
+    environment = {"PATH": os.environ["PATH"], "WEB3FORMS_KEY": web3forms_key}
+    result = subprocess.run(
+        [
+            "bash",
+            "--noprofile",
+            "--norc",
+            "-eo",
+            "pipefail",
+            "-c",
+            step["run"],
+        ],
+        cwd=frontend,
+        env=environment,
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+
+    assert result.returncode == 0, result.stderr
+    assert not (frontend / "dist/assets/js/chatbot.config.js").exists()
+    assert not (frontend / "dist/assets/js/chatbot.js").exists()
+    publish_check = next(
+        candidate
+        for candidate in workflow["jobs"]["publish-site"]["steps"]
+        if candidate.get("name") == "Recheck the disabled chatbot artifact"
+    )
+    publish_result = subprocess.run(
+        [
+            "bash",
+            "--noprofile",
+            "--norc",
+            "-eo",
+            "pipefail",
+            "-c",
+            publish_check["run"],
+        ],
+        cwd=tmp_path,
+        env=environment,
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    assert publish_result.returncode == 0, publish_result.stderr
+    pages = sorted((frontend / "dist").rglob("*.html"))
+    assert pages
+    endpoint = (frontend / "production-api-endpoint.txt").read_text(
+        encoding="utf-8"
+    ).strip()
+    for asset in (frontend / "dist").rglob("*"):
+        if asset.is_file():
+            assert endpoint.encode() not in asset.read_bytes()
+    for page_path in pages:
+        page = page_path.read_text(encoding="utf-8")
+        assert "data-chatbot-disabled" in page
+        assert "assets/js/chatbot.js" not in page
+        if web3forms_key.lower() == "off":
+            assert '<form class="contact-form"' not in page
+            assert 'href="mailto:rickylenmartin@gmail.com"' in page
+        else:
+            expected_key = (
+                web3forms_key or "ca3bcb6c-5284-4f18-971c-ee541cc36de8"
+            )
+            assert expected_key in page
+
+
+def git_run(cwd: Path, *args: str) -> str:
+    result = subprocess.run(
+        ["git", *args], cwd=cwd, text=True, capture_output=True, check=True
+    )
+    return result.stdout.strip()
+
+
+def init_deploy_routing_repo(path: Path) -> str:
+    git_run(path, "init", "--quiet", "-b", "develop")
+    git_run(path, "config", "user.name", "Deployment routing test")
+    git_run(path, "config", "user.email", "routing@example.invalid")
+    (path / "README.md").write_text("start\n", encoding="utf-8")
+    git_run(path, "add", "-A")
+    git_run(path, "commit", "--quiet", "-m", "base")
+    return git_run(path, "rev-parse", "HEAD")
+
+
+def make_routing_commit(path: Path, changes: dict[str, str | None], message: str) -> str:
+    for relative, content in changes.items():
+        target = path / relative
+        if content is None:
+            target.unlink(missing_ok=True)
+            continue
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(content, encoding="utf-8")
+    git_run(path, "add", "-A")
+    git_run(path, "commit", "--quiet", "-m", message)
+    return git_run(path, "rev-parse", "HEAD")
+
+
+def classify_deploy_changes(path: Path, baseline: str, current: str) -> dict[str, str]:
+    output = path / "github-output.txt"
+    environment = {**os.environ, "GITHUB_OUTPUT": str(output)}
+    result = subprocess.run(
+        ["bash", str(CLASSIFY_DEPLOY_SCRIPT), baseline, current],
+        cwd=path,
+        env=environment,
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    assert result.returncode == 0, result.stderr
+    return dict(line.split("=", 1) for line in output.read_text().splitlines())
+
+
+@pytest.mark.parametrize(
+    ("changes", "expected"),
+    [
+        ({"frontend/pages/about.html": "updated\n"}, {"backend": "false", "frontend": "true"}),
+        ({"backend/src/app.py": "updated\n"}, {"backend": "true", "frontend": "false"}),
+        ({"backend/infra/terraform/main.tf": "updated\n"}, {"backend": "true", "frontend": "false"}),
+        ({"frontend/production-api-endpoint.txt": "https://new.example/chat\n"}, {"backend": "true", "frontend": "true"}),
+        ({"backend/tests/test_app.py": "updated\n", "docs/notes.md": "updated\n"}, {"backend": "false", "frontend": "false"}),
+        ({"frontend/build.py": "updated\n", "backend/src/app.py": "updated\n"}, {"backend": "true", "frontend": "true"}),
+    ],
+)
+def test_deploy_routing_for_frontend_backend_mixed_and_nonproduction_changes(
+    tmp_path: Path, changes: dict[str, str | None], expected: dict[str, str]
+) -> None:
+    baseline = init_deploy_routing_repo(tmp_path)
+    current = make_routing_commit(tmp_path, changes, "change files")
+
+    assert classify_deploy_changes(tmp_path, baseline, current) == expected
+
+
+def test_deploy_routing_catches_deletions_and_changes_across_multiple_commits(
+    tmp_path: Path,
+) -> None:
+    baseline = init_deploy_routing_repo(tmp_path)
+    make_routing_commit(
+        tmp_path,
+        {"backend/src/old.py": "to be removed\n"},
+        "add backend file",
+    )
+    current = make_routing_commit(
+        tmp_path,
+        {"backend/src/old.py": None, "frontend/assets/css/site.css": "new\n"},
+        "delete backend and add frontend",
+    )
+
+    assert classify_deploy_changes(tmp_path, baseline, current) == {
+        "backend": "true",
+        "frontend": "true",
+    }
+
+
+@pytest.mark.parametrize("baseline", ["", "missing-commit"])
+def test_deploy_routing_fails_closed_when_release_baseline_is_unavailable(
+    tmp_path: Path, baseline: str
+) -> None:
+    init_deploy_routing_repo(tmp_path)
+    current = make_routing_commit(
+        tmp_path, {"docs/notes.md": "documentation only\n"}, "docs",
+    )
+
+    assert classify_deploy_changes(tmp_path, baseline, current) == {
+        "backend": "true",
+        "frontend": "true",
+    }
+
+
+def test_production_endpoint_is_the_reviewed_https_chat_endpoint() -> None:
+    endpoint = PRODUCTION_API_ENDPOINT_PATH.read_text(encoding="utf-8").strip()
+    parsed = urlsplit(endpoint)
+
+    assert parsed.scheme == "https"
+    assert parsed.hostname is not None
+    assert parsed.hostname.endswith(".execute-api.us-east-1.amazonaws.com")
+    assert parsed.path == "/chat"
+    assert not parsed.query and not parsed.fragment
+
+
+def test_chat_api_is_protected_from_accidental_terraform_replacement() -> None:
+    api = app_resources("aws_apigatewayv2_api")["chatbot"]
+
+    assert api["lifecycle"][0]["prevent_destroy"] is True
 
 
 def test_every_workload_role_carries_the_permissions_boundary() -> None:
@@ -288,10 +652,15 @@ def test_deployment_checks_required_email_and_aws_bootstrap_before_oidc() -> Non
 
 
 def test_deployment_checks_the_api_health_route_before_publishing_pages() -> None:
-    health_check = DEPLOY_WORKFLOW.index("curl --fail --silent --show-error")
-    publish_site = DEPLOY_WORKFLOW.index("publish-site:")
-
-    assert health_check < publish_site
+    workflow = yaml.load(DEPLOY_WORKFLOW, Loader=yaml.BaseLoader)
+    backend_steps = workflow["jobs"]["deploy-backend"]["steps"]
+    health_check = next(
+        index
+        for index, step in enumerate(backend_steps)
+        if step.get("name") == "Check the deployed API health route"
+    )
+    assert health_check == len(backend_steps) - 1
+    assert "deploy-backend" in workflow["jobs"]["publish-site"]["needs"]
 
 
 def test_deployment_retry_reuses_the_published_immutable_image(tmp_path: Path) -> None:

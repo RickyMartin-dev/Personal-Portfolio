@@ -6,7 +6,7 @@ Accepted for the V0 portfolio assistant at the owner's request to build and oper
 
 ## Decision
 
-An update merged to `develop` may automatically build and publish the Lambda container, apply the portfolio chatbot Terraform root, smoke-check the API, and publish the static site with that API endpoint. Pull request checks run before deployment and receive no AWS credentials. GitHub Actions assumes a short-lived AWS role through OIDC; its trust condition accepts only this repository's `aws-production` environment subject. The workflow runs only from `develop`; GitHub must restrict that environment to `develop` and require the owner's approval. The deploy role manages the chatbot's Terraform state prefix and named application resources; runtime roles are constrained by an IAM permissions boundary.
+The approved release routing and verification policy is maintained in [delivery architecture](../architecture.md#delivery-and-monitoring). This decision retains the deployment's security boundaries: pull request checks receive no AWS credentials; GitHub Actions uses short-lived OIDC credentials; the protected `aws-production` environment limits deployment to `develop` and requires owner approval; and runtime roles use an IAM permissions boundary.
 
 ## Threat model and safeguards
 
