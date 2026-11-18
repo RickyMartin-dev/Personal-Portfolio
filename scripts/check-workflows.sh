@@ -32,48 +32,8 @@ for file in "${workflow_files[@]}"; do
     failures=$((failures + 1))
   fi
 
-  if [[ "$workflow_name" == 'deploy.yml' ]]; then
-    while IFS= read -r permission_line; do
-      if [[ ! "$permission_line" =~ (pages|id-token):[[:space:]]+write([[:space:]]|$) ]]; then
-        printf '%s contains an unapproved write-capable workflow permission: %s\n' "$file" "$permission_line" >&2
-        failures=$((failures + 1))
-      fi
-    done < <(grep -nE '(^|[[:space:]])(actions|attestations|checks|contents|deployments|discussions|id-token|issues|models|packages|pages|pull-requests|repository-projects|security-events|statuses):[[:space:]]*(write|write-all)|(^|[[:space:]])permissions:[[:space:]]*(write-all|read-all)' "$file" || true)
-    if ! grep -Eq '^[[:space:]]+pages:[[:space:]]+write[[:space:]]*$' "$file" || \
-      ! grep -Eq '^[[:space:]]+id-token:[[:space:]]+write[[:space:]]*$' "$file"; then
-      printf '%s must grant only the Pages and OIDC write permissions required for deployment.\n' "$file" >&2
-      failures=$((failures + 1))
-    fi
-    if ! grep -Eq '^  deploy-backend:[[:space:]]*$' "$file" || \
-      ! grep -q 'aws-actions/configure-aws-credentials@' "$file" || \
-      ! grep -q 'terraform apply' "$file" || \
-      ! grep -q 'vars.AWS_ROLE_ARN' "$file" || \
-      ! grep -q 'vars.TF_STATE_BUCKET' "$file"; then
-      printf '%s must configure the OIDC-backed chatbot deployment job and remote state settings.\n' "$file" >&2
-      failures=$((failures + 1))
-    fi
-    if ! grep -Eq '^  actions:[[:space:]]+read[[:space:]]*$' "$file" || \
-      ! grep -q 'actions/workflows/deploy.yml/runs' "$file" || \
-      ! grep -q 'scripts/classify-deploy-changes.sh' "$file"; then
-      printf '%s must read successful release history and classify changes before deployment.\n' "$file" >&2
-      failures=$((failures + 1))
-    fi
-    if ! awk '
-      /^  publish-site:[[:space:]]*$/ { job = "publish-site"; next }
-      /^  [A-Za-z0-9_.-]+:[[:space:]]*$/ { job = "" }
-      job == "publish-site" && /aws-actions\/configure-aws-credentials|AWS_ROLE_ARN|TF_STATE_BUCKET|terraform (init|apply)/ { invalid = 1 }
-      END { exit(invalid ? 1 : 0) }
-    ' "$file"; then
-      printf '%s must keep AWS credentials and Terraform commands out of the Pages publication job.\n' "$file" >&2
-      failures=$((failures + 1))
-    fi
-    pages_artifact="github-pages-\${{ github.run_id }}-\${{ github.run_attempt }}"
-    if ! grep -Fq "name: $pages_artifact" "$file" || \
-      ! grep -Fq "artifact_name: $pages_artifact" "$file"; then
-      printf '%s must use the same run-attempt-specific name when uploading and deploying the Pages artifact.\n' "$file" >&2
-      failures=$((failures + 1))
-    fi
-  elif grep -nE '(^|[[:space:]])(actions|attestations|checks|contents|deployments|discussions|id-token|issues|models|packages|pages|pull-requests|repository-projects|security-events|statuses):[[:space:]]*(write|write-all)|(^|[[:space:]])permissions:[[:space:]]*(write-all|read-all)' "$file" >/dev/null; then
+  if [[ "$workflow_name" != 'deploy.yml' ]] && \
+    grep -nE '(^|[[:space:]])(actions|attestations|checks|contents|deployments|discussions|id-token|issues|models|packages|pages|pull-requests|repository-projects|security-events|statuses):[[:space:]]*(write|write-all)|(^|[[:space:]])permissions:[[:space:]]*(write-all|read-all)' "$file" >/dev/null; then
     printf '%s contains a write-capable or overly broad workflow permission.\n' "$file" >&2
     failures=$((failures + 1))
   fi

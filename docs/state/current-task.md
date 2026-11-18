@@ -16,6 +16,7 @@ Implement the approved develop-branch quality, deployment, and low-cost IaC work
 
 ### Vault
 
+- The companion private Vault Agent Lab CI/IaC and Cloudflare Pages controls are covered separately by [RickyMartin-dev/Vault PR #7](https://github.com/RickyMartin-dev/Vault/pull/7); this repository change covers the portfolio side.
 - GitHub default branch is `develop`. Pull request CI targets `develop`; the release workflow requires an owner-triggered merged PR and deploys only to `vault-vs-lab`.
 - Cloudflare Pages dashboard branch controls were saved with production branch `develop`, automatic production deployments disabled, and preview branch deployments disabled. `old-thyme-antiques` was not changed.
 - GitHub repository variable `CLOUDFLARE_ACCOUNT_ID` is set. The Cloudflare deploy token secret is still missing.

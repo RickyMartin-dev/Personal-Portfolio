@@ -73,20 +73,19 @@ jobs:
       - name: Build and validate the production Pages artifact
         if: ${{ steps.classify.outputs.frontend == 'true' }}
         working-directory: frontend
+        env:
+          WEB3FORMS_KEY: ${{ secrets.WEB3FORMS_KEY }}
         run: |
+          python3 build.py
           endpoint="$(tr -d '\r\n' < production-api-endpoint.txt)"
-          CHATBOT_API_ENDPOINT="$endpoint" python3 build.py
+          if grep -R -Fq -- "$endpoint" dist; then
+            echo "::error::The production chatbot endpoint must not be published in the Pages artifact"; exit 1
+          fi
           if grep -rq "playwright-test-key\|api.example.test\|__CHATBOT_API_ENDPOINT__\|__CHATBOT_CONNECT_ORIGIN__" dist; then
             echo "::error::Test values or unresolved chatbot build markers found in the Pages artifact"; exit 1
           fi
-          test -s dist/assets/js/chatbot.config.js
-          test -s dist/assets/js/chatbot.js
-          if ! grep -Fq "$endpoint" dist/assets/js/chatbot.config.js; then
-            echo "::error::The production chatbot endpoint is missing from the artifact"; exit 1
-          fi
-          if grep -RniE 'aws_access_key_id|aws_secret_access_key|bedrock.*key|api[_-]?key' dist/assets/js/chatbot.config.js; then
-            echo "::error::Unexpected credential-like setting in the public chatbot configuration"; exit 1
-          fi
+          test ! -e dist/assets/js/chatbot.config.js
+          test ! -e dist/assets/js/chatbot.js
       - name: Upload the verified static site
         if: ${{ steps.classify.outputs.frontend == 'true' }}
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
@@ -116,7 +115,6 @@ jobs:
     environment:
       name: aws-production
     permissions:
-      actions: read
       contents: read
       id-token: write
     env:
@@ -125,7 +123,6 @@ jobs:
       AWS_ROLE_ARN: ${{ vars.AWS_ROLE_ARN }}
       WEEKLY_REPORT_EMAIL: ${{ secrets.WEEKLY_REPORT_EMAIL }}
     outputs:
-      api_endpoint: ${{ steps.terraform.outputs.api_endpoint }}
       api_base_url: ${{ steps.terraform.outputs.api_base_url }}
     steps:
       - name: Check out repository
@@ -228,7 +225,6 @@ jobs:
             echo "::error::Applied API endpoint does not match the reviewed production endpoint."
             exit 1
           fi
-          echo "api_endpoint=$endpoint" >> "$GITHUB_OUTPUT"
           echo "api_base_url=$(terraform output -raw api_base_url)" >> "$GITHUB_OUTPUT"
       - name: Check the deployed API health route
         env:
@@ -237,7 +233,11 @@ jobs:
 
   publish-site:
     needs: [verify-and-build, deploy-backend]
-    if: ${{ !cancelled() && needs.verify-and-build.result == 'success' && needs.verify-and-build.outputs.frontend == 'true' && ((needs.verify-and-build.outputs.backend == 'true' && needs.deploy-backend.result == 'success') || (needs.verify-and-build.outputs.backend != 'true' && needs.deploy-backend.result == 'skipped')) }}
+    if: >-
+      ${{ !cancelled() && needs.verify-and-build.result == 'success' &&
+      needs.verify-and-build.outputs.frontend == 'true' &&
+      ((needs.verify-and-build.outputs.backend == 'true' && needs.deploy-backend.result == 'success') ||
+      (needs.verify-and-build.outputs.backend == 'false' && needs.deploy-backend.result == 'skipped')) }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     environment:
@@ -257,20 +257,17 @@ jobs:
         with:
           name: portfolio-site-${{ github.run_id }}-${{ github.run_attempt }}
           path: frontend/dist
-      - name: Recheck the production endpoint and artifact contents
-        env:
-          BACKEND_RESULT: ${{ needs.deploy-backend.result }}
-          DEPLOYED_API_ENDPOINT: ${{ needs.deploy-backend.outputs.api_endpoint }}
+      - name: Recheck the disabled chatbot artifact
         run: |
-          expected_endpoint="$(tr -d '\r\n' < frontend/production-api-endpoint.txt)"
-          if [[ "$BACKEND_RESULT" == "success" && "$DEPLOYED_API_ENDPOINT" != "$expected_endpoint" ]]; then
-            echo "::error::The deployed API endpoint differs from the reviewed frontend endpoint."; exit 1
+          endpoint="$(tr -d '\r\n' < frontend/production-api-endpoint.txt)"
+          if grep -R -Fq -- "$endpoint" frontend/dist; then
+            echo "::error::The production chatbot endpoint must not be published in the Pages artifact"; exit 1
           fi
           if grep -rq "playwright-test-key\|api.example.test\|__CHATBOT_API_ENDPOINT__\|__CHATBOT_CONNECT_ORIGIN__" frontend/dist; then
             echo "::error::Test values or unresolved chatbot build markers found in the Pages artifact"; exit 1
           fi
-          test -s frontend/dist/assets/js/chatbot.config.js
-          test -s frontend/dist/assets/js/chatbot.js
+          test ! -e frontend/dist/assets/js/chatbot.config.js
+          test ! -e frontend/dist/assets/js/chatbot.js
       - name: Configure GitHub Pages
         uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5.0.0
       - name: Upload frontend artifact
