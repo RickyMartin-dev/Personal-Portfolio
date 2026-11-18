@@ -61,6 +61,12 @@ for file in "${workflow_files[@]}"; do
       printf '%s must keep AWS credentials and Terraform commands out of the Pages publication job.\n' "$file" >&2
       failures=$((failures + 1))
     fi
+    pages_artifact="github-pages-\${{ github.run_id }}-\${{ github.run_attempt }}"
+    if ! grep -Fq "name: $pages_artifact" "$file" || \
+      ! grep -Fq "artifact_name: $pages_artifact" "$file"; then
+      printf '%s must use the same run-attempt-specific name when uploading and deploying the Pages artifact.\n' "$file" >&2
+      failures=$((failures + 1))
+    fi
   elif grep -nE '(^|[[:space:]])(actions|attestations|checks|contents|deployments|discussions|id-token|issues|models|packages|pages|pull-requests|repository-projects|security-events|statuses):[[:space:]]*(write|write-all)|(^|[[:space:]])permissions:[[:space:]]*(write-all|read-all)' "$file" >/dev/null; then
     printf '%s contains a write-capable or overly broad workflow permission.\n' "$file" >&2
     failures=$((failures + 1))
