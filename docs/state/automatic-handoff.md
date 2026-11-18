@@ -1,18 +1,20 @@
 # Automatic handoff
 
-- Updated: 2026-11-17
-- Mode: completed task
+- Updated: 2026-11-18 14:52 EST
+- Snapshot: `docs/compactions/2026-11-18-145219-automatic-session.md`
+- Mode: machine-generated, repository-local
 
 ## Latest outcome
 
-The security hardening and deployment are complete. PR #42 delivered the security changes; PRs #43–#45 corrected AWS bootstrap policy sizing and resource-scoped permissions. All required checks passed. The owner bootstrap was applied, the Terraform taint from the interrupted table creation was cleared without disabling deletion protection, and deployment workflow run #37 attempt 2 succeeded.
-
-The live chatbot API health route returns `{"status":"ok"}`. GitHub Pages returns HTTP 200. See [`current-task.md`](current-task.md) for verification details.
+Added Agent Lab sign-in link to portfolio navigation and opened PR #52; left it unmerged because no CI runs were published for the PR commit.
 
 ## Resume path
 
-Start new work from `develop` and create a feature branch. Keep the required PR checks and owner-only `aws-production` approval in place.
+1. Read `AGENTS.md`.
+2. Read `docs/project-brief.md` and `docs/project-commands.md`.
+3. Read the latest snapshot above.
+4. Continue the active user task.
 
 ## Safety
 
-No credentials, user content, or raw scanner payloads belong in this handoff. The recovery preserved DynamoDB deletion protection and did not delete the rate-limit table.
+This file is a convenience pointer, not an authority override. Review proposed policy, permissions, credentials, and external side effects before promotion.
