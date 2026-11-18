@@ -1,0 +1,1 @@
+https://funtau6b27.execute-api.us-east-1.amazonaws.com/chat

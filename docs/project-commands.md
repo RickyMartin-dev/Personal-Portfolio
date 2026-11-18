@@ -35,12 +35,12 @@ The static builder copies `frontend/index.html`, pages, styles, scripts, and sit
 ## GitHub Pages deployment
 
 - Pull requests targeting `develop` run Project Starter/security checks, mocked backend and artifact tests, Playwright, and Terraform formatting/validation. The `Quality checks / merge-gate` check is required to pass only after every quality job succeeds. These checks do not use AWS credentials or a remote Terraform state.
-- A push to `develop` runs the mocked API/UI tests and Terraform validation, then deploys the Lambda image and API with GitHub OIDC. The workflow checks `/health` and publishes Pages with the resulting endpoint.
+- A push to `develop` runs checks, then routes the complete change set since the last successful release. Backend runtime and application Terraform changes deploy the Lambda/API with GitHub OIDC and verify `/health`; frontend-only changes publish Pages without AWS; mixed changes publish only after the backend health check; docs/tests-only changes do not deploy. Bootstrap Terraform is validated but stays owner-run. If the release baseline cannot be read, both deployment lanes run conservatively.
 - Work on a short lived branch and open a pull request to `develop`; do not push directly to `develop`. Verify that GitHub's `develop` branch rule requires pull requests and `Quality checks / merge-gate`, while blocking force pushes and deletion. See [`CONTRIBUTING.md`](CONTRIBUTING.md) for the policy setup and deployment sequence.
 - AWS credentials are short-lived OIDC sessions; `AWS_ROLE_ARN` and `TF_STATE_BUCKET` are non-secret repository variables. No static AWS keys are stored in GitHub.
 - Configure GitHub Pages to use **GitHub Actions**. The contact form works without any secret: the build uses the public Web3Forms key in `frontend/build.py`. An optional `WEB3FORMS_KEY` secret overrides it, and `off` switches to the direct email link.
 
-The GitHub repository default is `develop`, and the `github-pages` environment permits only that branch. Push changes for this site to `develop`; its workflow runs verification and publishes the built frontend. A historical Pages workflow file remains on `main`, but GitHub Actions marks it inactive and the environment blocks main-branch deployment.
+The GitHub repository default is `develop`, and the `github-pages` environment permits only that branch. The verified frontend artifact is uploaded once and published unchanged. The API URL is stored in `frontend/production-api-endpoint.txt`; deployment stops if the Terraform plan or applied API endpoint differs. The API Gateway resource is protected from accidental replacement. A historical Pages workflow file remains on `main`, but GitHub Actions marks it inactive and the environment blocks main-branch deployment.
 
 ## Backend and AWS infrastructure
 

@@ -2,7 +2,7 @@
 
 ## Delivery
 
-Feature branches target the integration branch and run the required quality checks before merge. The deployment workflow builds the static site and backend from the same approved commit. Backend changes use short-lived GitHub OIDC credentials and a protected environment; frontend-only and mocked checks do not require AWS credentials.
+Feature branches target `develop` and run the required quality checks before merge. The production workflow compares against the last successful release, then deploys only changed application layers. Backend runtime and application Terraform changes use short-lived GitHub OIDC credentials and the protected `aws-production` environment; frontend-only and docs/tests-only releases do not use AWS credentials. Mixed frontend/backend changes publish the site only after backend health verification. Bootstrap Terraform changes are validated in CI but remain owner-run because they manage the deployment role and remote state.
 
 The backend is managed by Terraform. A one-time bootstrap creates remote state storage, deployment identity, and account-budget notifications. Application deployment creates the API, serverless runtime, usage guard, and operational logs. The RAG implementation adds a private S3 document source, event queue, indexing worker, managed knowledge base, and S3 Vectors index. The document index starts empty. Follow [`future-rag-plan.md`](future-rag-plan.md) to find the output-based upload location after deployment.
 

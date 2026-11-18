@@ -6,6 +6,7 @@ import os
 import subprocess
 from fnmatch import fnmatchcase
 from pathlib import Path
+from urllib.parse import urlsplit
 
 import hcl2
 import pytest
@@ -14,6 +15,12 @@ import yaml
 
 DEPLOY_WORKFLOW_PATH = (
     Path(__file__).resolve().parents[2] / ".github" / "workflows" / "deploy.yml"
+)
+CLASSIFY_DEPLOY_SCRIPT = (
+    Path(__file__).resolve().parents[2] / "scripts" / "classify-deploy-changes.sh"
+)
+PRODUCTION_API_ENDPOINT_PATH = (
+    Path(__file__).resolve().parents[2] / "frontend" / "production-api-endpoint.txt"
 )
 DEPLOY_WORKFLOW = DEPLOY_WORKFLOW_PATH.read_text(encoding="utf-8")
 BOOTSTRAP_TERRAFORM_PATH = (
@@ -126,14 +133,143 @@ def statement_conditions(statement: dict) -> set[tuple[str, str, tuple[str, ...]
     }
 
 
-def test_production_deployment_only_runs_from_develop_after_verification() -> None:
-    assert "on:\n  push:\n    branches: [develop]" in DEPLOY_WORKFLOW
-    assert "deploy-backend:\n    needs: verify-and-build" in DEPLOY_WORKFLOW
-    assert "publish-site:\n    needs: [verify-and-build, deploy-backend]" in DEPLOY_WORKFLOW
-    workflow = yaml.safe_load(DEPLOY_WORKFLOW)
-    assert workflow["jobs"]["deploy-backend"]["environment"] == {
-        "name": "aws-production"
+def test_production_workflow_routes_develop_changes_through_the_right_jobs() -> None:
+    workflow = yaml.load(DEPLOY_WORKFLOW, Loader=yaml.BaseLoader)
+    jobs = workflow["jobs"]
+
+    assert workflow["on"]["push"]["branches"] == ["develop"]
+    assert jobs["deploy-backend"]["needs"] == "verify-and-build"
+    assert jobs["deploy-backend"]["if"] == (
+        "${{ needs.verify-and-build.outputs.backend == 'true' }}"
+    )
+    assert jobs["deploy-backend"]["environment"] == {"name": "aws-production"}
+    assert set(jobs["publish-site"]["needs"]) == {
+        "verify-and-build",
+        "deploy-backend",
     }
+    assert "needs.verify-and-build.outputs.frontend == 'true'" in jobs[
+        "publish-site"
+    ]["if"]
+    assert "needs.deploy-backend.result == 'success'" in jobs["publish-site"]["if"]
+    assert "needs.deploy-backend.result == 'skipped'" in jobs["publish-site"]["if"]
+
+
+def git_run(cwd: Path, *args: str) -> str:
+    result = subprocess.run(
+        ["git", *args], cwd=cwd, text=True, capture_output=True, check=True
+    )
+    return result.stdout.strip()
+
+
+def init_deploy_routing_repo(path: Path) -> str:
+    git_run(path, "init", "--quiet", "-b", "develop")
+    git_run(path, "config", "user.name", "Deployment routing test")
+    git_run(path, "config", "user.email", "routing@example.invalid")
+    (path / "README.md").write_text("start\n", encoding="utf-8")
+    git_run(path, "add", "-A")
+    git_run(path, "commit", "--quiet", "-m", "base")
+    return git_run(path, "rev-parse", "HEAD")
+
+
+def make_routing_commit(path: Path, changes: dict[str, str | None], message: str) -> str:
+    for relative, content in changes.items():
+        target = path / relative
+        if content is None:
+            target.unlink(missing_ok=True)
+            continue
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(content, encoding="utf-8")
+    git_run(path, "add", "-A")
+    git_run(path, "commit", "--quiet", "-m", message)
+    return git_run(path, "rev-parse", "HEAD")
+
+
+def classify_deploy_changes(path: Path, baseline: str, current: str) -> dict[str, str]:
+    output = path / "github-output.txt"
+    environment = {**os.environ, "GITHUB_OUTPUT": str(output)}
+    result = subprocess.run(
+        ["bash", str(CLASSIFY_DEPLOY_SCRIPT), baseline, current],
+        cwd=path,
+        env=environment,
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    assert result.returncode == 0, result.stderr
+    return dict(line.split("=", 1) for line in output.read_text().splitlines())
+
+
+@pytest.mark.parametrize(
+    ("changes", "expected"),
+    [
+        ({"frontend/pages/about.html": "updated\n"}, {"backend": "false", "frontend": "true"}),
+        ({"backend/src/app.py": "updated\n"}, {"backend": "true", "frontend": "false"}),
+        ({"backend/infra/terraform/main.tf": "updated\n"}, {"backend": "true", "frontend": "false"}),
+        ({"frontend/production-api-endpoint.txt": "https://new.example/chat\n"}, {"backend": "true", "frontend": "true"}),
+        ({"backend/tests/test_app.py": "updated\n", "docs/notes.md": "updated\n"}, {"backend": "false", "frontend": "false"}),
+        ({"frontend/build.py": "updated\n", "backend/src/app.py": "updated\n"}, {"backend": "true", "frontend": "true"}),
+    ],
+)
+def test_deploy_routing_for_frontend_backend_mixed_and_nonproduction_changes(
+    tmp_path: Path, changes: dict[str, str | None], expected: dict[str, str]
+) -> None:
+    baseline = init_deploy_routing_repo(tmp_path)
+    current = make_routing_commit(tmp_path, changes, "change files")
+
+    assert classify_deploy_changes(tmp_path, baseline, current) == expected
+
+
+def test_deploy_routing_catches_deletions_and_changes_across_multiple_commits(
+    tmp_path: Path,
+) -> None:
+    baseline = init_deploy_routing_repo(tmp_path)
+    make_routing_commit(
+        tmp_path,
+        {"backend/src/old.py": "to be removed\n"},
+        "add backend file",
+    )
+    current = make_routing_commit(
+        tmp_path,
+        {"backend/src/old.py": None, "frontend/assets/css/site.css": "new\n"},
+        "delete backend and add frontend",
+    )
+
+    assert classify_deploy_changes(tmp_path, baseline, current) == {
+        "backend": "true",
+        "frontend": "true",
+    }
+
+
+@pytest.mark.parametrize("baseline", ["", "missing-commit"])
+def test_deploy_routing_fails_closed_when_release_baseline_is_unavailable(
+    tmp_path: Path, baseline: str
+) -> None:
+    init_deploy_routing_repo(tmp_path)
+    current = make_routing_commit(
+        tmp_path, {"docs/notes.md": "documentation only\n"}, "docs",
+    )
+
+    assert classify_deploy_changes(tmp_path, baseline, current) == {
+        "backend": "true",
+        "frontend": "true",
+    }
+
+
+def test_production_endpoint_is_the_reviewed_https_chat_endpoint() -> None:
+    endpoint = PRODUCTION_API_ENDPOINT_PATH.read_text(encoding="utf-8").strip()
+    parsed = urlsplit(endpoint)
+
+    assert parsed.scheme == "https"
+    assert parsed.hostname is not None
+    assert parsed.hostname.endswith(".execute-api.us-east-1.amazonaws.com")
+    assert parsed.path == "/chat"
+    assert not parsed.query and not parsed.fragment
+
+
+def test_chat_api_is_protected_from_accidental_terraform_replacement() -> None:
+    api = app_resources("aws_apigatewayv2_api")["chatbot"]
+
+    assert api["lifecycle"][0]["prevent_destroy"] is True
 
 
 def test_every_workload_role_carries_the_permissions_boundary() -> None:
@@ -288,10 +424,15 @@ def test_deployment_checks_required_email_and_aws_bootstrap_before_oidc() -> Non
 
 
 def test_deployment_checks_the_api_health_route_before_publishing_pages() -> None:
-    health_check = DEPLOY_WORKFLOW.index("curl --fail --silent --show-error")
-    publish_site = DEPLOY_WORKFLOW.index("publish-site:")
-
-    assert health_check < publish_site
+    workflow = yaml.load(DEPLOY_WORKFLOW, Loader=yaml.BaseLoader)
+    backend_steps = workflow["jobs"]["deploy-backend"]["steps"]
+    health_check = next(
+        index
+        for index, step in enumerate(backend_steps)
+        if step.get("name") == "Check the deployed API health route"
+    )
+    assert health_check == len(backend_steps) - 1
+    assert "deploy-backend" in workflow["jobs"]["publish-site"]["needs"]
 
 
 def test_deployment_retry_reuses_the_published_immutable_image(tmp_path: Path) -> None:

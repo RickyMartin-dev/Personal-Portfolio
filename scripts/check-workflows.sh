@@ -52,6 +52,12 @@ for file in "${workflow_files[@]}"; do
       printf '%s must configure the OIDC-backed chatbot deployment job and remote state settings.\n' "$file" >&2
       failures=$((failures + 1))
     fi
+    if ! grep -Eq '^  actions:[[:space:]]+read[[:space:]]*$' "$file" || \
+      ! grep -q 'actions/workflows/deploy.yml/runs' "$file" || \
+      ! grep -q 'scripts/classify-deploy-changes.sh' "$file"; then
+      printf '%s must read successful release history and classify changes before deployment.\n' "$file" >&2
+      failures=$((failures + 1))
+    fi
     if ! awk '
       /^  publish-site:[[:space:]]*$/ { job = "publish-site"; next }
       /^  [A-Za-z0-9_.-]+:[[:space:]]*$/ { job = "" }
