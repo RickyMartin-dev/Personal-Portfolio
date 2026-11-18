@@ -301,22 +301,23 @@ def test_production_build_step_publishes_disabled_chat_and_honors_web3forms(
     tmp_path: Path, web3forms_key: str
 ) -> None:
     workflow = yaml.load(DEPLOY_WORKFLOW, Loader=yaml.BaseLoader)
+    build_job = workflow["jobs"]["verify-and-build"]
     step = next(
         candidate
-        for candidate in workflow["jobs"]["verify-and-build"]["steps"]
+        for candidate in build_job["steps"]
         if candidate.get("name") == "Build and validate the production Pages artifact"
     )
+    step_environment = step.get("env", {})
+    assert "CHATBOT_API_ENDPOINT" not in workflow.get("env", {})
+    assert "CHATBOT_API_ENDPOINT" not in build_job.get("env", {})
+    assert "CHATBOT_API_ENDPOINT" not in step_environment
     frontend = tmp_path / "frontend"
     shutil.copytree(
         FRONTEND_DIR,
         frontend,
         ignore=shutil.ignore_patterns("dist", "node_modules", "__pycache__"),
     )
-    environment = {
-        **os.environ,
-        "WEB3FORMS_KEY": web3forms_key,
-        "CHATBOT_API_ENDPOINT": "",
-    }
+    environment = {"PATH": os.environ["PATH"], "WEB3FORMS_KEY": web3forms_key}
     result = subprocess.run(
         [
             "bash",
