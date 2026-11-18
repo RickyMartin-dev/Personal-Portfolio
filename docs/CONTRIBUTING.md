@@ -6,8 +6,8 @@ Contributions should improve the portfolio site, chatbot backend, deployment wor
 
 1. Create a short lived branch from `develop`, using a name such as `feat/chatbot-history`, `fix/contact-form`, or `chore/ci-policy`.
 2. Push the branch and open a pull request with base `develop`. Do not push directly to `develop`.
-3. Wait for the required `Quality checks / merge-gate` check. It passes only when starter/security checks, backend tests, frontend browser tests, and both Terraform validations pass.
-4. Merge the pull request into `develop` after the gate passes. The production workflow verifies the commit and compares it with the latest successful release. Backend runtime and application Terraform changes wait for the owner in `aws-production`, deploy the Lambda/API with GitHub OIDC, and check the API health route. Frontend changes publish the static site; when both areas changed, publication waits for backend health. Docs/tests-only changes do not publish. Bootstrap Terraform is validated but remains an owner-run operation.
+3. Wait for the required `Quality checks / merge-gate` check. See [delivery architecture](architecture.md#delivery-and-monitoring) for its scope and the release routing policy.
+4. Merge the pull request into `develop` after the gate passes. The production workflow verifies the commit and publishes eligible changes under the protected environment settings described below.
 
 If a required check is pending or fails, do not merge; use [CI failure modes](ci-failure-modes.md) to identify the relevant job and diagnostics.
 

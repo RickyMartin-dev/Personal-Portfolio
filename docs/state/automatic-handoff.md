@@ -6,13 +6,12 @@
 
 ## Latest outcome
 
-Implemented the approved cross-repository deployment plan locally. Portfolio deploy routing and endpoint protection are covered by passing tests. Vault's default branch is `develop`, Cloudflare Pages automatic deployments were disabled for production and previews, and app CI/IaC are in place. Feature PRs, Terraform imports, and the Cloudflare deployment token remain open.
+See [`current-task.md`](current-task.md) for the active work, companion repository status, and next actions.
 
 ## Resume path
 
-1. Read `AGENTS.md` and `docs/state/current-task.md`.
-2. Inspect both feature branches and finish push/PR validation.
-3. Ask the owner to create the Cloudflare Pages API token, add the GitHub secret, and provide a separate local-only Terraform token for resource import and plan review.
+1. Read `AGENTS.md` and `docs/state/current-task.md` for active task details and owner actions.
+2. Continue from the next action recorded there.
 
 ## Safety
 

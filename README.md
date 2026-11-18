@@ -1,6 +1,6 @@
 # Personal Portfolio
 
-Static portfolio for Ricky Martin, published with GitHub Pages. The portfolio assistant is implemented as a compact chat panel with a mobile bottom sheet. Its FastAPI/LangGraph backend deploys to AWS Lambda behind API Gateway and calls Amazon Bedrock; the browser never receives provider credentials.
+Static portfolio for Ricky Martin, published with GitHub Pages. The chatbot API runs on AWS Lambda behind API Gateway and calls Amazon Bedrock; the public launcher remains under construction. See [chatbot experience](docs/chatbot-experience.md) for current availability and interaction details.
 
 ## Stack
 
@@ -35,15 +35,15 @@ For the full mocked test suite, install Python 3.12, Node.js 22+, npm, and Playw
 ./scripts/test.sh
 ```
 
-Tests mock provider calls; they do not need AWS credentials or make paid inference requests. The optional Web3Forms contact integration needs the `WEB3FORMS_KEY` GitHub secret at build time. This key is designed to be public in the contact form and is not an AI credential.
+Tests mock provider calls; they do not need AWS credentials or make paid inference requests. Contact-form build options are documented in [project commands](docs/project-commands.md#github-pages-deployment).
 
 ## GitHub Pages deployment
 
-Pull requests to `develop` run the Project Starter/security checks, backend mocks, frontend artifact tests, browser tests, and Terraform validation without AWS credentials. A push to `develop` runs the same checks, then compares the changes with the latest successful release. Backend runtime and application Terraform changes deploy through GitHub OIDC and must pass `/health`; frontend publication waits for that health check when both areas changed. Frontend-only changes publish the static site without AWS credentials, while docs/tests-only changes do not publish. The AWS job waits for the `aws-production` environment approval. Bootstrap Terraform stays a separate owner-run operation and is validated, not applied, by this release workflow.
+GitHub Actions publishes the verified Pages artifact from `develop`. Backend deployment uses the owner-approved `aws-production` environment. See [delivery architecture](docs/architecture.md#delivery-and-monitoring) for release routing and [project commands](docs/project-commands.md#github-pages-deployment) for repository setup.
 
-GitHub Pages uses **GitHub Actions** as its build and deployment source. `develop` is the repository default, and only that branch publishes. The workflow builds and tests the Pages artifact before production work, then deploys the same artifact after any required backend health check. The public API URL is tracked in `frontend/production-api-endpoint.txt` and checked against the planned/applied Terraform output; the API resource has Terraform deletion protection. `WEB3FORMS_KEY` is optional; without it the build publishes a direct email link instead of a broken contact form. The historical `static.yml` file remains on `main`, but that workflow is inactive in GitHub Actions.
+GitHub Pages uses **GitHub Actions** as its build and deployment source. The production workflow keeps the chatbot client disabled. Contact-form fallback and override behavior, along with repository settings, are documented in [project commands](docs/project-commands.md#github-pages-deployment). The historical `static.yml` file remains on `main`, but that workflow is inactive in GitHub Actions.
 
-The chatbot uses API Gateway HTTP API, a stateless Lambda/LangGraph runtime, and Amazon Bedrock. Its RAG implementation uses a private S3 `documents/` prefix, automatic Knowledge Base sync, and bounded retrieval through an agent tool. Conversation history stays in browser memory, and logs omit chat content. The weekly owner report and RAG resources are in the open deployment change and become active after its checks, owner settings, and approved deployment are complete. GitHub Actions runs backend, frontend, browser, and Terraform checks before merge; deployment uses short-lived OIDC credentials and a protected environment. See [`docs/architecture.md`](docs/architecture.md), [`docs/deployment-and-costs.md`](docs/deployment-and-costs.md), and [`docs/future-rag-plan.md`](docs/future-rag-plan.md).
+The backend's runtime, privacy, retrieval, and operating-cost details are documented in [architecture](docs/architecture.md), [deployment and costs](docs/deployment-and-costs.md), and the [RAG operations guide](docs/future-rag-plan.md).
 
 ## Project Starter
 

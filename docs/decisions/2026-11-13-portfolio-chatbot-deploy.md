@@ -6,7 +6,7 @@ Accepted for the V0 portfolio assistant at the owner's request to build and oper
 
 ## Decision
 
-An update merged to `develop` runs release checks and routes deployment based on the full change set since the latest successful release. Backend runtime or application Terraform changes may build and publish the Lambda container and apply the chatbot Terraform root; frontend changes publish the static site; mixed changes publish Pages only after the API health check; docs/tests-only changes do not publish. Bootstrap Terraform is validated by CI but remains a separate owner-run operation because it manages deployment identity and remote state. Pull request checks receive no AWS credentials. GitHub Actions assumes a short-lived AWS role through OIDC; its trust condition accepts only this repository's `aws-production` environment subject. The workflow runs only from `develop`; GitHub restricts that environment to `develop` and requires the owner's approval. The deploy role manages the chatbot's Terraform state prefix and named application resources; runtime roles are constrained by an IAM permissions boundary.
+The approved release routing and verification policy is maintained in [delivery architecture](../architecture.md#delivery-and-monitoring). This decision retains the deployment's security boundaries: pull request checks receive no AWS credentials; GitHub Actions uses short-lived OIDC credentials; the protected `aws-production` environment limits deployment to `develop` and requires owner approval; and runtime roles use an IAM permissions boundary.
 
 ## Threat model and safeguards
 

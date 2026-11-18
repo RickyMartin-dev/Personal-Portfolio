@@ -8,11 +8,8 @@ Implement the approved develop-branch quality, deployment, and low-cost IaC work
 
 ### Personal-Portfolio
 
-- Release workflow now classifies changes since the previous successful release: frontend changes publish Pages, backend runtime/application Terraform changes deploy AWS, mixed changes wait for API health before Pages, and docs/tests-only changes do not deploy.
-- A missing or invalid release baseline fails safe by selecting both deployment lanes. A changed-then-deleted path in a batch still triggers the correct deployment.
-- The verified Pages artifact is built once and reused. Planned and applied API endpoints must match `frontend/production-api-endpoint.txt`; API Gateway has `prevent_destroy`.
-- Browser tests are capped at two workers in CI to avoid browser resource contention.
-- One-time AWS bootstrap Terraform remains separately owner-run because it manages deployment identity and remote state.
+- Release routing, endpoint protection, and the disabled production chatbot build are implemented; see [delivery architecture](../architecture.md#delivery-and-monitoring) for their current contract.
+- The verified Pages artifact is built once and reused. Browser tests are capped at two workers in CI.
 
 ### Vault
 
