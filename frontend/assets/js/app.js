@@ -40,10 +40,6 @@
     clearTimeout(toastT);
     toastT = setTimeout(function () { toast.classList.remove('show'); }, 3800);
   }
-  $$('[data-resume]').forEach(function (a) {
-    a.addEventListener('click', function (e) { e.preventDefault(); showToast('Résumé PDF coming soon — reach out by email meanwhile'); });
-  });
-
   /* work rows */
   var rows = $$('.work-row');
   var root = document.documentElement;
