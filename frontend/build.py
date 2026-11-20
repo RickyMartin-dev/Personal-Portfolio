@@ -92,7 +92,7 @@ def build_site(
     chatbot_endpoint, chatbot_origin = resolve_chatbot_endpoint(env)
     shutil.rmtree(output, ignore_errors=True)
     output.mkdir(parents=True)
-    for source in ("index.html", "pages", "assets", "images"):
+    for source in ("index.html", "pages", "assets", "images", "resources"):
         path = root / source
         if path.is_dir():
             ignore = (

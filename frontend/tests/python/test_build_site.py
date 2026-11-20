@@ -45,6 +45,7 @@ def create_source_tree(root: Path) -> None:
             "window.CHATBOT_CONFIG = { apiEndpoint: __CHATBOT_API_ENDPOINT__ };"
         ),
         "images/profile.svg": "profile image",
+        "resources/RLMResume_Nov.docx.pdf": "%PDF-1.4 test resume",
         "README.md": "repo documentation",
         "backend/src/main.py": "backend source",
         "infra/main.tf": "terraform source",
@@ -79,6 +80,7 @@ def test_build_site_contains_only_static_frontend_and_escapes_contact_key(
         assert "__CHATBOT_CONNECT_ORIGIN__" not in page
     assert (output / "assets/js/app.js").is_file()
     assert (output / "images/profile.svg").is_file()
+    assert (output / "resources/RLMResume_Nov.docx.pdf").read_text(encoding="utf-8") == "%PDF-1.4 test resume"
 
     for excluded in (
         "README.md",

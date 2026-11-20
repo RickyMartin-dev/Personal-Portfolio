@@ -18,6 +18,7 @@ function contentTypeFor(filePath) {
     '.js': 'application/javascript; charset=utf-8',
     '.jpg': 'image/jpeg',
     '.png': 'image/png',
+    '.pdf': 'application/pdf',
     '.svg': 'image/svg+xml'
   }[extension] || 'application/octet-stream';
 }
@@ -91,9 +92,24 @@ test('every page loads without console errors, overflow, or leftover template re
   await expect(page.locator('meta[name="description"]')).toHaveAttribute('content', /AI\/ML/);
   await page.goto(pages[1].url);
   await expect(page.getByText(/8\+ years of experience/)).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Artificial Intelligence Engineer, Cigna Healthcare' })).toBeVisible();
+  await expect(page.getByText('Jul 2023 – Mar 2026')).toBeVisible();
+  await expect(page.getByText(/B\.S\. in Cognitive Science, Machine Learning Specialization/)).toBeVisible();
   await expect(page.locator('.portrait img')).toHaveJSProperty('complete', true);
 
   expect(problems).toEqual([]);
+});
+
+test('résumé link downloads the published PDF resource', async ({ page }) => {
+  await page.goto(pages[0].url);
+  const resume = page.getByRole('link', { name: 'Download résumé PDF' });
+  await expect(resume).toHaveAttribute('href', 'resources/RLMResume_Nov.docx.pdf');
+  await expect(resume).toHaveAttribute('download', 'Ricky-Martin-Resume.pdf');
+  const [download] = await Promise.all([
+    page.waitForEvent('download'),
+    resume.click()
+  ]);
+  expect(download.suggestedFilename()).toBe('Ricky-Martin-Resume.pdf');
 });
 
 test('primary navigation links work across home, about, and games', async ({ page }) => {
@@ -188,9 +204,9 @@ test('all experience labels stay on the mountain peaks and remain readable on ph
       expect(fits, `${width}px experience label stays anchored and fully on screen`).toBe(true);
     }
     await expect(spots).toContainText('professional development');
-    await expect(spots).toContainText('projects shipped or containerized');
-    await expect(spots).toContainText('added to shareholder value');
-    await expect(spots).toContainText('trained or fine-tuned');
+    await expect(spots).toContainText('validated data sources');
+    await expect(spots).toContainText('actuarial data delivery');
+    await expect(spots).toContainText('supported by production RAG');
     const labelsOverlap = await spots.evaluate((root) => {
       const boxes = [...root.querySelectorAll('li span')].map((span) => span.getBoundingClientRect());
       return boxes.some((a, i) => boxes.slice(i + 1).some((b) => a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top));
