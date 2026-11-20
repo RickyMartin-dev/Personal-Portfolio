@@ -9,7 +9,7 @@ The portfolio is static. Python 3 is the only requirement to serve it; no npm in
 # Visit http://127.0.0.1:8000
 ```
 
-Without `CHATBOT_API_ENDPOINT`, the chatbot shows an under-construction notice and sends no network requests. To preview the active client, build with a test HTTPS `/chat` endpoint and mock its responses in Playwright.
+Without `CHATBOT_API_ENDPOINT`, the chatbot shows an under-construction notice and sends no network requests. Production CI loads the reviewed endpoint from `frontend/production-api-endpoint.txt`, validates the built active client, and checks API health and CORS before publishing. To preview the active client locally, build with a test HTTPS `/chat` endpoint and mock its responses in Playwright.
 
 ## Install tools for the full test suite
 
@@ -30,7 +30,7 @@ Run a suite individually:
 python3 frontend/build.py
 ```
 
-The static builder copies `frontend/index.html`, pages, styles, scripts, and site images into `frontend/dist/`. It excludes Terraform, docs, tests, starter tools, and local references. With no `CHATBOT_API_ENDPOINT`, it omits the chat client/config and keeps the notice. Set a validated HTTPS `/chat` URL to generate the public client config and add its origin to the page CSP. The contact form uses the built-in public Web3Forms key; set `WEB3FORMS_KEY` to override it or to `off` for a direct email link.
+The static builder copies `frontend/index.html`, pages, styles, scripts, and site images into `frontend/dist/`. It excludes Terraform, docs, tests, starter tools, and local references. With no `CHATBOT_API_ENDPOINT`, it omits the chat client/config and keeps the notice. Set a validated HTTPS `/chat` URL to generate the public client config and add its origin to the page CSP. The production workflow performs that build using the tracked endpoint, then checks the live API and CORS before it publishes. The contact form uses the built-in public Web3Forms key; set `WEB3FORMS_KEY` to override it or to `off` for a direct email link.
 
 ## GitHub Pages deployment
 

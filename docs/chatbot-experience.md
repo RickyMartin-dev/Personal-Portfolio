@@ -2,7 +2,7 @@
 
 ## V0 interaction
 
-When enabled, the floating launcher opens a compact desktop conversation panel and a bottom sheet on phones. It has an explicit label, a polite live region, bounded input, waiting/error states, Enter-to-send and Shift+Enter for a newline. Escape and Close return focus to the launcher. The production workflow does not pass `CHATBOT_API_ENDPOINT`, so the published build keeps the under-construction notice and sends no requests even though the reviewed API endpoint is tracked. Re-enabling the client requires a separate backend and endpoint review. Local builds can preview the client with a validated HTTPS `/chat` endpoint.
+The floating launcher opens a compact desktop conversation panel and a bottom sheet on phones. It has an explicit label, a polite live region, bounded input, waiting/error states, Enter-to-send and Shift+Enter for a newline. Escape and Close return focus to the launcher. Production Pages builds the client with the reviewed HTTPS endpoint from `frontend/production-api-endpoint.txt`; the publishing job verifies the artifact and checks the API health route and exact Pages-origin CORS before deployment. Local builds without `CHATBOT_API_ENDPOINT` keep the under-construction notice and send no requests. Local builds can preview the client with a validated HTTPS `/chat` endpoint.
 
 ## Future interaction requirements
 

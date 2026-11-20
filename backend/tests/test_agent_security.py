@@ -29,8 +29,13 @@ def _safety_result(*, attack_score: float = 0.0) -> dict[str, Any]:
 
 
 class _FakeBedrock:
-    def __init__(self, first_safety: dict[str, Any] | None = None) -> None:
+    def __init__(
+        self,
+        first_safety: dict[str, Any] | None = None,
+        answer: str = "A safe answer.",
+    ) -> None:
         self.first_safety = first_safety or _safety_result()
+        self.answer = answer
         self.safety_calls: list[dict[str, Any]] = []
         self.converse_calls: list[dict[str, Any]] = []
 
@@ -43,7 +48,7 @@ class _FakeBedrock:
     def converse(self, **kwargs: Any) -> dict[str, Any]:
         self.converse_calls.append(kwargs)
         return {
-            "output": {"message": {"content": [{"text": "A safe answer."}]}},
+            "output": {"message": {"content": [{"text": self.answer}]}},
             "usage": {"inputTokens": 1, "outputTokens": 1},
         }
 
@@ -63,6 +68,31 @@ def test_prompt_injection_is_blocked_before_the_model_runs() -> None:
     assert checked_messages[0]["role"] == "system"
     assert checked_messages[1]["content"][0]["text"] == "Earlier question."
     assert checked_messages[-1]["role"] == "user"
+
+
+@pytest.mark.parametrize(
+    ("answer", "expected"),
+    [
+        (
+            "<thinking>private reasoning</thinking>\nVisitor-facing answer.",
+            "Visitor-facing answer.",
+        ),
+        (
+            "Visitor-facing answer.<thinking>private trailing reasoning",
+            "Visitor-facing answer.",
+        ),
+    ],
+)
+def test_private_thinking_markup_is_removed_before_response_and_output_check(
+    answer: str, expected: str
+) -> None:
+    bedrock = _FakeBedrock(answer=answer)
+    agent = ChatAgent(client_provider=lambda: bedrock)
+
+    result = agent.chat("What does Ricky work on?")
+
+    assert result["message"] == expected
+    assert bedrock.safety_calls[-1]["messages"][0]["content"][0]["text"] == expected
 
 
 def test_retrieved_documents_are_explicitly_untrusted_and_never_agent_instructions() -> None:

@@ -26,6 +26,12 @@ CLASSIFY_DEPLOY_SCRIPT = (
 PRODUCTION_API_ENDPOINT_PATH = (
     Path(__file__).resolve().parents[2] / "frontend" / "production-api-endpoint.txt"
 )
+CHATBOT_ARTIFACT_CHECK = (
+    Path(__file__).resolve().parents[2] / "scripts" / "verify-chatbot-artifact.py"
+)
+CHATBOT_API_CHECK = (
+    Path(__file__).resolve().parents[2] / "scripts" / "check-chatbot-api.sh"
+)
 DEPLOY_WORKFLOW = DEPLOY_WORKFLOW_PATH.read_text(encoding="utf-8")
 BOOTSTRAP_TERRAFORM_PATH = (
     Path(__file__).resolve().parents[1] / "infra" / "bootstrap" / "main.tf"
@@ -176,7 +182,7 @@ def test_production_workflow_routes_develop_changes_through_the_right_jobs() -> 
     verify_steps = jobs["verify-and-build"]["steps"]
     production_build = next(
         step for step in verify_steps
-        if step.get("name") == "Build and validate the production Pages artifact"
+        if step.get("name") == "Build and validate the active production Pages artifact"
     )
     assert production_build["env"] == {
         "WEB3FORMS_KEY": "${{ secrets.WEB3FORMS_KEY }}"
@@ -297,7 +303,7 @@ def test_publish_condition_matches_representative_job_outcomes(
 
 
 @pytest.mark.parametrize("web3forms_key", ["", "custom-public-key", "off"])
-def test_production_build_step_publishes_disabled_chat_and_honors_web3forms(
+def test_production_build_step_publishes_active_chat_and_honors_web3forms(
     tmp_path: Path, web3forms_key: str
 ) -> None:
     workflow = yaml.load(DEPLOY_WORKFLOW, Loader=yaml.BaseLoader)
@@ -305,7 +311,7 @@ def test_production_build_step_publishes_disabled_chat_and_honors_web3forms(
     step = next(
         candidate
         for candidate in build_job["steps"]
-        if candidate.get("name") == "Build and validate the production Pages artifact"
+        if candidate.get("name") == "Build and validate the active production Pages artifact"
     )
     step_environment = step.get("env", {})
     assert "CHATBOT_API_ENDPOINT" not in workflow.get("env", {})
@@ -317,6 +323,9 @@ def test_production_build_step_publishes_disabled_chat_and_honors_web3forms(
         frontend,
         ignore=shutil.ignore_patterns("dist", "node_modules", "__pycache__"),
     )
+    scripts = tmp_path / "scripts"
+    scripts.mkdir()
+    shutil.copy2(CHATBOT_ARTIFACT_CHECK, scripts / CHATBOT_ARTIFACT_CHECK.name)
     environment = {"PATH": os.environ["PATH"], "WEB3FORMS_KEY": web3forms_key}
     result = subprocess.run(
         [
@@ -336,12 +345,12 @@ def test_production_build_step_publishes_disabled_chat_and_honors_web3forms(
     )
 
     assert result.returncode == 0, result.stderr
-    assert not (frontend / "dist/assets/js/chatbot.config.js").exists()
-    assert not (frontend / "dist/assets/js/chatbot.js").exists()
+    assert (frontend / "dist/assets/js/chatbot.config.js").is_file()
+    assert (frontend / "dist/assets/js/chatbot.js").is_file()
     publish_check = next(
         candidate
         for candidate in workflow["jobs"]["publish-site"]["steps"]
-        if candidate.get("name") == "Recheck the disabled chatbot artifact"
+        if candidate.get("name") == "Recheck the active chatbot artifact"
     )
     publish_result = subprocess.run(
         [
@@ -360,6 +369,19 @@ def test_production_build_step_publishes_disabled_chat_and_honors_web3forms(
         check=False,
     )
     assert publish_result.returncode == 0, publish_result.stderr
+    publish_steps = workflow["jobs"]["publish-site"]["steps"]
+    artifact_check_index = next(
+        index
+        for index, candidate in enumerate(publish_steps)
+        if candidate.get("name") == "Recheck the active chatbot artifact"
+    )
+    health_check_index = next(
+        index
+        for index, candidate in enumerate(publish_steps)
+        if candidate.get("name") == "Confirm production API health and browser CORS"
+    )
+    assert health_check_index > artifact_check_index
+    assert "scripts/check-chatbot-api.sh" in publish_steps[health_check_index]["run"]
     pages = sorted((frontend / "dist").rglob("*.html"))
     assert pages
     endpoint = (frontend / "production-api-endpoint.txt").read_text(
@@ -367,11 +389,13 @@ def test_production_build_step_publishes_disabled_chat_and_honors_web3forms(
     ).strip()
     for asset in (frontend / "dist").rglob("*"):
         if asset.is_file():
-            assert endpoint.encode() not in asset.read_bytes()
+            if asset.name != "chatbot.config.js":
+                assert endpoint.encode() not in asset.read_bytes()
     for page_path in pages:
         page = page_path.read_text(encoding="utf-8")
-        assert "data-chatbot-disabled" in page
-        assert "assets/js/chatbot.js" not in page
+        assert 'data-chatbot-disabled hidden' in page
+        assert "data-chatbot-active hidden" not in page
+        assert "assets/js/chatbot.js" in page
         if web3forms_key.lower() == "off":
             assert '<form class="contact-form"' not in page
             assert 'href="mailto:rickylenmartin@gmail.com"' in page
@@ -380,6 +404,74 @@ def test_production_build_step_publishes_disabled_chat_and_honors_web3forms(
                 web3forms_key or "ca3bcb6c-5284-4f18-971c-ee541cc36de8"
             )
             assert expected_key in page
+
+
+@pytest.mark.parametrize(
+    ("allowed_origin", "health_status", "preflight_status", "expected_error"),
+    [
+        ("https://portfolio.example", "200", "204", ""),
+        (
+            "https://attacker.example",
+            "200",
+            "204",
+            "does not allow the production Pages origin exactly",
+        ),
+        ("https://portfolio.example", "503", "204", "health route returned HTTP 503"),
+        ("https://portfolio.example", "200", "200", "preflight returned HTTP 200"),
+    ],
+)
+def test_production_api_check_requires_exact_cors_origin(
+    tmp_path: Path,
+    allowed_origin: str,
+    health_status: str,
+    preflight_status: str,
+    expected_error: str,
+) -> None:
+    endpoint_file = tmp_path / "endpoint.txt"
+    endpoint_file.write_text("https://api.example.test/chat\n", encoding="utf-8")
+    stub_bin = tmp_path / "bin"
+    stub_bin.mkdir()
+    curl = stub_bin / "curl"
+    curl.write_text(
+        "#!/usr/bin/env bash\n"
+        "set -euo pipefail\n"
+        "headers_file=\"\"\n"
+        "method=GET\n"
+        "while (($#)); do\n"
+        "  if [[ \"$1\" == \"--dump-header\" ]]; then\n"
+        "    headers_file=\"$2\"\n"
+        "    shift 2\n"
+        "  elif [[ \"$1\" == \"--request\" ]]; then\n"
+        "    method=\"$2\"\n"
+        "    shift 2\n"
+        "  else\n"
+        "    shift\n"
+        "  fi\n"
+        "done\n"
+        "if [[ -n \"$headers_file\" ]]; then\n"
+        "  printf 'HTTP/2 204\\naccess-control-allow-origin: %s\\naccess-control-allow-methods: GET,POST\\naccess-control-allow-headers: content-type\\n' \"$STUB_ALLOW_ORIGIN\" > \"$headers_file\"\n"
+        "fi\n"
+        "if [[ \"$method\" == OPTIONS ]]; then printf '%s' \"$STUB_PREFLIGHT_STATUS\"; else printf '%s' \"$STUB_HEALTH_STATUS\"; fi\n",
+        encoding="utf-8",
+    )
+    curl.chmod(0o755)
+    result = subprocess.run(
+        ["bash", str(CHATBOT_API_CHECK), str(endpoint_file), "https://portfolio.example"],
+        env={
+            **os.environ,
+            "PATH": f"{stub_bin}{os.pathsep}{os.environ['PATH']}",
+            "STUB_ALLOW_ORIGIN": allowed_origin,
+            "STUB_HEALTH_STATUS": health_status,
+            "STUB_PREFLIGHT_STATUS": preflight_status,
+        },
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+
+    assert (result.returncode == 0) is not bool(expected_error)
+    if expected_error:
+        assert expected_error in result.stderr
 
 
 def git_run(cwd: Path, *args: str) -> str:
