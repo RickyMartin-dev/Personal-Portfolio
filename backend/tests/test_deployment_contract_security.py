@@ -48,6 +48,49 @@ IMAGE_STEP_NAME = "Build and publish the immutable Lambda image"
 IMAGE_TAG = "0123456789abcdef0123456789abcdef01234567"
 ECR_URL = "123456789012.dkr.ecr.us-east-1.amazonaws.com/portfolio-chatbot"
 DOCKER_MANIFEST = "application/vnd.docker.distribution.manifest.v2+json"
+
+
+def install_stub_curl(
+    directory: Path,
+    *,
+    allowed_origin: str,
+    health_status: str = "200",
+    preflight_status: str = "204",
+) -> dict[str, str]:
+    stub_bin = directory / "bin"
+    stub_bin.mkdir(parents=True, exist_ok=True)
+    curl = stub_bin / "curl"
+    curl.write_text(
+        "#!/usr/bin/env bash\n"
+        "set -euo pipefail\n"
+        "headers_file=\"\"\n"
+        "method=GET\n"
+        "while (($#)); do\n"
+        "  if [[ \"$1\" == \"--dump-header\" ]]; then\n"
+        "    headers_file=\"$2\"\n"
+        "    shift 2\n"
+        "  elif [[ \"$1\" == \"--request\" ]]; then\n"
+        "    method=\"$2\"\n"
+        "    shift 2\n"
+        "  else\n"
+        "    shift\n"
+        "  fi\n"
+        "done\n"
+        "if [[ -n \"$headers_file\" ]]; then\n"
+        "  printf 'HTTP/2 204\\naccess-control-allow-origin: %s\\naccess-control-allow-methods: GET,POST\\naccess-control-allow-headers: content-type\\n' \"$STUB_ALLOW_ORIGIN\" > \"$headers_file\"\n"
+        "fi\n"
+        "if [[ \"$method\" == OPTIONS ]]; then printf '%s' \"$STUB_PREFLIGHT_STATUS\"; else printf '%s' \"$STUB_HEALTH_STATUS\"; fi\n",
+        encoding="utf-8",
+    )
+    curl.chmod(0o755)
+    return {
+        "PATH": f"{stub_bin}{os.pathsep}{os.environ['PATH']}",
+        "STUB_ALLOW_ORIGIN": allowed_origin,
+        "STUB_HEALTH_STATUS": health_status,
+        "STUB_PREFLIGHT_STATUS": preflight_status,
+    }
+
+
 STUB_COMMAND = """#!/usr/bin/env bash
 printf '%s %s\\n' "$(basename "$0")" "$*" >> "$STUB_CALL_LOG"
 case "$(basename "$0") $*" in
@@ -326,6 +369,7 @@ def test_production_build_step_publishes_active_chat_and_honors_web3forms(
     scripts = tmp_path / "scripts"
     scripts.mkdir()
     shutil.copy2(CHATBOT_ARTIFACT_CHECK, scripts / CHATBOT_ARTIFACT_CHECK.name)
+    shutil.copy2(CHATBOT_API_CHECK, scripts / CHATBOT_API_CHECK.name)
     environment = {"PATH": os.environ["PATH"], "WEB3FORMS_KEY": web3forms_key}
     result = subprocess.run(
         [
@@ -381,7 +425,37 @@ def test_production_build_step_publishes_active_chat_and_honors_web3forms(
         if candidate.get("name") == "Confirm production API health and browser CORS"
     )
     assert health_check_index > artifact_check_index
-    assert "scripts/check-chatbot-api.sh" in publish_steps[health_check_index]["run"]
+    pages_origin = "https://rickymartin-dev.github.io"
+    health_command = publish_steps[health_check_index]["run"].replace(
+        '"https://${GITHUB_REPOSITORY_OWNER,,}.github.io"', f'"{pages_origin}"'
+    )
+    assert health_command == (
+        "bash scripts/check-chatbot-api.sh frontend/production-api-endpoint.txt "
+        f'"{pages_origin}"'
+    )
+    health_result = subprocess.run(
+        [
+            "bash",
+            "--noprofile",
+            "--norc",
+            "-eo",
+            "pipefail",
+            "-c",
+            health_command,
+        ],
+        cwd=tmp_path,
+        env={
+            **environment,
+            **install_stub_curl(
+                tmp_path / "health-stub",
+                allowed_origin=pages_origin,
+            ),
+        },
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    assert health_result.returncode == 0, health_result.stderr
     pages = sorted((frontend / "dist").rglob("*.html"))
     assert pages
     endpoint = (frontend / "production-api-endpoint.txt").read_text(
@@ -404,6 +478,26 @@ def test_production_build_step_publishes_active_chat_and_honors_web3forms(
                 web3forms_key or "ca3bcb6c-5284-4f18-971c-ee541cc36de8"
             )
             assert expected_key in page
+
+    (frontend / "assets/js/chatbot.config.template.js").unlink()
+    missing_template_result = subprocess.run(
+        [
+            "bash",
+            "--noprofile",
+            "--norc",
+            "-eo",
+            "pipefail",
+            "-c",
+            publish_check["run"],
+        ],
+        cwd=tmp_path,
+        env=environment,
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    assert missing_template_result.returncode != 0
+    assert "tracked chatbot config template is missing" in missing_template_result.stderr
 
 
 @pytest.mark.parametrize(
@@ -429,40 +523,16 @@ def test_production_api_check_requires_exact_cors_origin(
 ) -> None:
     endpoint_file = tmp_path / "endpoint.txt"
     endpoint_file.write_text("https://api.example.test/chat\n", encoding="utf-8")
-    stub_bin = tmp_path / "bin"
-    stub_bin.mkdir()
-    curl = stub_bin / "curl"
-    curl.write_text(
-        "#!/usr/bin/env bash\n"
-        "set -euo pipefail\n"
-        "headers_file=\"\"\n"
-        "method=GET\n"
-        "while (($#)); do\n"
-        "  if [[ \"$1\" == \"--dump-header\" ]]; then\n"
-        "    headers_file=\"$2\"\n"
-        "    shift 2\n"
-        "  elif [[ \"$1\" == \"--request\" ]]; then\n"
-        "    method=\"$2\"\n"
-        "    shift 2\n"
-        "  else\n"
-        "    shift\n"
-        "  fi\n"
-        "done\n"
-        "if [[ -n \"$headers_file\" ]]; then\n"
-        "  printf 'HTTP/2 204\\naccess-control-allow-origin: %s\\naccess-control-allow-methods: GET,POST\\naccess-control-allow-headers: content-type\\n' \"$STUB_ALLOW_ORIGIN\" > \"$headers_file\"\n"
-        "fi\n"
-        "if [[ \"$method\" == OPTIONS ]]; then printf '%s' \"$STUB_PREFLIGHT_STATUS\"; else printf '%s' \"$STUB_HEALTH_STATUS\"; fi\n",
-        encoding="utf-8",
-    )
-    curl.chmod(0o755)
     result = subprocess.run(
         ["bash", str(CHATBOT_API_CHECK), str(endpoint_file), "https://portfolio.example"],
         env={
             **os.environ,
-            "PATH": f"{stub_bin}{os.pathsep}{os.environ['PATH']}",
-            "STUB_ALLOW_ORIGIN": allowed_origin,
-            "STUB_HEALTH_STATUS": health_status,
-            "STUB_PREFLIGHT_STATUS": preflight_status,
+            **install_stub_curl(
+                tmp_path,
+                allowed_origin=allowed_origin,
+                health_status=health_status,
+                preflight_status=preflight_status,
+            ),
         },
         text=True,
         capture_output=True,

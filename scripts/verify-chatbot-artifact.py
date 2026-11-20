@@ -69,16 +69,11 @@ def main() -> None:
         fail("active client or endpoint configuration is missing")
     template_path = site_root.parent / "assets/js/chatbot.config.template.js"
     if not template_path.is_file():
-        # CI runs this verifier after artifact download, where only dist is present.
-        expected_config = (
-            "// Public endpoint only; never put provider credentials in this browser config.\n"
-            "window.CHATBOT_CONFIG = {\n  apiEndpoint: "
-            f"{json.dumps(endpoint)}\n}};\n"
-        )
-    else:
-        expected_config = template_path.read_text(encoding="utf-8").replace(
-            "__CHATBOT_API_ENDPOINT__", json.dumps(endpoint)
-        )
+        fail("tracked chatbot config template is missing")
+    template = template_path.read_text(encoding="utf-8")
+    if "__CHATBOT_API_ENDPOINT__" not in template:
+        fail("tracked chatbot config template is missing its endpoint marker")
+    expected_config = template.replace("__CHATBOT_API_ENDPOINT__", json.dumps(endpoint))
     if config_path.read_text(encoding="utf-8") != expected_config:
         fail("generated endpoint configuration does not exactly match the reviewed endpoint")
 

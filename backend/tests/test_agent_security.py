@@ -81,6 +81,16 @@ def test_prompt_injection_is_blocked_before_the_model_runs() -> None:
             "Visitor-facing answer.<thinking>private trailing reasoning",
             "Visitor-facing answer.",
         ),
+        (
+            "<thinking>outer <thinking>inner</thinking>outer continued</thinking> Public answer.",
+            "Public answer.",
+        ),
+        ("</thinking>Visitor-facing answer.", "Visitor-facing answer."),
+        (
+            "Visitor-facing answer. <thinking>private <thinking>nested</thinking> tail",
+            "Visitor-facing answer.",
+        ),
+        ("Visitor-facing answer. <thinking", "Visitor-facing answer."),
     ],
 )
 def test_private_thinking_markup_is_removed_before_response_and_output_check(
