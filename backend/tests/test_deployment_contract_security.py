@@ -53,6 +53,7 @@ DOCKER_MANIFEST = "application/vnd.docker.distribution.manifest.v2+json"
 def install_stub_curl(
     directory: Path,
     *,
+    expected_origin: str,
     allowed_origin: str,
     health_status: str = "200",
     preflight_status: str = "204",
@@ -65,6 +66,8 @@ def install_stub_curl(
         "set -euo pipefail\n"
         "headers_file=\"\"\n"
         "method=GET\n"
+        "request_origin=\"\"\n"
+        "fail_on_http_error=false\n"
         "while (($#)); do\n"
         "  if [[ \"$1\" == \"--dump-header\" ]]; then\n"
         "    headers_file=\"$2\"\n"
@@ -72,19 +75,35 @@ def install_stub_curl(
         "  elif [[ \"$1\" == \"--request\" ]]; then\n"
         "    method=\"$2\"\n"
         "    shift 2\n"
+        "  elif [[ \"$1\" == \"--header\" ]]; then\n"
+        "    case \"$2\" in Origin:*) request_origin=\"${2#Origin: }\" ;; esac\n"
+        "    shift 2\n"
+        "  elif [[ \"$1\" == \"--fail\" ]]; then\n"
+        "    fail_on_http_error=true\n"
+        "    shift\n"
         "  else\n"
         "    shift\n"
         "  fi\n"
         "done\n"
+        "if [[ \"$method\" == OPTIONS && \"$request_origin\" != \"$STUB_EXPECT_ORIGIN\" ]]; then\n"
+        "  printf 'curl stub received unexpected Origin: %s\\n' \"$request_origin\" >&2\n"
+        "  exit 1\n"
+        "fi\n"
+        "if [[ \"$method\" == OPTIONS ]]; then status=\"$STUB_PREFLIGHT_STATUS\"; else status=\"$STUB_HEALTH_STATUS\"; fi\n"
         "if [[ -n \"$headers_file\" ]]; then\n"
         "  printf 'HTTP/2 204\\naccess-control-allow-origin: %s\\naccess-control-allow-methods: GET,POST\\naccess-control-allow-headers: content-type\\n' \"$STUB_ALLOW_ORIGIN\" > \"$headers_file\"\n"
         "fi\n"
-        "if [[ \"$method\" == OPTIONS ]]; then printf '%s' \"$STUB_PREFLIGHT_STATUS\"; else printf '%s' \"$STUB_HEALTH_STATUS\"; fi\n",
+        "if [[ \"$fail_on_http_error\" == true && \"$status\" =~ ^[0-9]+$ ]] && (( 10#$status >= 400 )); then\n"
+        "  printf 'curl: (22) The requested URL returned error: %s\\n' \"$status\" >&2\n"
+        "  exit 22\n"
+        "fi\n"
+        "printf '%s' \"$status\"\n",
         encoding="utf-8",
     )
     curl.chmod(0o755)
     return {
         "PATH": f"{stub_bin}{os.pathsep}{os.environ['PATH']}",
+        "STUB_EXPECT_ORIGIN": expected_origin,
         "STUB_ALLOW_ORIGIN": allowed_origin,
         "STUB_HEALTH_STATUS": health_status,
         "STUB_PREFLIGHT_STATUS": preflight_status,
@@ -443,6 +462,7 @@ def test_production_build_step_publishes_active_chat_and_honors_web3forms(
                 **environment,
                 **install_stub_curl(
                     tmp_path / "health-stub",
+                    expected_origin=pages_origin,
                     allowed_origin=allowed_origin,
                 ),
                 "GITHUB_REPOSITORY_OWNER": "portfolio",
@@ -456,7 +476,10 @@ def test_production_build_step_publishes_active_chat_and_honors_web3forms(
     assert health_result.returncode == 0, health_result.stderr
     rejected_health_result = run_health_check("https://attacker.example")
     assert rejected_health_result.returncode != 0
-    assert "does not allow the production Pages origin exactly" in rejected_health_result.stderr
+    assert (
+        "does not allow the production Pages origin exactly"
+        in rejected_health_result.stderr
+    )
     pages = sorted((frontend / "dist").rglob("*.html"))
     assert pages
     endpoint = (frontend / "production-api-endpoint.txt").read_text(
@@ -511,7 +534,12 @@ def test_production_build_step_publishes_active_chat_and_honors_web3forms(
             "204",
             "does not allow the production Pages origin exactly",
         ),
-        ("https://portfolio.example", "503", "204", "health route returned HTTP 503"),
+        (
+            "https://portfolio.example",
+            "503",
+            "204",
+            "curl: (22) The requested URL returned error: 503",
+        ),
         ("https://portfolio.example", "200", "200", "preflight returned HTTP 200"),
     ],
 )
@@ -530,6 +558,7 @@ def test_production_api_check_requires_exact_cors_origin(
             **os.environ,
             **install_stub_curl(
                 tmp_path,
+                expected_origin="https://portfolio.example",
                 allowed_origin=allowed_origin,
                 health_status=health_status,
                 preflight_status=preflight_status,
