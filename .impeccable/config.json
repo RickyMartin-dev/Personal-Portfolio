@@ -38,6 +38,36 @@
         ],
         "createdAt": "2026-11-09T00:17:23.998Z",
         "reason": "Claude (agent) triage: same theme.css false positive as other .lavish pages"
+      },
+      {
+        "rule": "overused-font",
+        "value": "instrument serif",
+        "createdAt": "2026-11-20T04:13:49.372Z",
+        "reason": "Agent: DESIGN.md calls for editorial typography; the portfolio stylesheet uses Instrument Serif as its display face."
+      },
+      {
+        "rule": "overused-font",
+        "value": "geist mono",
+        "createdAt": "2026-11-20T04:13:49.482Z",
+        "reason": "Agent: the portfolio stylesheet reserves Geist Mono for technical metadata, measurement labels, and code-like UI."
+      },
+      {
+        "rule": "cramped-padding",
+        "value": "*",
+        "files": [
+          "frontend/pages/about.html"
+        ],
+        "createdAt": "2026-11-20T04:13:49.589Z",
+        "reason": "Agent: About uses 24px row padding in the toolkit and centered placeholder text in aspect-ratio slots; the detector misses those layout insets."
+      },
+      {
+        "rule": "tight-leading",
+        "value": "*",
+        "files": [
+          "frontend/index.html"
+        ],
+        "createdAt": "2026-11-20T04:13:49.700Z",
+        "reason": "Agent: the flagged 1.12 line height belongs to the no-wrap kinetic marquee; paragraph copy keeps 1.5+ leading."
       }
     ]
   }
