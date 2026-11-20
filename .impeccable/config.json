@@ -38,6 +38,18 @@
         ],
         "createdAt": "2026-11-09T00:17:23.998Z",
         "reason": "Claude (agent) triage: same theme.css false positive as other .lavish pages"
+      },
+      {
+        "rule": "overused-font",
+        "value": "instrument serif",
+        "createdAt": "2026-11-19T00:48:28.210Z",
+        "reason": "Codex triage: DESIGN.md specifies Instrument Serif for the portfolio display type; this architecture artifact intentionally follows that system."
+      },
+      {
+        "rule": "overused-font",
+        "value": "geist mono",
+        "createdAt": "2026-11-19T00:48:32.679Z",
+        "reason": "Codex triage: frontend/assets/js/config.js and frontend/assets/css/afterglow.css define Geist Mono for the portfolio mono role; this artifact uses it for technical labels."
       }
     ]
   }
