@@ -204,9 +204,9 @@ test('all experience labels stay on the mountain peaks and remain readable on ph
       expect(fits, `${width}px experience label stays anchored and fully on screen`).toBe(true);
     }
     await expect(spots).toContainText('professional development');
-    await expect(spots).toContainText('validated data sources');
-    await expect(spots).toContainText('actuarial data delivery');
-    await expect(spots).toContainText('supported by production RAG');
+    await expect(spots).toContainText('projects shipped or containerized');
+    await expect(spots).toContainText('added to shareholder value');
+    await expect(spots).toContainText('trained or fine-tuned');
     const labelsOverlap = await spots.evaluate((root) => {
       const boxes = [...root.querySelectorAll('li span')].map((span) => span.getBoundingClientRect());
       return boxes.some((a, i) => boxes.slice(i + 1).some((b) => a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top));
