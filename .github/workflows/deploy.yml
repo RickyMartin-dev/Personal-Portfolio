@@ -251,7 +251,9 @@ jobs:
       - name: Recheck the active chatbot artifact
         run: python3 scripts/verify-chatbot-artifact.py frontend/dist frontend/production-api-endpoint.txt
       - name: Confirm production API health and browser CORS
-        run: bash scripts/check-chatbot-api.sh frontend/production-api-endpoint.txt "https://${GITHUB_REPOSITORY_OWNER,,}.github.io"
+        run: |
+          pages_owner="$(printf '%s' "$GITHUB_REPOSITORY_OWNER" | tr '[:upper:]' '[:lower:]')"
+          bash scripts/check-chatbot-api.sh frontend/production-api-endpoint.txt "https://${pages_owner}.github.io"
       - name: Configure GitHub Pages
         uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5.0.0
       - name: Upload frontend artifact

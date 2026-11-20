@@ -425,37 +425,38 @@ def test_production_build_step_publishes_active_chat_and_honors_web3forms(
         if candidate.get("name") == "Confirm production API health and browser CORS"
     )
     assert health_check_index > artifact_check_index
-    pages_origin = "https://rickymartin-dev.github.io"
-    health_command = publish_steps[health_check_index]["run"].replace(
-        '"https://${GITHUB_REPOSITORY_OWNER,,}.github.io"', f'"{pages_origin}"'
-    )
-    assert health_command == (
-        "bash scripts/check-chatbot-api.sh frontend/production-api-endpoint.txt "
-        f'"{pages_origin}"'
-    )
-    health_result = subprocess.run(
-        [
-            "bash",
-            "--noprofile",
-            "--norc",
-            "-eo",
-            "pipefail",
-            "-c",
-            health_command,
-        ],
-        cwd=tmp_path,
-        env={
-            **environment,
-            **install_stub_curl(
-                tmp_path / "health-stub",
-                allowed_origin=pages_origin,
-            ),
-        },
-        text=True,
-        capture_output=True,
-        check=False,
-    )
+    pages_origin = "https://portfolio.github.io"
+
+    def run_health_check(allowed_origin: str) -> subprocess.CompletedProcess[str]:
+        return subprocess.run(
+            [
+                "bash",
+                "--noprofile",
+                "--norc",
+                "-eo",
+                "pipefail",
+                "-c",
+                publish_steps[health_check_index]["run"],
+            ],
+            cwd=tmp_path,
+            env={
+                **environment,
+                **install_stub_curl(
+                    tmp_path / "health-stub",
+                    allowed_origin=allowed_origin,
+                ),
+                "GITHUB_REPOSITORY_OWNER": "portfolio",
+            },
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+
+    health_result = run_health_check(pages_origin)
     assert health_result.returncode == 0, health_result.stderr
+    rejected_health_result = run_health_check("https://attacker.example")
+    assert rejected_health_result.returncode != 0
+    assert "does not allow the production Pages origin exactly" in rejected_health_result.stderr
     pages = sorted((frontend / "dist").rglob("*.html"))
     assert pages
     endpoint = (frontend / "production-api-endpoint.txt").read_text(
