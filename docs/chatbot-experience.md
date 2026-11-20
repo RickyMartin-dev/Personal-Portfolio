@@ -2,7 +2,7 @@
 
 ## V0 interaction
 
-The floating launcher opens a compact desktop conversation panel and a bottom sheet on phones. It has an explicit label, a polite live region, bounded input, waiting/error states, Enter-to-send and Shift+Enter for a newline. Escape and Close return focus to the launcher. Production Pages builds the client with the reviewed HTTPS endpoint from `frontend/production-api-endpoint.txt`; the publishing job verifies the artifact and checks the API health route and exact Pages-origin CORS before deployment. Local builds without `CHATBOT_API_ENDPOINT` keep the under-construction notice and send no requests. Local builds can preview the client with a validated HTTPS `/chat` endpoint.
+The floating launcher opens a compact desktop conversation panel and a bottom sheet on phones. It has an explicit label, a polite live region, bounded input, waiting/error states, Enter-to-send and Shift+Enter for a newline. Escape and Close return focus to the launcher. The backend removes model `<thinking>` markup before returning visitor-facing answers. Production availability and publishing checks are described in [delivery architecture](architecture.md#delivery-and-monitoring); local build and preview commands are in [project commands](project-commands.md#view-the-site-locally).
 
 ## Future interaction requirements
 

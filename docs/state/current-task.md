@@ -1,37 +1,26 @@
-# Current task: Cross-repository CI/CD and infrastructure
+# Current task: Restore the public portfolio chatbot
 
 ## Objective
 
-Implement the approved develop-branch quality, deployment, and low-cost IaC workflow for Personal-Portfolio and the private Vault Agent Lab.
+Restore the visitor-facing chatbot using the reviewed production endpoint. Keep production inference and privacy controls intact, keep local builds disabled without an endpoint, and block Pages publication unless the generated artifact and live API health/CORS checks pass.
 
-## Completed locally
+## Test-phase status
 
-### Personal-Portfolio
+- The target change builds an active production client from the tracked endpoint and keeps the local no-endpoint fallback disabled.
+- Focused backend tests covered response sanitization, Nova Micro selection, bounded temporary history, safety checks, monthly quota, caller throttling, and configuration; deployment and builder contract tests passed.
+- The active mocked chat browser flow passed. The local fallback browser flow displayed the rebuilding notice and made no API requests.
+- A build using the tracked production endpoint passed the artifact/config/CSP verifier. The live API health route and exact Pages-origin CORS preflight passed; no chat prompt or model inference was sent.
+- A screenshot of the open chat panel from the production-configured build is available in the run evidence directory.
+- Generated build, browser-test, dependency, and Python cache directories were removed after validation.
 
-- Release routing, endpoint protection, and the disabled production chatbot build are implemented; see [delivery architecture](../architecture.md#delivery-and-monitoring) for their current contract.
-- The verified Pages artifact is built once and reused. Browser tests are capped at two workers in CI.
+## Remaining work
 
-### Vault
+The test phase is complete. The outer executor owns the remaining review, CI, protected develop PR, and deployment steps. This phase did not run the full repository test suite.
 
-- The companion private Vault Agent Lab CI/IaC and Cloudflare Pages controls are covered separately by [RickyMartin-dev/Vault PR #7](https://github.com/RickyMartin-dev/Vault/pull/7); this repository change covers the portfolio side.
-- GitHub default branch is `develop`. Pull request CI targets `develop`; the release workflow requires an owner-triggered merged PR and deploys only to `vault-vs-lab`.
-- Cloudflare Pages dashboard branch controls were saved with production branch `develop`, automatic production deployments disabled, and preview branch deployments disabled. `old-thyme-antiques` was not changed.
-- GitHub repository variable `CLOUDFLARE_ACCOUNT_ID` is set. The Cloudflare deploy token secret is still missing.
-- Added app build/browser/dependency checks and Vault-only Terraform adoption code. Terraform prevents accidental deletion and leaves Access policies alone until the email allowlist is verified.
+## Previous task context: CI/CD and infrastructure
 
-## Verification
+This repository previously tracked a cross-repository CI/CD and infrastructure task for Personal-Portfolio and the private Vault Agent Lab.
 
-- Portfolio: Python suite 114 passed; UI suite 10 passed; mocked-chatbot browser suite 3 passed; Project Starter release checks and workflow guard passed; `git diff --check` passed.
-- Vault: static build passed; Chromium suite 4 passed; npm audit found 0 vulnerabilities; secret/workflow/instruction/Cloudflare scope checks and Project Starter release checks passed; YAML/HCL parsing and `git diff --check` passed.
-- Terraform CLI is unavailable locally. Terraform fmt/init/validate are configured in CI and remain to be confirmed by the PR workflows.
-
-## Remaining owner actions
-
-- Create a Cloudflare Pages-only API token and add it as Vault repository secret `CLOUDFLARE_API_TOKEN`.
-- Install Terraform and provide a separate local-only Pages plus Access token; import the existing Pages project and exact Access app, verify the current allowlist, inspect the plan, and apply.
-- GitHub Free cannot hard-block required checks on this private repo. Manually confirm both PR workflows pass before merging.
-- Review and merge the feature PRs after CI is green. No production deployment has been run from these feature branches.
-
-## Previous completed task
-
-The portfolio's private Agent Lab link was added and deployed through PR #52. PR #53 fixed unique GitHub Pages artifacts for deployment retries. The unrelated Old Thyme project remained untouched.
+- Portfolio release routing, endpoint protection, and verified Pages artifact reuse were implemented. The current portfolio contract activates the chatbot in production from its reviewed endpoint; local builds remain disabled without an endpoint.
+- Vault CI/IaC and Cloudflare Pages controls were handled separately by `RickyMartin-dev/Vault` PR #7. The earlier notes recorded a missing Cloudflare Pages API token, required Terraform adoption/import work, and owner review of protected branch checks.
+- The portfolio private Agent Lab link was previously added and deployed through PR #52; PR #53 fixed unique Pages artifacts for deployment retries.

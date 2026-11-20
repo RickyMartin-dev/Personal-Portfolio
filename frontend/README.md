@@ -1,6 +1,6 @@
 # Portfolio frontend
 
-This folder owns the static GitHub Pages site, its browser behavior, the Playwright suite, and the builder that creates `frontend/dist/`. Production Pages enables the chatbot using the reviewed endpoint; local builds without an endpoint display an under-construction notice and make no API calls.
+This folder owns the static GitHub Pages site, its browser behavior, the Playwright suite, and the builder that creates `frontend/dist/`. See [project commands](../docs/project-commands.md#view-the-site-locally) for local chatbot configuration and [delivery architecture](../docs/architecture.md#delivery-and-monitoring) for production publishing checks.
 
 ## Local use
 
@@ -18,4 +18,4 @@ The production site source of truth is in this folder: `index.html` (home), `pag
 
 Google Fonts (`fonts.googleapis.com` stylesheets, `fonts.gstatic.com` font files) and the chatbot API are allowed by each page's CSP; Web3Forms (`api.web3forms.com`) receives contact-form posts. No third-party scripts.
 
-The site builder copies the home page, pages, runtime assets, and images into `frontend/dist/`. It omits the backend, Terraform, docs, tests, and Project Starter tools. Without `CHATBOT_API_ENDPOINT`, it omits the chat client/config and keeps the under-construction notice. Production CI builds with the tracked endpoint and checks API health and browser CORS before publishing. `WEB3FORMS_KEY` is optional: with the key, the build fills the form's `access_key`; without it, the form is replaced by a direct email link.
+The site builder copies the home page, pages, runtime assets, and images into `frontend/dist/`. It omits the backend, Terraform, docs, tests, and Project Starter tools. Without `CHATBOT_API_ENDPOINT`, it omits the chat client/config and keeps the under-construction notice. `WEB3FORMS_KEY` is optional: with the key, the build fills the form's `access_key`; without it, the form is replaced by a direct email link.

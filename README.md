@@ -1,6 +1,6 @@
 # Personal Portfolio
 
-Static portfolio for Ricky Martin, published with GitHub Pages. The chatbot API runs on AWS Lambda behind API Gateway and calls Amazon Bedrock. Production Pages activates the public chatbot from the reviewed endpoint after API health and exact site-origin CORS checks; local builds without `CHATBOT_API_ENDPOINT` keep the under-construction notice. See [chatbot experience](docs/chatbot-experience.md) for interaction details.
+Static portfolio for Ricky Martin, published with GitHub Pages. The chatbot API runs on AWS Lambda behind API Gateway and calls Amazon Bedrock. Production Pages enables the public chatbot from its reviewed endpoint; local builds without `CHATBOT_API_ENDPOINT` keep the under-construction notice. See [chatbot experience](docs/chatbot-experience.md) for interaction details.
 
 ## Stack
 
@@ -41,7 +41,7 @@ Tests mock provider calls; they do not need AWS credentials or make paid inferen
 
 GitHub Actions publishes the verified Pages artifact from `develop`. Backend deployment uses the owner-approved `aws-production` environment. See [delivery architecture](docs/architecture.md#delivery-and-monitoring) for release routing and [project commands](docs/project-commands.md#github-pages-deployment) for repository setup.
 
-GitHub Pages uses **GitHub Actions** as its build and deployment source. The production workflow activates the chatbot only from the tracked endpoint and publishes after validating the generated client and CSP, live API health, and exact Pages-origin CORS. Local builds without `CHATBOT_API_ENDPOINT` keep the chatbot disabled. Contact-form fallback and override behavior, along with repository settings, are documented in [project commands](docs/project-commands.md#github-pages-deployment). The historical `static.yml` file remains on `main`, but that workflow is inactive in GitHub Actions.
+GitHub Pages uses **GitHub Actions** as its build and deployment source. See [delivery architecture](docs/architecture.md#delivery-and-monitoring) for the production chatbot endpoint and publish checks. Contact-form fallback and override behavior, along with repository settings, are documented in [project commands](docs/project-commands.md#github-pages-deployment). The historical `static.yml` file remains on `main`, but that workflow is inactive in GitHub Actions.
 
 The backend's runtime, privacy, retrieval, and operating-cost details are documented in [architecture](docs/architecture.md), [deployment and costs](docs/deployment-and-costs.md), and the [RAG operations guide](docs/future-rag-plan.md).
 
