@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 import math
+import re
 from time import perf_counter
 from typing import Any, Callable, TypedDict
 
@@ -30,6 +31,8 @@ logger = logging.getLogger(__name__)
 
 _CONTENT_CATEGORIES = ("VIOLENCE", "HATE", "SEXUAL", "MISCONDUCT", "INSULTS")
 _ATTACK_CATEGORIES = ("JAILBREAK", "PROMPT_INJECTION", "PROMPT_LEAKAGE")
+_THINKING_TAG = re.compile(r"<(/?)thinking\b[^>]*>", re.IGNORECASE)
+_THINKING_OPEN_START = re.compile(r"<thinking\b", re.IGNORECASE)
 
 
 class ChatState(TypedDict, total=False):
@@ -97,6 +100,37 @@ def _text_units(response: dict[str, Any]) -> int:
         for item in usage.values()
         if isinstance(item, dict)
     )
+
+
+def _public_answer(content: list[Any]) -> str:
+    """Return visitor-facing text and discard model-private thinking markup."""
+    answer = "".join(
+        block["text"]
+        for block in content
+        if isinstance(block, dict) and isinstance(block.get("text"), str)
+    )
+    visible: list[str] = []
+    cursor = 0
+    depth = 0
+    for tag in _THINKING_TAG.finditer(answer):
+        is_close = bool(tag.group(1))
+        if depth == 0:
+            visible.append(answer[cursor : tag.start()])
+            cursor = tag.end()
+            if not is_close:
+                depth = 1
+        elif is_close:
+            depth -= 1
+            if depth == 0:
+                cursor = tag.end()
+        else:
+            depth += 1
+
+    if depth == 0:
+        tail = answer[cursor:]
+        incomplete_open = _THINKING_OPEN_START.search(tail)
+        visible.append(tail[: incomplete_open.start()] if incomplete_open else tail)
+    return "".join(visible).strip()
 
 
 def _invoke_bedrock(client: Any, operation: str, **request: Any) -> dict[str, Any]:
@@ -203,9 +237,7 @@ class ChatAgent:
                 }
                 rag_searches = 1
             content = model_response["output"]["message"]["content"]
-            answer = "".join(
-                block["text"] for block in content if isinstance(block, dict) and "text" in block
-            ).strip()
+            answer = _public_answer(content)
             if not answer:
                 raise ValueError("Bedrock returned an empty answer")
             if len(answer) > MAX_OUTPUT_CHARS:

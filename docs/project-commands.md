@@ -9,7 +9,7 @@ The portfolio is static. Python 3 is the only requirement to serve it; no npm in
 # Visit http://127.0.0.1:8000
 ```
 
-Without `CHATBOT_API_ENDPOINT`, the chatbot shows an under-construction notice and sends no network requests. To preview the active client, build with a test HTTPS `/chat` endpoint and mock its responses in Playwright.
+Without `CHATBOT_API_ENDPOINT`, the chatbot shows an under-construction notice and sends no network requests. Production activation and publishing checks are described in [delivery architecture](architecture.md#delivery-and-monitoring). To preview the active client locally, build with a test HTTPS `/chat` endpoint and mock its responses in Playwright.
 
 ## Install tools for the full test suite
 

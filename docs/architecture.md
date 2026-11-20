@@ -36,13 +36,14 @@ Feature branches target `develop`. Pull requests run starter/security checks, mo
 
 Pushes to `develop` run the checks again and classify the complete change set since the last successful release. Backend runtime or application Terraform changes deploy through short-lived GitHub OIDC credentials and the protected `aws-production` environment. Frontend changes publish Pages; mixed changes publish Pages only after backend health succeeds; docs/tests-only changes do not publish. If the release baseline is unavailable, both deployment lanes run conservatively. Bootstrap Terraform is validated but remains owner-run because it manages deployment identity and remote state.
 
-The workflow checks the planned and applied API endpoint against `frontend/production-api-endpoint.txt`. API Gateway is protected from accidental replacement with Terraform `prevent_destroy`. The production Pages build omits `CHATBOT_API_ENDPOINT`, so the published chatbot client stays disabled pending a separate backend and endpoint review.
+The workflow checks the planned and applied API endpoint against `frontend/production-api-endpoint.txt`. API Gateway is protected from accidental replacement with Terraform `prevent_destroy`. The production Pages build uses that reviewed endpoint to activate the chatbot. Before publishing, CI verifies the built client, its endpoint and CSP, then checks the live API health route and exact Pages-origin CORS. A local build without `CHATBOT_API_ENDPOINT` remains disabled by default.
 
 The weekly report runs Monday at 8 AM New York time and summarizes the previous week. It includes request outcomes, token totals, latency, safety-check usage, retrieval counts, and account-wide costs. Cost Explorer data can lag and is not attributed solely to the chatbot. Prompts, replies, and document content are excluded. The destination inbox must confirm the SNS subscription after the first deployment.
 
 ## Trust and cost boundaries
 
 - Published JavaScript and HTML are public. Never place AI provider credentials in them.
+- Production chat uses Amazon Nova Micro only; the Lambda role boundary allows no higher-cost generative model, and there is no model fallback. Output is capped at 300 tokens and usage at 1,000 chat requests per UTC month.
 - The browser calls the configured public endpoint; its history exists only for the page lifetime.
 - Contact-form provider configuration is separate from the chatbot. Its public form identifier is not an AI credential.
 - Infrastructure deployment manages only resources declared by this repository. It does not import or remove unrelated services.

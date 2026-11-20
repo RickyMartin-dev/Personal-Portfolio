@@ -2,7 +2,7 @@
 
 ## V0 interaction
 
-When enabled, the floating launcher opens a compact desktop conversation panel and a bottom sheet on phones. It has an explicit label, a polite live region, bounded input, waiting/error states, Enter-to-send and Shift+Enter for a newline. Escape and Close return focus to the launcher. The production workflow does not pass `CHATBOT_API_ENDPOINT`, so the published build keeps the under-construction notice and sends no requests even though the reviewed API endpoint is tracked. Re-enabling the client requires a separate backend and endpoint review. Local builds can preview the client with a validated HTTPS `/chat` endpoint.
+The floating launcher opens a compact desktop conversation panel and a bottom sheet on phones. It has an explicit label, a polite live region, bounded input, waiting/error states, Enter-to-send and Shift+Enter for a newline. Escape and Close return focus to the launcher. The backend removes model `<thinking>` markup before returning visitor-facing answers. Production availability and publishing checks are described in [delivery architecture](architecture.md#delivery-and-monitoring); local build and preview commands are in [project commands](project-commands.md#view-the-site-locally).
 
 ## Future interaction requirements
 

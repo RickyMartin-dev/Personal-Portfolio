@@ -16,11 +16,11 @@ Maintain Ricky Martin's portfolio and deployed chatbot as one small, reviewable 
 - The public UI, browser tests, Playwright tooling, and Pages builder live in `frontend/`.
 - The chatbot API, LangGraph code, runtime dependencies, Lambda image, AWS infrastructure, bootstrap, and inference smoke check live in `backend/`.
 - Pull requests target `develop` and require the quality gate. Release routing and owner-run bootstrap policy are documented in [`docs/architecture.md`](docs/architecture.md#delivery-and-monitoring).
-- The chatbot launcher displays an accessible under-construction notice. It sends no requests and loads no API configuration. Do not re-enable the chat client until a separate backend and endpoint review is complete.
+- Production Pages enables the chatbot from the reviewed endpoint; local builds without `CHATBOT_API_ENDPOINT` keep the under-construction notice. See [delivery architecture](docs/architecture.md#delivery-and-monitoring) for publish checks.
 - `backend/` and its Terraform describe the active FastAPI/LangGraph deployment. Local UI development and checks do not require AWS credentials, `.env`, Terraform apply, or a live model call.
 - The production chatbot endpoint is recorded in `frontend/production-api-endpoint.txt`. The deploy workflow compares it to the Terraform plan before applying; endpoint changes require a separate reviewed migration and must not replace the API in place.
 - Never expose AI credentials in browser code. Do not persist prompts or replies in logs, S3, or a database. Log token counts, model, latency, request ID, and status only.
-- If reactivating the public API, remember CORS is not authentication; retain schema validation, message/context limits, Bedrock safety checks, and API Gateway throttling.
+- The public API is unauthenticated; CORS is not authentication. Retain schema validation, message/context limits, Bedrock safety checks, and API Gateway throttling.
 - Existing AWS resources were not changed by the Pages work. Do not modify or retire them during a Pages-only task.
 
 ## Working contract
