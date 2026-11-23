@@ -38,7 +38,9 @@ Pushes to `develop` run the checks again and classify the complete change set si
 
 The workflow checks the planned and applied API endpoint against `frontend/production-api-endpoint.txt`. API Gateway is protected from accidental replacement with Terraform `prevent_destroy`. The production Pages build uses that reviewed endpoint to activate the chatbot. Before publishing, CI verifies the built client, its endpoint and CSP, then checks the live API health route and exact Pages-origin CORS. A local build without `CHATBOT_API_ENDPOINT` remains disabled by default.
 
-The weekly report is scheduled for Monday at 8 AM New York time and summarizes the previous week. It includes request outcomes, token totals, latency, safety-check usage, retrieval counts, and account-wide costs. Cost Explorer data can lag and is not attributed solely to the chatbot. Prompts, replies, and document content are excluded. The SNS email subscription is confirmed; delivery still depends on the report Lambda completing successfully.
+The weekly report is scheduled for Monday at 8 AM New York time and summarizes the previous week. EventBridge retries failed invocations twice over up to one hour. A CloudWatch alarm emails the report owner if the report Lambda records an error. It includes request outcomes, token totals, latency, safety-check usage, retrieval counts, and account-wide costs. Cost Explorer data can lag and is not attributed solely to the chatbot. Prompts, replies, and document content are excluded.
+
+The report currently covers one registered agent: the portfolio chatbot. For future agents, add an explicit report registry entry for each approved log group and give each agent a stable `agent_id` in its structured usage events. Report per-agent request, outcome, model, and token totals, plus a model-token cost estimate using maintained model rates. Keep shared AWS infrastructure costs separate as account-wide amounts; do not auto-discover or grant the report Lambda access to every log group in the account.
 
 ### Private Vault metrics view (planned, not connected)
 
