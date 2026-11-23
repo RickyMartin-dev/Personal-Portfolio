@@ -95,18 +95,23 @@ def collect_logs(start: datetime, end: datetime) -> dict[str, int | float]:
 def collect_account_cost(start: datetime, end: datetime) -> tuple[Decimal, list[tuple[str, Decimal]]]:
     # Cost Explorer accepts UTC date boundaries and may update recent costs with a delay.
     ce = boto3.client("ce", region_name="us-east-1")
-    paginator = ce.get_paginator("get_cost_and_usage")
     by_service: dict[str, Decimal] = {}
-    for page in paginator.paginate(
-        TimePeriod={"Start": start.date().isoformat(), "End": end.date().isoformat()},
-        Granularity="DAILY",
-        Metrics=["UnblendedCost"],
-        GroupBy=[{"Type": "DIMENSION", "Key": "SERVICE"}],
-    ):
+    request = {
+        "TimePeriod": {"Start": start.date().isoformat(), "End": end.date().isoformat()},
+        "Granularity": "DAILY",
+        "Metrics": ["UnblendedCost"],
+        "GroupBy": [{"Type": "DIMENSION", "Key": "SERVICE"}],
+    }
+    while True:
+        page = ce.get_cost_and_usage(**request)
         for day in page.get("ResultsByTime", []):
             for group in day.get("Groups", []):
                 amount = Decimal(group["Metrics"]["UnblendedCost"]["Amount"])
                 by_service[group["Keys"][0]] = by_service.get(group["Keys"][0], Decimal("0")) + amount
+        next_page_token = page.get("NextPageToken")
+        if not next_page_token:
+            break
+        request["NextPageToken"] = next_page_token
     return sum(by_service.values(), Decimal("0")), sorted(by_service.items(), key=lambda pair: pair[1], reverse=True)
 
 

@@ -38,7 +38,13 @@ Pushes to `develop` run the checks again and classify the complete change set si
 
 The workflow checks the planned and applied API endpoint against `frontend/production-api-endpoint.txt`. API Gateway is protected from accidental replacement with Terraform `prevent_destroy`. The production Pages build uses that reviewed endpoint to activate the chatbot. Before publishing, CI verifies the built client, its endpoint and CSP, then checks the live API health route and exact Pages-origin CORS. A local build without `CHATBOT_API_ENDPOINT` remains disabled by default.
 
-The weekly report runs Monday at 8 AM New York time and summarizes the previous week. It includes request outcomes, token totals, latency, safety-check usage, retrieval counts, and account-wide costs. Cost Explorer data can lag and is not attributed solely to the chatbot. Prompts, replies, and document content are excluded. The destination inbox must confirm the SNS subscription after the first deployment.
+The weekly report is scheduled for Monday at 8 AM New York time and summarizes the previous week. It includes request outcomes, token totals, latency, safety-check usage, retrieval counts, and account-wide costs. Cost Explorer data can lag and is not attributed solely to the chatbot. Prompts, replies, and document content are excluded. The SNS email subscription is confirmed; delivery still depends on the report Lambda completing successfully.
+
+### Private Vault metrics view (planned, not connected)
+
+The Vault is a separate Cloudflare Pages application behind Cloudflare Access. It currently has no AWS metrics endpoint or live portfolio-agent data. To add a read-only view, route only `/api/portfolio-metrics` through a lightweight Pages Function. The Function validates the Access assertion and forwards it to a separate AWS API Gateway metrics route. AWS must independently verify the JWT signature, configured issuer, Vault application's audience, expiry, and the small approved-user list; the Access login gate on the static page alone does not authorize AWS requests.
+
+That AWS route should invoke a dedicated metrics Lambda with read-only IAM access limited to the chatbot's CloudWatch log group, API Gateway metrics, and monthly usage table. It should return bounded aggregates such as request counts, outcomes, token totals, latency, RAG usage, and estimated model spend, never prompts, replies, document text, or raw visitor identifiers. Do not call Cost Explorer on each dashboard refresh: each paginated API request costs $0.01, and its service-level charges are account-wide rather than attributable to this chatbot alone. Keep actual account-cost reporting in the weekly email; query the dashboard only on open or explicit refresh, limit the date range, and avoid frequent polling. Keep AWS credentials out of the browser and do not reuse the public `/chat` endpoint as a monitoring API.
 
 ## Trust and cost boundaries
 
