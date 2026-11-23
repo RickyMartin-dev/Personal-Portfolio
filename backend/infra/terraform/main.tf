@@ -348,6 +348,24 @@ resource "aws_lambda_function" "weekly_report" {
   depends_on = [aws_iam_role_policy.weekly_report, aws_cloudwatch_log_group.weekly_report]
 }
 
+resource "aws_cloudwatch_metric_alarm" "weekly_report_errors" {
+  alarm_name          = "${var.project_name}-weekly-report-errors"
+  alarm_description   = "Email the report owner if the weekly usage report Lambda fails."
+  comparison_operator = "GreaterThanThreshold"
+  evaluation_periods  = 1
+  metric_name         = "Errors"
+  namespace           = "AWS/Lambda"
+  period              = 60
+  statistic           = "Sum"
+  threshold           = 0
+  treat_missing_data  = "notBreaching"
+  alarm_actions       = [aws_sns_topic.weekly_report.arn]
+
+  dimensions = {
+    FunctionName = aws_lambda_function.weekly_report.function_name
+  }
+}
+
 data "aws_iam_policy_document" "weekly_report_scheduler_assume_role" {
   statement {
     actions = ["sts:AssumeRole"]
