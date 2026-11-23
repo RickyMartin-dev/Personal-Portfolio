@@ -1,6 +1,8 @@
 from datetime import datetime, timezone
 from decimal import Decimal
 
+from src import weekly_report as weekly_report_module
+from src.weekly_report import collect_account_cost
 from src.weekly_report import previous_week, render_email
 
 
@@ -36,3 +38,50 @@ def test_weekly_email_is_plain_text_and_labels_account_wide_cost():
     assert "Costs are account-wide" in body
     assert "RAG searches: 2 (5 retrieved passages)" in body
     assert "<html>" not in body
+
+
+def test_collect_account_cost_follows_cost_explorer_next_page_token(monkeypatch):
+    class CostExplorer:
+        def __init__(self):
+            self.requests = []
+            self.pages = [
+                {
+                    "ResultsByTime": [{
+                        "Groups": [
+                            {"Keys": ["Amazon Bedrock"], "Metrics": {"UnblendedCost": {"Amount": "0.12"}}},
+                            {"Keys": ["AWS Lambda"], "Metrics": {"UnblendedCost": {"Amount": "0.03"}}},
+                        ]
+                    }],
+                    "NextPageToken": "page-2",
+                },
+                {
+                    "ResultsByTime": [{
+                        "Groups": [
+                            {"Keys": ["Amazon Bedrock"], "Metrics": {"UnblendedCost": {"Amount": "0.01"}}},
+                            {"Keys": ["Amazon S3"], "Metrics": {"UnblendedCost": {"Amount": "0.02"}}},
+                        ]
+                    }]
+                },
+            ]
+
+        def get_cost_and_usage(self, **request):
+            self.requests.append(request.copy())
+            return self.pages.pop(0)
+
+    client = CostExplorer()
+    monkeypatch.setattr(weekly_report_module.boto3, "client", lambda service, region_name: client)
+    start = datetime(2026, 11, 16, tzinfo=timezone.utc)
+    end = datetime(2026, 11, 23, tzinfo=timezone.utc)
+
+    total, services = collect_account_cost(start, end)
+
+    assert total == Decimal("0.18")
+    assert services == [
+        ("Amazon Bedrock", Decimal("0.13")),
+        ("AWS Lambda", Decimal("0.03")),
+        ("Amazon S3", Decimal("0.02")),
+    ]
+    assert len(client.requests) == 2
+    assert client.requests[0]["TimePeriod"] == {"Start": "2026-11-16", "End": "2026-11-23"}
+    assert "NextPageToken" not in client.requests[0]
+    assert client.requests[1]["NextPageToken"] == "page-2"
