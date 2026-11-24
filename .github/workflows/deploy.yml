@@ -45,7 +45,7 @@ jobs:
       - name: Run Project Starter and secret checks
         run: ./scripts/project release-check
       - name: Set up Python
-        uses: actions/setup-python@4267e283df95c05d9f16ece6624106f44613b489 # v6.0.0
+        uses: actions/setup-python@5043d30437de73e5e7500b5c41676e0c30aa54f2 # v6.0.0
         with:
           python-version: '3.12'
       - name: Install backend test dependencies
