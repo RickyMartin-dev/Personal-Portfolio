@@ -14,6 +14,7 @@ locals {
   report_lambda_role           = "arn:${data.aws_partition.current.partition}:iam::${data.aws_caller_identity.current.account_id}:role/personal-portfolio-chatbot-weekly-report"
   scheduler_role_arn           = "arn:${data.aws_partition.current.partition}:iam::${data.aws_caller_identity.current.account_id}:role/personal-portfolio-chatbot-weekly-report-scheduler"
   report_topic_arn             = "arn:${data.aws_partition.current.partition}:sns:${var.aws_region}:${data.aws_caller_identity.current.account_id}:personal-portfolio-chatbot-weekly-report"
+  report_alarm_arn             = "arn:${data.aws_partition.current.partition}:cloudwatch:${var.aws_region}:${data.aws_caller_identity.current.account_id}:alarm:personal-portfolio-chatbot-weekly-report-errors"
   report_subscription_arn      = "${local.report_topic_arn}:*"
   workload_boundary_arn        = "arn:${data.aws_partition.current.partition}:iam::${data.aws_caller_identity.current.account_id}:policy/personal-portfolio-chatbot-workload-boundary"
   report_schedule_arn          = "arn:${data.aws_partition.current.partition}:scheduler:${var.aws_region}:${data.aws_caller_identity.current.account_id}:schedule/default/personal-portfolio-chatbot-weekly-report"
@@ -58,6 +59,9 @@ locals {
       "ManageWeeklyReportLambda",
       "ManageWeeklyReportLogs",
       "ManageWeeklyReportTopic",
+      "CreateWeeklyReportAlarm",
+      "ManageWeeklyReportAlarmMetadata",
+      "DescribeWeeklyReportAlarm",
       "ManageWeeklyReportSchedule",
       "ManageRagSourceBucket",
       "ManageRagQueues",
@@ -584,6 +588,38 @@ data "aws_iam_policy_document" "github_deploy" {
       "sns:UntagResource",
     ]
     resources = [local.report_topic_arn, local.report_subscription_arn]
+  }
+
+  statement {
+    sid       = "CreateWeeklyReportAlarm"
+    effect    = "Allow"
+    actions   = ["cloudwatch:PutMetricAlarm"]
+    resources = [local.report_alarm_arn]
+
+    condition {
+      test     = "ForAllValues:ArnEquals"
+      variable = "cloudwatch:AlarmActions"
+      values   = [local.report_topic_arn]
+    }
+  }
+
+  statement {
+    sid       = "ManageWeeklyReportAlarmMetadata"
+    effect    = "Allow"
+    actions = [
+      "cloudwatch:DeleteAlarms",
+      "cloudwatch:ListTagsForResource",
+      "cloudwatch:TagResource",
+      "cloudwatch:UntagResource",
+    ]
+    resources = [local.report_alarm_arn]
+  }
+
+  statement {
+    sid       = "DescribeWeeklyReportAlarm"
+    effect    = "Allow"
+    actions   = ["cloudwatch:DescribeAlarms"]
+    resources = ["*"]
   }
 
   statement {
