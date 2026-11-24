@@ -604,9 +604,9 @@ data "aws_iam_policy_document" "github_deploy" {
   }
 
   statement {
-    sid       = "ManageWeeklyReportAlarmMetadata"
-    effect    = "Allow"
-    actions   = [
+    sid    = "ManageWeeklyReportAlarmMetadata"
+    effect = "Allow"
+    actions = [
       "cloudwatch:DeleteAlarms",
       "cloudwatch:ListTagsForResource",
       "cloudwatch:TagResource",
