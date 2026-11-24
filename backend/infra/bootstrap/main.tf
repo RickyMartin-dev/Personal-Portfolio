@@ -597,7 +597,7 @@ data "aws_iam_policy_document" "github_deploy" {
     resources = [local.report_alarm_arn]
 
     condition {
-      test     = "ForAllValues:ArnEquals"
+      test     = "ForAllValues:StringEquals"
       variable = "cloudwatch:AlarmActions"
       values   = [local.report_topic_arn]
     }
