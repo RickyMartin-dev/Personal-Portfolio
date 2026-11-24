@@ -12,6 +12,22 @@ locals {
   lambda_log_group_name = "/aws/lambda/${var.project_name}"
   image_uri             = "${aws_ecr_repository.chatbot.repository_url}:${var.image_tag}"
   allowed_origin_string = join(",", var.allowed_origins)
+  weekly_report_agents = merge(var.additional_weekly_report_agents, {
+    portfolio_chatbot = {
+      display_name   = "Personal Portfolio Chatbot"
+      log_group_name = local.lambda_log_group_name
+      # AWS Bedrock on-demand rates, USD per million tokens; update when AWS pricing changes.
+      model_rates = var.bedrock_model_id == "us.amazon.nova-micro-v1:0" ? {
+        (var.bedrock_model_id) = {
+          input_per_million  = 0.035
+          output_per_million = 0.14
+        }
+      } : {}
+    }
+  })
+  weekly_report_log_group_arns = distinct([
+    for agent in values(local.weekly_report_agents) : "arn:${data.aws_partition.current.partition}:logs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:log-group:${agent.log_group_name}:*"
+  ])
 }
 
 resource "aws_ecr_repository" "chatbot" {
@@ -170,6 +186,7 @@ resource "aws_lambda_function" "chatbot" {
     variables = {
       BEDROCK_REGION             = var.aws_region
       BEDROCK_MODEL_ID           = var.bedrock_model_id
+      AGENT_ID                   = "portfolio_chatbot"
       BEDROCK_KNOWLEDGE_BASE_ID  = aws_bedrockagent_knowledge_base.portfolio.id
       MAX_OUTPUT_TOKENS          = tostring(var.max_output_tokens)
       GUARDRAIL_BLOCK_THRESHOLD  = tostring(var.guardrail_block_threshold)
@@ -294,7 +311,7 @@ data "aws_iam_policy_document" "weekly_report" {
   statement {
     sid       = "ReadSanitizedChatMetrics"
     actions   = ["logs:FilterLogEvents"]
-    resources = ["${aws_cloudwatch_log_group.lambda.arn}:*"]
+    resources = local.weekly_report_log_group_arns
   }
 
   statement {
@@ -340,8 +357,9 @@ resource "aws_lambda_function" "weekly_report" {
 
   environment {
     variables = {
-      CHATBOT_LOG_GROUP = aws_cloudwatch_log_group.lambda.name
-      REPORT_TOPIC_ARN  = aws_sns_topic.weekly_report.arn
+      AGENT_REGISTRY_JSON = jsonencode(local.weekly_report_agents)
+      CHATBOT_LOG_GROUP   = aws_cloudwatch_log_group.lambda.name
+      REPORT_TOPIC_ARN    = aws_sns_topic.weekly_report.arn
     }
   }
 

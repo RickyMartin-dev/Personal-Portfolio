@@ -4,11 +4,13 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 import sys
 from datetime import datetime, timezone
 
 
 _SAFE_FIELDS = (
+    "agent_id",
     "event",
     "request_id",
     "outcome",
@@ -24,6 +26,8 @@ _SAFE_FIELDS = (
     "bedrock_operation",
 )
 
+DEFAULT_AGENT_ID = os.environ.get("AGENT_ID", "portfolio_chatbot")
+
 
 class JsonFormatter(logging.Formatter):
     def format(self, record: logging.LogRecord) -> str:
@@ -32,6 +36,7 @@ class JsonFormatter(logging.Formatter):
             "level": record.levelname,
             "logger": record.name,
             "message": record.getMessage(),
+            "agent_id": getattr(record, "agent_id", DEFAULT_AGENT_ID),
         }
         for field in _SAFE_FIELDS:
             value = getattr(record, field, None)

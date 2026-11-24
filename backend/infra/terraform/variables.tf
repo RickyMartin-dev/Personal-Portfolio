@@ -142,3 +142,23 @@ variable "weekly_report_email" {
     error_message = "weekly_report_email must be an email address."
   }
 }
+
+variable "additional_weekly_report_agents" {
+  description = "Explicit report registry entries for future agents. Each entry grants the report Lambda read access only to its declared log group. The portfolio chatbot is registered automatically."
+  type = map(object({
+    display_name   = string
+    log_group_name = string
+    model_rates = map(object({
+      input_per_million  = number
+      output_per_million = number
+    }))
+  }))
+  default = {}
+
+  validation {
+    condition = alltrue([
+      for agent_id, agent in var.additional_weekly_report_agents : agent_id != "portfolio_chatbot" && length(trimspace(agent.display_name)) > 0 && startswith(agent.log_group_name, "/")
+    ])
+    error_message = "Additional agents need a non-empty display name, a slash-prefixed log group, and an ID other than portfolio_chatbot."
+  }
+}

@@ -692,6 +692,30 @@ def test_chat_api_is_protected_from_accidental_terraform_replacement() -> None:
     assert api["lifecycle"][0]["prevent_destroy"] is True
 
 
+def test_weekly_report_log_reads_are_scoped_to_registered_agent_groups() -> None:
+    main_path = APP_TERRAFORM_DIR / "main.tf"
+    with main_path.open(encoding="utf-8") as terraform:
+        root = hcl2.load(terraform)
+    documents = {
+        name.strip('"'): body
+        for block in root["data"]
+        for kind, named in block.items()
+        if kind.strip('"') == "aws_iam_policy_document"
+        for name, body in named.items()
+    }
+    statement = next(
+        item
+        for item in documents["weekly_report"]["statement"]
+        if item.get("sid") == '"ReadSanitizedChatMetrics"'
+    )
+    registry_arns = root["locals"][0]["weekly_report_log_group_arns"]
+
+    assert statement["actions"] == ['"logs:FilterLogEvents"']
+    assert statement["resources"] == "${local.weekly_report_log_group_arns}"
+    assert "values(local.weekly_report_agents)" in registry_arns
+    assert "${agent.log_group_name}" in registry_arns
+
+
 def test_every_workload_role_carries_the_permissions_boundary() -> None:
     roles = app_resources("aws_iam_role")
 
