@@ -6,7 +6,7 @@ See [delivery architecture](architecture.md#delivery-and-monitoring) for the qua
 
 The backend is managed by Terraform. A one-time bootstrap creates remote state storage, deployment identity, and account-budget notifications. Application deployment creates the API, serverless runtime, usage guard, and operational logs. The RAG implementation adds a private S3 document source, event queue, indexing worker, managed knowledge base, and S3 Vectors index. The document index starts empty. Follow [`future-rag-plan.md`](future-rag-plan.md) to find the output-based upload location after deployment.
 
-The weekly report runs on Monday morning in New York time. It covers the preceding week and reports privacy-safe request outcomes, token counts, latency, safety-check and retrieval counts, plus account-wide AWS costs by service. Cost Explorer totals can lag and can include unrelated services. The email subscription requires confirmation in the destination inbox after initial deployment.
+The weekly report runs Monday at 8 AM New York time. It covers the preceding week and reports privacy-safe request outcomes, token counts, latency, safety-check and retrieval counts per registered agent, plus an estimated model-inference cost calculated from token usage and configured rates. These per-agent figures exclude shared infrastructure. Account-wide AWS costs by service appear separately; Cost Explorer totals can lag and can include unrelated services. The email subscription requires confirmation in the destination inbox after initial deployment. Future agents must be explicitly added to `backend/infra/terraform/agent-registry.auto.tfvars.json` and emit the same stable `agent_id` in usage logs.
 
 ## Privacy and spend controls
 
