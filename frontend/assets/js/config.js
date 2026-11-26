@@ -38,7 +38,7 @@
       heroAlign: 'left', heroV: 'top', heroHeight: 100, heroTextWidth: 36,
       nav: 'bar', navAlign: 'right', sticky: true,
       work: 'list',
-      order: { index: ['work', 'kinetic', 'focus', 'contact'], about: ['profile', 'experience', 'toolkit', 'outside', 'contact'], games: ['gallery', 'contact'] },
+      order: { index: ['work', 'kinetic', 'focus', 'contact'], about: ['profile', 'experience', 'education', 'toolkit', 'outside', 'contact'], games: ['gallery', 'contact'] },
       hidden: { index: [], about: [], games: [] },
       launcher: 'br'
     },
@@ -83,6 +83,7 @@
     about: [
       { key: 'profile', label: 'Profile' },
       { key: 'experience', label: 'Experience' },
+      { key: 'education', label: 'Education' },
       { key: 'toolkit', label: 'Toolkit' },
       { key: 'outside', label: 'Life outside code' },
       { key: 'contact', label: 'Contact' }
