@@ -68,6 +68,15 @@
         ],
         "createdAt": "2026-11-20T04:13:49.700Z",
         "reason": "Agent: the flagged 1.12 line height belongs to the no-wrap kinetic marquee; paragraph copy keeps 1.5+ leading."
+      },
+      {
+        "rule": "overused-font",
+        "value": "inter",
+        "files": [
+          ".lavish/portfolio-vault-system-map.html"
+        ],
+        "createdAt": "2026-11-23T17:34:37.900Z",
+        "reason": "Project design system: DESIGN.md lists Inter as the loaded body font; this artifact intentionally follows that system."
       }
     ]
   }
